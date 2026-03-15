@@ -1,0 +1,60 @@
+---
+title: "Inboxes"
+description: "Every agent gets a dedicated email address"
+icon: inbox
+---
+
+An inbox is a unique email address assigned to an agent. When you create an inbox, the agent can immediately send and receive email from that address.
+
+## Address format
+
+Inboxes use the `openmail.sh` domain:
+
+```
+{mailboxName}@openmail.sh
+```
+
+For example: `support@openmail.sh`
+
+- If you provide a `mailboxName`, it becomes the local part of the address
+- If you omit it, we generate a random 8-character alphanumeric string
+- Mailbox names must be 3–30 characters, lowercase alphanumeric with dots and hyphens allowed
+
+Need your own domain (e.g. `agent@yourdomain.com`)? [Contact us](mailto:support@openmail.to).
+
+## Sender name
+
+Set `displayName` when creating or updating an inbox to control how recipients see the sender. Without a display name, recipients see the raw email address. With a display name, the From header becomes `Name <address>`.
+
+```json
+{
+  "displayName": "John Smith",
+  "mailboxName": "john"
+}
+```
+
+Recipients will see **John Smith** instead of the raw email address. You can update the display name at any time with `PATCH /v1/inboxes/:id`.
+
+## Multi-tenant routing
+
+Route inbound events by `inbox_id`. Map each inbox ID to your user/agent/container in your app.
+
+**Multi-tenant** - One account, many inboxes. Create one inbox per agent and route by `inbox_id`.
+
+**Multiple inboxes per user** - You can create multiple inboxes for the same user. Webhooks include `inbox_id` so you can identify which inbox received the message.
+
+<Tip>
+  See [Email deliverability](/best-practices/email-deliverability) for warm-up schedules and content best practices.
+</Tip>
+
+## Limits
+
+| Limit | Value |
+|-------|-------|
+| Inbox creation | 100/day per account |
+
+Contact us if you need higher limits.
+
+## Lifecycle
+
+Deleting an inbox (`DELETE /v1/inboxes/:id`) permanently removes the inbox and all associated messages, threads, and attachments. This is not reversible.

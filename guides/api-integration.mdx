@@ -1,0 +1,371 @@
+---
+title: "API integration"
+description: "Create and manage inboxes via API. For multi-tenant apps and agent frameworks."
+icon: code
+---
+
+For developers building AI agents with [OpenClaw](https://openclaw.ai), [LangChain](https://langchain.com), [n8n](https://n8n.io), [Make](https://make.com), [Vercel AI SDK](https://sdk.vercel.ai), or any agent framework. This guide uses OpenClaw as the example—the same pattern (create inbox, inject env vars, route inbound by `inbox_id`) works with other frameworks.
+
+## Prerequisites
+
+- [OpenMail account](https://console.openmail.sh) with API key
+- An AI agent or agent framework (e.g. [OpenClaw](https://openclaw.ai), [LangChain](https://langchain.com), [n8n](https://n8n.io))
+
+<div className="openmail-prompt-card">
+<Prompt
+  description="Use this pre-built prompt to get started faster."
+  icon="wand-sparkles"
+  actions={["copy", "cursor"]}
+>
+Read https://docs.openmail.sh/quickstart/api then implement the OpenMail integration for our OpenClaw agent:
+
+1. Create inbox - call POST /v1/inboxes, write OPENMAIL_API_KEY, OPENMAIL_INBOX_ID, and OPENMAIL_ADDRESS into the agent container's env
+2. SKILL.md file - place at ~/.openclaw/skills/openmail/SKILL.md, teaches the agent to send/receive/reply via curl
+3. Webhook handler at POST /webhooks/openmail - verifies X-Signature (HMAC-SHA256), routes inbound email to the correct container using inbox_id from the payload
+
+Use our existing patterns for env var injection and container routing.
+</Prompt>
+</div>
+
+## Step 1: Create an inbox
+
+One API call. Create an inbox and map `inbox_id` to your user/container in your app for routing.
+
+<CodeGroup>
+
+```javascript Node.js
+const fs = require("fs/promises");
+
+const OPENMAIL_API_KEY = process.env.OPENMAIL_API_KEY;
+
+async function createAgentInbox(userId, containerEnvPath) {
+  const response = await fetch("https://api.openmail.sh/v1/inboxes", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENMAIL_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ mailboxName: userId }),
+  });
+
+  if (!response.ok) throw new Error(`OpenMail: ${response.status}`);
+
+  const inbox = await response.json();
+  // inbox.id      → "inb_8f3a1b2c"
+  // inbox.address → "jane@openmail.sh"
+
+  await fs.appendFile(
+    containerEnvPath,
+    [
+      `OPENMAIL_API_KEY=${OPENMAIL_API_KEY}`,
+      `OPENMAIL_INBOX_ID=${inbox.id}`,
+      `OPENMAIL_ADDRESS=${inbox.address}`,
+    ].join("\n") + "\n"
+  );
+
+  return inbox;
+}
+```
+
+```python Python
+import os, requests
+
+OPENMAIL_API_KEY = os.environ["OPENMAIL_API_KEY"]
+
+def create_agent_inbox(user_id: str, container_env_path: str) -> dict:
+    response = requests.post(
+        "https://api.openmail.sh/v1/inboxes",
+        headers={"Authorization": f"Bearer {OPENMAIL_API_KEY}"},
+        json={"mailboxName": user_id},
+    )
+    response.raise_for_status()
+    inbox = response.json()
+    # inbox["id"]      → "inb_8f3a1b2c"
+    # inbox["address"] → "jane@openmail.sh"
+
+    with open(container_env_path, "a") as f:
+        f.write(f"OPENMAIL_API_KEY={OPENMAIL_API_KEY}\n")
+        f.write(f"OPENMAIL_INBOX_ID={inbox['id']}\n")
+        f.write(f"OPENMAIL_ADDRESS={inbox['address']}\n")
+
+    return inbox
+```
+
+</CodeGroup>
+
+## Step 2: Write env vars into the container
+
+Three variables per container. The API key is shared across all agents; the inbox ID and address are unique.
+
+```bash
+OPENMAIL_API_KEY=om_...
+OPENMAIL_INBOX_ID=inb_8f3a1b2c
+OPENMAIL_ADDRESS=jane@openmail.sh
+```
+
+For OpenClaw, set these in `~/.openclaw/.env` or in `~/.openclaw/openclaw.json` under `skills.entries.openmail.env`. For other frameworks, inject them into your agent's environment (e.g. LangChain tool config, n8n node credentials).
+
+## Step 3: Add the skill file
+
+This file teaches the agent how to send and receive email. OpenClaw loads it into the LLM's system prompt; other frameworks use similar patterns (system prompts, tool descriptions). The agent calls the API via `curl`—no CLI binary needed.
+
+For OpenClaw, place at `~/.openclaw/skills/openmail/SKILL.md` or pre-bake into your Docker image. For other frameworks, adapt the path—the skill content is the same.
+
+````markdown SKILL.md
+---
+name: openmail
+description: Send and receive email via OpenMail
+requires:
+  env:
+    - OPENMAIL_API_KEY
+    - OPENMAIL_INBOX_ID
+    - OPENMAIL_ADDRESS
+---
+
+# OpenMail
+
+Your email address is $OPENMAIL_ADDRESS. Use it when introducing yourself or sharing contact info.
+
+## Send an email
+
+```bash
+curl -s -X POST "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/send" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{
+    "to": "recipient@example.com",
+    "subject": "Subject",
+    "body": "Message body"
+  }'
+```
+
+Save the `threadId` from the response to reply in the same thread later.
+
+## Reply in a thread
+
+```bash
+curl -s -X POST "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/send" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{
+    "to": "recipient@example.com",
+    "subject": "Re: Original subject",
+    "body": "Reply body",
+    "threadId": "thr_..."
+  }'
+```
+
+## Check for new messages
+
+```bash
+curl -s "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/messages?direction=inbound&limit=10" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+## List threads
+
+```bash
+curl -s "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/threads?limit=10" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+## Read a thread
+
+```bash
+curl -s "https://api.openmail.sh/v1/threads/{thread_id}/messages" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+## Notes
+
+- Always include `Idempotency-Key` when sending (prevents duplicates on retry)
+- Use `threadId` when replying so the email threads correctly in the recipient's client
+- `$OPENMAIL_*` variables are read from the container environment at runtime
+````
+
+<Tip>
+  **Pre-bake into Docker** - the skill file is identical for every agent. Only the env vars differ per container. For OpenClaw: `COPY skills/openmail/SKILL.md /root/.openclaw/skills/openmail/SKILL.md`
+</Tip>
+
+## Step 4: Handle inbound email
+
+Choose your delivery method. **WebSockets** are recommended for agents - no public URL needed, instant delivery. **Webhooks** work for traditional server-to-server integrations.
+
+The event payload is identical for both methods:
+
+```json Event payload
+{
+  "event": "message.received",
+  "event_id": "evt_7f2a3b4c",
+  "inbox_id": "inb_8f3a1b2c",
+  "thread_id": "thr_9d4e5f6a",
+  "message": {
+    "id": "msg_4c8d5e6f",
+    "from": "customer@example.com",
+    "to": "jane@openmail.sh",
+    "subject": "Re: Your order",
+    "body_text": "Thanks for following up...",
+    "attachments": [],
+    "received_at": "2026-02-24T10:05:00.000Z"
+  }
+}
+```
+
+<Tabs>
+  <Tab title="WebSocket (recommended)">
+    Connect to `wss://api.openmail.sh/v1/ws` with your API key. No public URL, no signature verification needed - the connection itself is authenticated.
+
+    <CodeGroup>
+
+    ```javascript Node.js
+    const WebSocket = require("ws");
+
+    const OPENMAIL_API_KEY = process.env.OPENMAIL_API_KEY;
+
+    const ws = new WebSocket("wss://api.openmail.sh/v1/ws", {
+      headers: { Authorization: `Bearer ${OPENMAIL_API_KEY}` },
+    });
+
+    ws.on("open", () => {
+      ws.send(JSON.stringify({ type: "subscribe" }));
+    });
+
+    ws.on("message", (data) => {
+      const event = JSON.parse(data);
+      if (event.event === "message.received") {
+        const container = getContainerByInboxId(event.inbox_id);
+        container.deliverEmail({ threadId: event.thread_id, message: event.message });
+      }
+    });
+
+    ws.on("close", () => setTimeout(() => connect(), 5000));
+    ```
+
+    ```python Python
+    import asyncio, json, os, websockets
+
+    OPENMAIL_API_KEY = os.environ["OPENMAIL_API_KEY"]
+
+    async def listen():
+        uri = "wss://api.openmail.sh/v1/ws"
+        headers = {"Authorization": f"Bearer {OPENMAIL_API_KEY}"}
+
+        async for ws in websockets.connect(uri, extra_headers=headers):
+            try:
+                await ws.send(json.dumps({"type": "subscribe"}))
+                async for raw in ws:
+                    event = json.loads(raw)
+                    if event.get("event") == "message.received":
+                        container = get_container_by_inbox_id(event["inbox_id"])
+                        container.deliver_email(thread_id=event["thread_id"], message=event["message"])
+            except websockets.ConnectionClosed:
+                continue
+    asyncio.run(listen())
+    ```
+
+    </CodeGroup>
+
+    **Subscribe options:**
+
+    ```json
+    { "type": "subscribe" }
+    { "type": "subscribe", "inbox_ids": ["inb_8f3a1b2c"] }
+    { "type": "subscribe", "event_types": ["message.received"] }
+    ```
+  </Tab>
+  <Tab title="Webhook">
+    Configure your webhook URL in the [dashboard](https://console.openmail.sh). OpenMail POSTs events to your endpoint with HMAC-SHA256 signatures.
+
+    <CodeGroup>
+
+    ```javascript Node.js
+    const crypto = require("crypto");
+
+    app.post("/webhooks/openmail", (req, res) => {
+      const signature = req.headers["x-signature"];
+      const timestamp = req.headers["x-timestamp"];
+      const expected = crypto
+        .createHmac("sha256", process.env.OPENMAIL_WEBHOOK_SECRET)
+        .update(`${timestamp}.${JSON.stringify(req.body)}`)
+        .digest("hex");
+
+      if (!crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"))) {
+        return res.status(401).send("Invalid signature");
+      }
+
+      const { event, inbox_id, thread_id, message } = req.body;
+      if (event === "message.received") {
+        const container = getContainerByInboxId(inbox_id);
+        container.deliverEmail({ threadId: thread_id, message });
+      }
+
+      res.status(200).send("OK");
+    });
+    ```
+
+    ```python Python
+    import hmac, hashlib, os
+
+    @app.post("/webhooks/openmail")
+    def handle_webhook():
+        payload = request.get_data(as_text=True)
+        timestamp = request.headers.get("X-Timestamp")
+        signature = request.headers.get("X-Signature")
+        expected = hmac.new(
+            os.environ["OPENMAIL_WEBHOOK_SECRET"].encode(),
+            f"{timestamp}.{payload}".encode(),
+            hashlib.sha256,
+        ).hexdigest()
+
+        if not hmac.compare_digest(signature, expected):
+            return "Invalid signature", 401
+
+        data = request.json
+        if data["event"] == "message.received":
+            container = get_container_by_inbox_id(data["inbox_id"])
+            container.deliver_email(thread_id=data["thread_id"], message=data["message"])
+
+        return "OK", 200
+    ```
+
+    </CodeGroup>
+
+    <Warning>
+      Always verify `X-Signature` before processing. See [Webhooks guide](/guides/webhooks) for retry policy and deduplication via `event_id`.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## Verify the integration
+
+1. **Create inbox** - confirm `OPENMAIL_INBOX_ID` and `OPENMAIL_ADDRESS` appear in the container's env
+2. **Send** - tell the agent "send an email to your-test@email.com" - confirm it arrives
+3. **Inbound** - reply to that email; confirm the event arrives over your WebSocket connection (or webhook) and routes to the container
+4. **Thread** - tell the agent "reply to the last email" - confirm the reply threads correctly in the recipient's client
+
+## Reference
+
+| What | Where | When |
+|------|-------|------|
+| Skill file (SKILL.md) | Agent's skills/config dir | Pre-baked in Docker or mounted at runtime |
+| `OPENMAIL_API_KEY` | Agent env | Set once from your secrets |
+| `OPENMAIL_INBOX_ID` | Agent env | Written when you create the inbox |
+| `OPENMAIL_ADDRESS` | Agent env | Written when you create the inbox |
+| WebSocket client **or** Webhook handler | Your backend | Connect to `wss://api.openmail.sh/v1/ws` or configure webhook URL in dashboard |
+
+<CardGroup cols={2}>
+  <Card title="Email deliverability" icon="mail-check" href="/best-practices/email-deliverability">
+    Warm-up schedules, inbox distribution, and content best practices to stay out of spam.
+  </Card>
+  <Card title="WebSockets" icon="bolt" href="/concepts/websockets">
+    Real-time event streaming, subscribe protocol, reconnection.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/guides/webhooks">
+    Signature verification, payload format, retries.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Full endpoint documentation.
+  </Card>
+</CardGroup>

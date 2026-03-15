@@ -1,0 +1,37 @@
+---
+title: "Authentication"
+description: "API key authentication"
+icon: key
+---
+
+All API requests require a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer om_your_api_key_here
+```
+
+API keys are prefixed with `om_` for production.
+
+## Getting an API key
+
+1. Sign up at the [Dashboard](https://console.openmail.sh). You'll receive a magic link to sign in.
+2. Complete the setup wizard: configure your webhook URL, then copy your API key and base URL.
+3. Use the API key in the `Authorization` header for all API requests.
+
+See [Quickstart](/quickstart) for the full setup flow.
+
+## Security
+
+- Keep your API key secret. Do not expose it in client-side code.
+- Each API key is scoped to a single account. Requests authenticate to the account that owns the key.
+- If you believe your key has been compromised, contact support immediately for rotation.
+
+## Invalid authentication
+
+```json
+// 401 Unauthorized
+{
+  "error": "unauthorized",
+  "message": "Missing or invalid Authorization header"
+}
+```

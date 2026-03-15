@@ -1,0 +1,196 @@
+---
+title: "Protocol reference"
+description: "Message types, subscribe options, event replay, and connection management"
+icon: code
+---
+
+After [connecting](/concepts/websockets#connecting), communication happens via JSON messages. This page documents every message type, subscription behavior, and connection lifecycle detail.
+
+## Subscribe
+
+Send a `subscribe` message to start receiving events. You can filter by inbox, event type, or both.
+
+```json Subscribe to all inboxes and all events
+{ "type": "subscribe" }
+```
+
+```json Subscribe to specific inboxes
+{ "type": "subscribe", "inbox_ids": ["inb_8f3a1b2c", "inb_2d4e6f8a"] }
+```
+
+```json Subscribe to specific event types
+{
+  "type": "subscribe",
+  "inbox_ids": ["inb_8f3a1b2c"],
+  "event_types": ["message.received"]
+}
+```
+
+The server responds with a `subscribed` confirmation that echoes back your active subscriptions:
+
+```json
+{ "type": "subscribed", "inbox_ids": [], "event_types": [] }
+```
+
+When `inbox_ids` is empty in the response, you are subscribed to all inboxes on your account. When `event_types` is empty, you receive all event types. Otherwise, the arrays list your specific filters.
+
+Subscriptions accumulate — sending multiple `subscribe` messages adds to your existing subscriptions.
+
+<Note>
+  When subscribing to specific `inbox_ids`, OpenMail verifies you own each inbox. Unowned inbox IDs return an error.
+</Note>
+
+---
+
+## Unsubscribe
+
+Remove subscriptions without disconnecting.
+
+```json Unsubscribe from specific inboxes
+{ "type": "unsubscribe", "inbox_ids": ["inb_8f3a1b2c"] }
+```
+
+```json Unsubscribe from everything
+{ "type": "unsubscribe" }
+```
+
+After unsubscribing from everything, you stop receiving events until you send a new `subscribe` message.
+
+---
+
+## Event replay with `last_event_id`
+
+If your client disconnects and reconnects, pass `last_event_id` in the subscribe message to resume from where you left off:
+
+```json
+{
+  "type": "subscribe",
+  "last_event_id": "evt_7f2a3b4c"
+}
+```
+
+OpenMail replays all events that occurred after that event ID (up to 100), filtered by your subscription. This prevents data loss during brief disconnections.
+
+<Note>
+  Track the `event_id` of each event you process. On reconnect, pass the last one you successfully handled. If the ID is not found or doesn't belong to your account, you'll receive an error.
+</Note>
+
+---
+
+## Receiving events
+
+Events arrive as JSON messages on the WebSocket. The payload is identical to the [webhook event payload](/pages/webhooks/events).
+
+```json
+{
+  "event": "message.received",
+  "event_id": "evt_7f2a3b4c",
+  "occurred_at": "2026-02-24T10:05:00.000Z",
+  "delivered_at": "2026-02-24T10:05:00.012Z",
+  "attempt": 1,
+  "inbox_id": "inb_8f3a1b2c",
+  "thread_id": "thr_9d4e5f6a",
+  "message": {
+    "id": "msg_4c8d5e6f",
+    "rfc_message_id": "<original@message.id>",
+    "from": "customer@example.com",
+    "to": "jane@openmail.sh",
+    "cc": [],
+    "subject": "Re: Your order",
+    "body_text": "Thanks for following up...",
+    "attachments": [],
+    "received_at": "2026-02-24T10:05:00.000Z"
+  }
+}
+```
+
+See [Events](/pages/webhooks/events) for full field descriptions.
+
+---
+
+## Ping / pong
+
+Send an application-level `ping` to check the connection is alive:
+
+```json
+{ "type": "ping" }
+```
+
+The server responds with:
+
+```json
+{ "type": "pong" }
+```
+
+This is separate from the WebSocket protocol-level pings the server sends for heartbeat (see [Connection management](#connection-management) below).
+
+---
+
+## Message reference
+
+### Client → Server
+
+| Message | Fields | Description |
+|---------|--------|-------------|
+| `subscribe` | `inbox_ids?`, `event_types?`, `last_event_id?` | Subscribe to events. Omit filters to get all events for all inboxes. Pass `last_event_id` to replay missed events. |
+| `unsubscribe` | `inbox_ids?` | Remove subscriptions. Empty = unsubscribe from all. |
+| `ping` | | Application-level keepalive. |
+
+### Server → Client
+
+| Message | Fields | Description |
+|---------|--------|-------------|
+| `subscribed` | `inbox_ids`, `event_types` | Subscription confirmed. Empty arrays = all inboxes / all event types. |
+| `unsubscribed` | `inbox_ids` | Unsubscription confirmed. |
+| `error` | `message` | Error details (invalid JSON, unknown type, unauthorized inbox, rate limit, revoked key). |
+| `pong` | | Response to `ping`. |
+| *(event)* | Same as [webhook payload](/pages/webhooks/events) | Email event pushed in real-time. |
+
+---
+
+## Connection management
+
+### Heartbeat
+
+The server sends WebSocket protocol-level pings every 30 seconds. Connections that don't respond within 10 seconds are terminated.
+
+### Reconnection
+
+Implement exponential backoff on the client. Start at 1 second, cap at 30 seconds. Reset the counter on successful connection. Use `last_event_id` to resume without data loss.
+
+The Python `websockets` library handles reconnection automatically with `async for ws in connect(...)`.
+
+### Connection limits
+
+You can open up to **10 WebSocket connections** per account. Events are delivered to all connections whose subscriptions match. Exceeding the limit returns an error and closes the new connection.
+
+### Rate limiting
+
+Each connection is limited to **30 messages per 10-second window**. Exceeding the limit closes the connection with an error.
+
+### Re-authentication
+
+The server periodically verifies your API key is still valid. If your key is revoked or rotated, existing connections are closed with an error.
+
+---
+
+## Error codes
+
+| Close code | Meaning |
+|-----------|---------|
+| `1001` | Server shutting down (reconnect) |
+| `4001` | Unauthorized (invalid or revoked API key) |
+| `4008` | Connection limit exceeded |
+| `4029` | Rate limit exceeded |
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="eye" href="/concepts/websockets">
+    Why WebSockets, connecting, delivery semantics.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/guides/websockets/quickstart">
+    Connect and receive events in under 10 lines.
+  </Card>
+  <Card title="Webhook events" icon="bell" href="/pages/webhooks/events">
+    Event payload structure (shared with WebSocket).
+  </Card>
+</CardGroup>

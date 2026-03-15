@@ -1,0 +1,42 @@
+---
+title: "Introduction"
+description: "OpenMail API reference for inboxes, messages, and webhooks"
+icon: book
+---
+
+Welcome to the OpenMail API. Our API is organized around REST. It has predictable resource-oriented URLs, accepts JSON-encoded request bodies, and returns JSON-encoded responses.
+
+**Base URL:** `https://api.openmail.sh`
+
+<CardGroup cols={2}>
+  <Card title="API Overview" icon="list" href="/api-reference/overview">
+    Base URL, error format, and common error codes
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Bearer token and API key setup
+  </Card>
+  <Card title="Inboxes" icon="inbox" href="/api-reference/overview">
+    Create, list, get, and delete inboxes
+  </Card>
+  <Card title="Messages" icon="paper-plane" href="/api-reference/overview">
+    Send email, list messages, and manage threads
+  </Card>
+</CardGroup>
+
+## Quick reference
+
+<ResponseField name="Authentication" type="string">
+  `Authorization: Bearer om_...`
+</ResponseField>
+
+<ResponseField name="Idempotency" type="string">
+  Send endpoint requires `Idempotency-Key` header (UUID)
+</ResponseField>
+
+<ResponseField name="Webhooks" type="string">
+  See [Setup](/guides/webhooks) for payload and signature verification
+</ResponseField>
+
+<ResponseField name="Rate limits" type="string">
+  100 inbox creations/day; 10 sends/min and 200/day per inbox
+</ResponseField>

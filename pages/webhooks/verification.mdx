@@ -1,0 +1,76 @@
+---
+title: "Verification"
+description: "HMAC signature verification and replay protection"
+icon: shield-check
+---
+
+Always verify the webhook signature before processing. Never trust unverified payloads.
+
+## Why verify?
+
+Without verification, anyone who discovers your webhook URL could send fake requests, potentially triggering actions on spoofed events or exhausting your resources. Always verify in production.
+
+## Signature format
+
+```
+HMAC-SHA256(webhook_secret, "{timestamp}.{raw_json_payload}")
+```
+
+- `timestamp` = value of `X-Timestamp` header
+- `raw_json_payload` = raw request body as string (do not parse JSON first)
+
+## Verification steps
+
+1. Read the raw request body as a string.
+2. Get `X-Timestamp` and `X-Signature` from headers.
+3. Compute `HMAC-SHA256(secret, timestamp + "." + body)`.
+4. Compare with `X-Signature` using **constant-time comparison** (e.g. `crypto.timingSafeEqual` in Node.js, `hmac.compare_digest` in Python).
+5. Verify `X-Timestamp` is within 5 minutes of current time (replay protection).
+
+<Warning>
+  Use constant-time comparison to prevent timing attacks. Do not use `==` or string equality.
+</Warning>
+
+## Example (Node.js)
+
+```javascript
+const crypto = require("crypto");
+
+function verifyWebhook(payload, timestamp, signature, secret) {
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${timestamp}.${payload}`)
+    .digest("hex");
+  return crypto.timingSafeEqual(
+    Buffer.from(signature, "hex"),
+    Buffer.from(expected, "hex")
+  );
+}
+```
+
+## Example (Python)
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(payload: bytes, timestamp: str, signature: str, secret: str) -> bool:
+    message = f"{timestamp}.{payload.decode()}".encode()
+    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(signature, expected)
+```
+
+## Getting your secret
+
+Your webhook secret is shown in the [Dashboard](https://console.openmail.sh) when you configure your webhook URL. Store it in an environment variable (e.g. `OPENMAIL_WEBHOOK_SECRET`) and never commit it to version control.
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Signature verification fails | Use the raw request body - do not parse JSON first. Ensure your secret matches the dashboard. |
+| Wrong secret | Rotate the secret in **Settings** → **Webhook secret** → **Rotate** and update your env. |
+| Timestamp expired | Verify `X-Timestamp` is within 5 minutes of current time. Check server clock sync. |
+| Body parsing strips data | In Express, use `express.raw()` for the webhook route, not `express.json()`. |
+
+See [Setup](/guides/webhooks) for full server examples and local development.

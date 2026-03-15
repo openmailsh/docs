@@ -1,0 +1,84 @@
+---
+title: "Quickstart"
+description: "Get your AI agent its own email address in two commands."
+icon: rocket
+---
+
+Get your AI agent its own email address in two commands.
+
+## Prerequisites
+
+- Node.js 20+
+- [OpenMail account](https://console.openmail.sh) (free, no credit card)
+
+<div className="openmail-prompt-card">
+<Prompt
+  description="Use this pre-built prompt to get started faster."
+  icon="wand-sparkles"
+  actions={["copy", "cursor"]}
+>
+Read https://docs.openmail.sh/quickstart then add OpenMail to our OpenClaw agent:
+
+1. `npm install -g @openmail/cli`
+2. Ask the user for their API key (from https://console.openmail.sh/settings/api), inbox name, and display name, then run `openmail setup --api-key "<key>" --mailbox-name "<name>" --display-name "<display name>" --mode websocket`
+</Prompt>
+</div>
+
+## Step 1: Install
+
+```bash
+npm install -g @openmail/cli
+```
+
+## Step 2: Setup
+
+```bash
+openmail setup
+```
+
+Creates your inbox, writes the skill file to `~/.openclaw/skills/openmail/SKILL.md`, and saves credentials to `~/.openclaw/openmail.env`. Pass `--api-key om_...` to skip the auth prompt.
+
+When setup completes, run `openmail status` to confirm everything is working:
+
+```bash
+openmail status
+```
+
+<Note>
+  **WebSocket bridge** - Setup starts the bridge automatically via systemd (Linux) or launchd (macOS). On Windows, setup prints the command to run manually — add it to your process manager to keep it running.
+</Note>
+
+## Step 3: Send an email
+
+```bash
+openmail send --to hello@example.com --subject "Hello from OpenMail" --body "I have my own inbox!"
+```
+
+## More commands
+
+```bash
+openmail messages list --direction inbound
+openmail threads list
+openmail threads get --thread-id <thread-id>
+```
+
+## Next steps
+
+- **Handle inbound email** - Route replies to your agent via [WebSocket](/concepts/websockets) or [webhooks](/guides/webhooks).
+- **Improve deliverability** - Follow [warm-up schedules](/best-practices/email-deliverability) to stay out of spam.
+- **Explore the API** - Full [API reference](/api-reference/introduction) for programmatic workflows.
+
+<CardGroup cols={2}>
+  <Card title="WebSockets" icon="bolt" href="/concepts/websockets">
+    Real-time event streaming. No public URL needed.
+  </Card>
+  <Card title="Email deliverability" icon="mail-check" href="/best-practices/email-deliverability">
+    Warm-up schedules and content best practices.
+  </Card>
+  <Card title="Threading" icon="messages-square" href="/concepts/threading">
+    How threads work across inbound and outbound.
+  </Card>
+  <Card title="API integration" icon="code" href="/guides/api-integration">
+    Create inboxes programmatically for multi-tenant apps.
+  </Card>
+</CardGroup>

@@ -1,0 +1,19 @@
+---
+title: "SPF, DKIM, DMARC"
+description: "Email authentication and deliverability"
+icon: key
+---
+
+OpenMail handles SPF and DKIM for your sending domain. Configure your domain in the [Dashboard](https://console.openmail.sh) and add the provided DNS records.
+
+## SPF
+
+SPF (Sender Policy Framework) authorizes our servers to send on behalf of your domain. Add the TXT record we provide.
+
+## DKIM
+
+DKIM (DomainKeys Identified Mail) signs outgoing messages. Add the CNAME records we provide.
+
+## DMARC
+
+DMARC (Domain-based Message Authentication) tells receivers what to do with messages that fail SPF/DKIM. We recommend a policy record once SPF and DKIM are in place.

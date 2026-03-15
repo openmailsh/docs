@@ -1,0 +1,28 @@
+---
+title: "Threading"
+description: "How OpenMail groups messages into conversations"
+icon: messages-square
+---
+
+OpenMail automatically groups related emails into threads using standard RFC 2822 email headers.
+
+## How it works
+
+When an email arrives or is sent, we resolve which thread it belongs to:
+
+1. **Check `In-Reply-To` header** - If it matches an existing message's `Message-ID`, the email joins that thread.
+2. **Check `References` header** - If any value matches an existing message's `Message-ID`, the email joins that thread.
+3. **No match** - A new thread is created.
+
+## Outbound replies
+
+When you send with a `threadId`, we automatically set:
+
+- `In-Reply-To` → the `Message-ID` of the last message in the thread
+- `References` → all `Message-ID` values from the thread
+
+This ensures your reply threads correctly in the recipient's email client (Gmail, Outlook, etc.).
+
+## Thread context
+
+Fetch all messages in a thread via `GET /v1/threads/:id/messages`. Messages are returned in chronological order, giving your agent the full conversation history to inform its next action.

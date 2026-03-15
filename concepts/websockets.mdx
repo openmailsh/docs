@@ -1,0 +1,97 @@
+---
+title: "Overview"
+description: "Real-time, low-latency email event streaming"
+icon: eye
+---
+
+WebSockets provide a persistent connection to OpenMail for receiving email events in real-time. Unlike webhooks, WebSockets don't require a public URL or external tools like ngrok.
+
+## Why use WebSockets?
+
+| Feature | Webhook | WebSocket |
+|---------|---------|-----------|
+| Setup | Requires public URL + ngrok | No external tools needed |
+| Connection | HTTP request per event | Persistent connection |
+| Initiation | OpenMail connects to you | You connect to OpenMail |
+| Firewall | Must expose port | Outbound only |
+| Latency | HTTP round-trip | Instant streaming |
+
+WebSockets are the recommended delivery method for agents. Agents are long-running processes that benefit from a persistent event stream rather than a callback endpoint.
+
+## Connecting
+
+Authenticate with your API key via the `Authorization` header or `token` query parameter.
+
+<CodeGroup>
+
+```javascript Node.js
+const WebSocket = require("ws");
+
+const ws = new WebSocket("wss://api.openmail.sh/v1/ws", {
+  headers: { Authorization: `Bearer ${process.env.OPENMAIL_API_KEY}` },
+});
+```
+
+```python Python
+import asyncio, os
+from websockets import connect
+
+async def main():
+    uri = "wss://api.openmail.sh/v1/ws"
+    headers = {"Authorization": f"Bearer {os.environ['OPENMAIL_API_KEY']}"}
+
+    async with connect(uri, extra_headers=headers) as ws:
+        # connected — send subscribe, receive events
+        ...
+
+asyncio.run(main())
+```
+
+```bash CLI (websocat)
+websocat "wss://api.openmail.sh/v1/ws?token=YOUR_API_KEY"
+```
+
+</CodeGroup>
+
+The `?token=` query parameter is useful for browser clients and CLI tools that can't set custom headers on WebSocket connections.
+
+## Delivery semantics
+
+When a customer has both an active WebSocket connection and a webhook URL configured, OpenMail prefers the WebSocket. If the WebSocket is down, events fall back to the webhook with the same retry policy.
+
+| Scenario | Delivery method |
+|----------|----------------|
+| WebSocket connected + subscribed | WebSocket (instant) |
+| WebSocket disconnected, webhook URL set | Webhook (with retries) |
+| Neither | Event stored, marked as failed |
+
+Events use the same [payload structure](/pages/webhooks/events) as webhooks.
+
+## Comparison with webhooks
+
+Use **WebSockets** when:
+- Your agent runs locally or behind a firewall
+- You want instant delivery with no round-trip latency
+- You don't want to manage a public HTTPS endpoint
+
+Use **webhooks** when:
+- Your server is already publicly accessible
+- You need guaranteed delivery with automatic retries
+- You prefer stateless, request-based integration
+
+Both deliver the same event payload. You can switch between them without changing your event handling logic.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/guides/websockets/quickstart">
+    Connect and receive events in under 10 lines.
+  </Card>
+  <Card title="Protocol reference" icon="code" href="/pages/websockets/protocol">
+    Message types, subscribe options, event replay, connection management.
+  </Card>
+  <Card title="Webhook events" icon="bell" href="/pages/webhooks/events">
+    Event payload structure (shared with WebSocket).
+  </Card>
+  <Card title="Webhook setup" icon="wrench" href="/guides/webhooks">
+    Configure webhook endpoints with signature verification.
+  </Card>
+</CardGroup>

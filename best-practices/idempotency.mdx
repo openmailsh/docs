@@ -1,0 +1,28 @@
+---
+title: "Idempotency"
+description: "Safe retries for send operations"
+icon: repeat
+---
+
+The `POST /v1/inboxes/{id}/send` endpoint requires an `Idempotency-Key` header. If you retry with the same key, we return the original response without sending a duplicate email.
+
+## Usage
+
+```bash
+curl -X POST https://api.openmail.sh/v1/inboxes/inb_xxx/send \
+  -H "Authorization: Bearer om_..." \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000" \
+  -d '{"to": "user@example.com", "subject": "Hello", "body": "Hi"}'
+```
+
+## Rules
+
+- **Unique per send** - Generate a new UUID for each distinct send (e.g. `uuidgen`, `crypto.randomUUID()`).
+- **Scoped to account** - Keys are per-account, not global.
+- **24-hour expiry** - Keys expire after 24 hours. Reusing an expired key creates a new send.
+- **Same body** - Retries must use the same request body. Changing the body with the same key returns an error.
+
+## Webhook idempotency
+
+For webhooks, use `event_id` to deduplicate. We may deliver the same event more than once; your handler should be idempotent.

@@ -1,0 +1,63 @@
+---
+title: "Overview"
+description: "Delivery semantics, headers, signature verification, and retries"
+icon: eye
+---
+
+When an email arrives at one of your inboxes, OpenMail delivers it to your webhook URL as an HTTP POST request.
+
+## Why use webhooks?
+
+Instead of constantly polling the API to check for new emails, you register a URL and OpenMail sends a `POST` request as soon as an event happens. This event-driven approach is more efficient and lets you build responsive agents that react instantly to incoming messages.
+
+- **Real-time** - Build agents that reply to emails in seconds.
+- **Efficient** - No polling; saves compute and simplifies your logic.
+
+## Delivery semantics
+
+- **At-least-once delivery** - We may deliver the same event more than once. Use `event_id` to deduplicate.
+- **No ordering guarantee** - Events may arrive out of order. Use `occurred_at` to sort if needed.
+
+## Webhook headers
+
+Every POST includes:
+
+| Header | Description |
+|--------|-------------|
+| `X-Event-Id` | Stable UUID for this event. Same across retries. Use for deduplication. |
+| `X-Timestamp` | Unix timestamp of the delivery attempt |
+| `X-Signature` | HMAC-SHA256 signature for verification |
+
+## Signature verification
+
+The signature is computed as `HMAC-SHA256(webhook_secret, "{timestamp}.{raw_json_payload}")`. Verify before processing. Use constant-time comparison to prevent timing attacks.
+
+Also verify that `X-Timestamp` is within 5 minutes of current time to prevent replay attacks.
+
+## Retry policy
+
+If your endpoint doesn't return `2xx` within 15 seconds:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 | Immediate |
+| 2 | 30 seconds |
+| 3 | 60 seconds |
+| 4 | 2 minutes |
+| 5 | 4 minutes |
+
+After 5 failed attempts, the event is marked as failed.
+
+## Full payload and verification
+
+<CardGroup cols={2}>
+  <Card title="Events" icon="bell" href="/pages/webhooks/events">
+    Payload structure and field descriptions.
+  </Card>
+  <Card title="Verification" icon="shield-check" href="/pages/webhooks/verification">
+    HMAC signature verification and code examples.
+  </Card>
+  <Card title="Setup" icon="wrench" href="/guides/webhooks">
+    Configure your endpoint and implement the handler.
+  </Card>
+</CardGroup>

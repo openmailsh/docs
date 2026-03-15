@@ -1,0 +1,17 @@
+{
+  "name": "openmail-docs",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openmailsh/docs.git"
+  },
+  "scripts": {
+    "dev": "mint dev",
+    "validate": "mint validate",
+    "broken-links": "mint broken-links",
+    "generate:openapi": "node scripts/generate-openapi.js"
+  },
+  "devDependencies": {
+    "mint": "^4.0.0"
+  }
+}

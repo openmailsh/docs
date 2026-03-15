@@ -1,0 +1,33 @@
+---
+title: "Attachments"
+description: "Access files from inbound emails"
+icon: paperclip
+---
+
+When an inbound email includes attachments, OpenMail stores them and provides signed download URLs.
+
+## How it works
+
+1. Email arrives with attachments
+2. We upload each file to secure storage
+3. Attachment metadata (filename, content type, size, download URL) is included in the webhook payload and message responses
+
+## Downloading attachments
+
+Each attachment includes a `url` field in the message response:
+
+```
+https://api.openmail.sh/v1/attachments/{messageId}/{filename}
+```
+
+This endpoint requires authentication and returns a `302` redirect to a signed URL that expires in 15 minutes.
+
+```bash
+curl -L https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf \
+  -H "Authorization: Bearer om_..."
+```
+
+## Limits
+
+- Maximum attachment size is determined by the email provider (typically 25MB per email)
+- Attachment URLs in webhook payloads should be fetched promptly; signed URLs expire

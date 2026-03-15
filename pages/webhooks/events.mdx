@@ -1,0 +1,84 @@
+---
+title: "Events"
+description: "Event types and payload structure for inbound email"
+icon: bell
+---
+
+OpenMail sends webhooks when inbound email is received.
+
+## Events
+
+| Event | Description |
+|-------|-------------|
+| `message.received` | A new inbound email was delivered to an inbox |
+
+## Use cases
+
+- **Agent routing** - Use `inbox_id` to route inbound email to the right user or container.
+- **Real-time replies** - Trigger your agent to process and reply within seconds of receipt.
+- **Multi-tenant** - Each inbox maps to an agent; `inbox_id` in the payload tells you which one.
+
+## Payload structure
+
+```json
+{
+  "event": "message.received",
+  "event_id": "evt_abc123",
+  "occurred_at": "2024-03-21T10:05:00.000Z",
+  "delivered_at": "2024-03-21T10:05:01.000Z",
+  "attempt": 1,
+  "inbox_id": "inb_92ma...",
+  "thread_id": "thr_xyz...",
+  "message": {
+    "id": "msg_...",
+    "rfc_message_id": "<original@message.id>",
+    "from": "sender@example.com",
+    "to": "inbox@openmail.sh",
+    "cc": [],
+    "subject": "Email subject",
+    "body_text": "Plain text body",
+    "attachments": [
+      {
+        "filename": "document.pdf",
+        "contentType": "application/pdf",
+        "sizeBytes": 12345,
+        "url": "https://api.openmail.sh/v1/attachments/msg_.../document.pdf"
+      }
+    ],
+    "received_at": "2024-03-21T10:05:00.000Z"
+  }
+}
+```
+
+## Field descriptions
+
+| Field | Description |
+|-------|-------------|
+| `event` | Event type; currently always `message.received` |
+| `event_id` | Unique ID for this delivery. Use for deduplication - we may retry. |
+| `occurred_at` | When the event happened. Use to sort if events arrive out of order. |
+| `inbox_id` | The inbox that received the message |
+| `thread_id` | Conversation thread. Use with the API to fetch or send messages. |
+| `message.id` | Unique message ID |
+| `message.from` | Sender email address |
+| `message.subject` | Email subject line |
+| `message.body_text` | Plain-text body |
+| `message.attachments` | Array of attachments. Each has `url` - fetch promptly; signed URLs expire. |
+
+## Headers
+
+| Header | Description |
+|--------|-------------|
+| `Content-Type` | `application/json` |
+| `X-Timestamp` | Unix timestamp (seconds) used in signature |
+| `X-Signature` | HMAC-SHA256 signature |
+| `X-Event-Id` | Unique event ID for deduplication |
+
+<CardGroup cols={2}>
+  <Card title="Verification" icon="shield-check" href="/pages/webhooks/verification">
+    HMAC signature verification.
+  </Card>
+  <Card title="Setup" icon="wrench" href="/guides/webhooks">
+    Full implementation guide.
+  </Card>
+</CardGroup>

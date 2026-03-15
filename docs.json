@@ -1,0 +1,182 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "OpenMail",
+  "colors": {
+    "primary": "#09090b",
+    "light": "#e5e5e5",
+    "dark": "#09090b"
+  },
+  "modeToggle": {
+    "default": "dark",
+    "isHidden": false
+  },
+  "styling": {
+    "codeblocks": {
+      "theme": {
+        "light": "github-light",
+        "dark": "dark-plus"
+      }
+    }
+  },
+  "favicon": "/favicon.ico",
+  "redirects": [
+    { "source": "/quickstart/cli", "destination": "/quickstart" },
+    { "source": "/quickstart/api", "destination": "/guides/api-integration" },
+    { "source": "/guides/cli-quickstart", "destination": "/quickstart" }
+  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "pages/welcome",
+              "index",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core concepts",
+            "pages": [
+              "concepts/inboxes",
+              "concepts/threading",
+              "concepts/attachments",
+              "concepts/suppressions",
+              "concepts/rate-limits"
+            ]
+          },
+          {
+            "group": "WebSockets",
+            "pages": [
+              "concepts/websockets",
+              "guides/websockets/quickstart",
+              "pages/websockets/protocol"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "concepts/webhooks",
+              "pages/webhooks/events",
+              "guides/webhooks",
+              "pages/webhooks/verification"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/api-integration"
+            ]
+          },
+          {
+            "group": "Best practices",
+            "pages": [
+              "best-practices/email-deliverability",
+              "best-practices/idempotency"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "pages/resources/faq",
+              "pages/resources/support"
+            ]
+          },
+          {
+            "group": "Security & privacy",
+            "pages": [
+              "pages/resources/security/email-protocols"
+            ]
+          }
+        ],
+        "icon": "book"
+      },
+      {
+        "tab": "API reference",
+        "openapi": "api-reference/openapi.json",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/overview",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Inboxes",
+            "pages": [
+              "GET /v1/inboxes",
+              "POST /v1/inboxes",
+              "GET /v1/inboxes/{id}",
+              "DELETE /v1/inboxes/{id}"
+            ]
+          },
+          {
+            "group": "Messages",
+            "pages": [
+              "POST /v1/inboxes/{id}/send",
+              "GET /v1/inboxes/{id}/messages",
+              "GET /v1/inboxes/{id}/threads",
+              "GET /v1/threads/{id}/messages"
+            ]
+          },
+          {
+            "group": "Attachments",
+            "pages": [
+              "GET /v1/attachments/{messageId}/{filename}"
+            ]
+          }
+        ],
+        "icon": "square-terminal"
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://openmail.sh"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Pricing",
+        "href": "https://openmail.sh/pricing"
+      },
+      {
+        "label": "Support",
+        "href": "mailto:support@openmail.to"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://console.openmail.sh"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "website": "https://openmail.sh"
+    }
+  },
+  "integrations": {
+    "telemetry": {
+      "enabled": true
+    }
+  },
+  "icons": {
+    "library": "lucide"
+  }
+}

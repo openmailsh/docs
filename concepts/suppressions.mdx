@@ -1,0 +1,30 @@
+---
+title: "Suppressions"
+description: "Automatic protection against sending to bad addresses"
+icon: ban
+---
+
+When an email bounces, a recipient marks your email as spam, or someone unsubscribes, we automatically add them to your suppression list. Subsequent send attempts to that address are rejected.
+
+## Suppression types
+
+| Type | Trigger | What it means |
+|------|---------|---------------|
+| `bounce` | Hard bounce from recipient server | Address is invalid or doesn't exist |
+| `complaint` | Recipient clicked "Report spam" | Recipient doesn't want email from you |
+| `unsub` | Recipient unsubscribed | Recipient opted out |
+
+## What happens when you send to a suppressed address
+
+The send request returns `422` with a typed error:
+
+```json
+{
+  "error": "recipient_suppressed",
+  "type": "complaint"
+}
+```
+
+Your agent should handle this gracefully - for example, by noting that the contact is unreachable and trying an alternative communication channel.
+
+Suppressions are one part of maintaining good deliverability. For the full picture — warm-up strategy, inbox distribution, and content best practices — see [Email deliverability](/best-practices/email-deliverability).

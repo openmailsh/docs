@@ -1,0 +1,173 @@
+/* OpenMail docs - match landing page style */
+
+/* ================================
+   RESET: no border radius
+   ================================ */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* ================================
+   CODE BLOCKS
+   Light: #f5f5f5  (near-white card - light-mode equivalent of landing's #0a0a0a)
+   Dark:  #0a0a0a  (landing --card / --background value)
+   ================================ */
+:root {
+  --shiki-light-bg: #f5f5f5;
+  --shiki-dark-bg: #0a0a0a;
+}
+.code-group,
+.code-block,
+.codeblock-light,
+.code-block [data-component-part="code-block-root"],
+[data-component-part="code-block-root"] {
+  background-color: var(--shiki-light-bg) !important;
+}
+.dark .code-group,
+.dark .code-block,
+.dark .code-block [data-component-part="code-block-root"],
+.dark [data-component-part="code-block-root"] {
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+/* ================================
+   PLAIN TEXT CODE BLOCKS (language="text")
+   Use string color to match syntax-highlighted code blocks
+   Light: #032f62 (GitHub Light string)
+   Dark:  #CE9178 (Dark+ string)
+   ================================ */
+.code-block code[language="text"],
+.code-block code[data-language="text"],
+pre code[language="text"],
+pre code[data-language="text"] {
+  color: rgb(3, 47, 98) !important;
+}
+.dark .code-block code[language="text"],
+.dark .code-block code[data-language="text"],
+.dark pre code[language="text"],
+.dark pre code[data-language="text"] {
+  color: #CE9178 !important;
+}
+
+/* ================================
+   NAVBAR CTA BUTTON
+   Light: black bg (#050505), white text
+   Dark:  white bg (#e5e5e5), black text
+   Mintlify may use .dark or [data-theme="dark"]
+   ================================ */
+#topbar-cta-button .bg-primary-dark {
+  background-color: #050505 !important;
+}
+#topbar-cta-button a,
+#topbar-cta-button a span:not(.bg-primary-dark) {
+  color: #ffffff !important;
+}
+#topbar-cta-button a:hover .bg-primary-dark {
+  background-color: #1a1a1a !important;
+}
+/* Dark mode - .dark, html.dark, [data-theme="dark"] */
+.dark #topbar-cta-button .bg-primary-dark,
+html.dark #topbar-cta-button .bg-primary-dark,
+[data-theme="dark"] #topbar-cta-button .bg-primary-dark,
+html[data-theme="dark"] #topbar-cta-button .bg-primary-dark {
+  background-color: #e5e5e5 !important;
+}
+.dark #topbar-cta-button a,
+.dark #topbar-cta-button a *,
+html.dark #topbar-cta-button a,
+html.dark #topbar-cta-button a *,
+[data-theme="dark"] #topbar-cta-button a,
+[data-theme="dark"] #topbar-cta-button a *,
+html[data-theme="dark"] #topbar-cta-button a,
+html[data-theme="dark"] #topbar-cta-button a * {
+  color: #050505 !important;
+}
+.dark #topbar-cta-button a:hover .bg-primary-dark,
+[data-theme="dark"] #topbar-cta-button a:hover .bg-primary-dark,
+html[data-theme="dark"] #topbar-cta-button a:hover .bg-primary-dark {
+  background-color: #ffffff !important;
+}
+
+/* ================================
+   API PLAYGROUND "Try it" BUTTON
+   Light: black bg, white text
+   Dark:  white bg, black text
+   ================================ */
+[class*="api-playground"] button[type="submit"],
+[class*="api-playground"] [class*="submit"],
+[data-testid*="try-it"] {
+  background-color: #050505 !important;
+  border-color: #050505 !important;
+  color: #ffffff !important;
+}
+.dark [class*="api-playground"] button[type="submit"],
+.dark [class*="api-playground"] [class*="submit"],
+.dark [data-testid*="try-it"] {
+  background-color: #e5e5e5 !important;
+  border-color: #e5e5e5 !important;
+  color: #050505 !important;
+}
+
+/* ================================
+   TOOLTIPS
+   Light: #f5f5f5 bg, #d4d4d4 border, #050505 text
+   Dark:  #0a0a0a bg, #262626 border, #e5e5e5 text
+   ================================ */
+[role="tooltip"],
+[class*="tooltip"] {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #d4d4d4 !important;
+  color: #050505 !important;
+}
+.dark [role="tooltip"],
+.dark [class*="tooltip"] {
+  background-color: #0a0a0a !important;
+  border: 1px solid #262626 !important;
+  color: #e5e5e5 !important;
+}
+
+/* ================================
+   PROMPT CARD
+   Match code block background
+   ================================ */
+.openmail-prompt-card,
+.openmail-prompt-card > div {
+  background-color: var(--shiki-light-bg) !important;
+}
+.dark .openmail-prompt-card,
+.dark .openmail-prompt-card > div {
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+/* ================================
+   CARD GROUP CARDS (Quickstart, API reference, etc.)
+   Match code block background - same as inline code in light/dark mode
+   ================================ */
+.card-group a.card,
+.card-group .card,
+[class*="card-group"] a.card,
+[class*="card-group"] .card,
+#content-container a.card,
+#content-container .card {
+  background-color: var(--shiki-light-bg) !important;
+}
+.dark .card-group a.card,
+.dark .card-group .card,
+.dark [class*="card-group"] a.card,
+.dark [class*="card-group"] .card,
+.dark #content-container a.card,
+.dark #content-container .card {
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+/* ================================
+   HIDE FOOTER SOCIAL ICONS (X, GitHub)
+   Only email support link shown via footer.links
+   ================================ */
+#footer a[href*="x.com"],
+#footer a[href*="twitter.com"],
+#footer a[href*="github.com"] {
+  display: none !important;
+}

@@ -1,0 +1,47 @@
+---
+title: "Introduction"
+description: "Email infrastructure for AI agents"
+icon: book
+---
+
+## The problem
+
+AI agents need their own email addresses. Doing it yourself means MX records, DNS, deliverability tuning, and parsing inbound mail. That's a lot of infra for something that should be one command.
+
+## The solution
+
+OpenMail gives AI agents their own email addresses. Run `openmail setup` — the agent can send, receive, and reply in threads immediately. We handle MX, DNS, deliverability, and inbound parsing. You handle zero email infrastructure.
+
+1. `openmail setup` — creates inbox, writes skill file, saves credentials
+2. Agent gets `agent@openmail.sh` (or `agent@yourdomain.com` with a custom domain)
+3. Agent sends email, receives replies via [WebSocket](/concepts/websockets) or [webhook](/guides/webhooks)
+4. Route inbound mail by `inbox_id` — use your inbox-to-agent mapping
+
+**Multi-tenant** - One account, many inboxes. Assign one inbox per agent and route inbound events by `inbox_id`.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get your agent its own email address in two commands.
+  </Card>
+  <Card title="WebSockets" icon="bolt" href="/concepts/websockets">
+    Real-time event streaming. No public URL needed.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Full endpoint documentation with request/response schemas.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/guides/webhooks">
+    Traditional server-to-server event delivery with retries.
+  </Card>
+</CardGroup>
+
+## Authentication
+
+The OpenMail API uses API keys to authenticate requests. Sign up at [console.openmail.sh](https://console.openmail.sh) to get your key. See [Quickstart](/quickstart) for the full setup flow.
+
+<Note>
+  All API requests must be made over **HTTPS**. Your API key carries full account access - keep it in environment variables, not in code.
+</Note>
+
+```bash
+Authorization: Bearer om_YOUR_API_KEY
+```

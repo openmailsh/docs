@@ -1,0 +1,45 @@
+---
+title: "Rate Limits"
+description: "Send limits and cold outreach throttling"
+icon: gauge
+---
+
+OpenMail enforces rate limits to protect domain reputation and ensure deliverability for all customers.
+
+## Send limits
+
+| Limit | Value | Scope |
+|-------|-------|-------|
+| Burst | 10/minute | Per inbox |
+| Daily | 200/day | Per inbox |
+| Inbox creation | 100/day | Per account |
+
+## Cold outreach throttle
+
+A "cold" send is an email to a recipient who has never sent an inbound message to this inbox. Cold sends have additional limits:
+
+| Inbox age | Cold send limit |
+|-----------|-----------------|
+| First 30 days | 20/day per inbox |
+| After 30 days | Standard daily limit (200/day) |
+
+This protects your domain reputation while it warms up. Relationship email (replies to existing threads) is not affected.
+
+## Rate limit responses
+
+When rate limited, the API returns `429` with a `Retry-After` header:
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "message": "Max 10 sends per minute per inbox"
+}
+```
+
+## Why this matters
+
+Fresh domains on shared IP pools need time to build reputation. If your agents send too much cold outreach too quickly, emails will land in spam - which hurts your agents' effectiveness and your domain's reputation. These limits exist to protect deliverability.
+
+Contact us if you need higher limits or a dedicated sending IP.
+
+For a complete warm-up strategy and content best practices, see [Email deliverability](/best-practices/email-deliverability).

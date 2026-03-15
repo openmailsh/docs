@@ -1,0 +1,180 @@
+---
+title: "Quickstart"
+description: "Get started with real-time email event streaming"
+icon: rocket
+---
+
+## Minimal example
+
+Connect, subscribe, and log incoming events.
+
+<CodeGroup>
+
+```javascript Node.js
+const WebSocket = require("ws");
+
+const ws = new WebSocket("wss://api.openmail.sh/v1/ws", {
+  headers: { Authorization: `Bearer ${process.env.OPENMAIL_API_KEY}` },
+});
+
+ws.on("open", () => {
+  ws.send(JSON.stringify({ type: "subscribe" }));
+});
+
+ws.on("message", (data) => {
+  const event = JSON.parse(data);
+
+  if (event.type === "subscribed") {
+    console.log("Subscribed — inboxes:", event.inbox_ids, "events:", event.event_types);
+  } else if (event.event === "message.received") {
+    console.log(`From: ${event.message.from}`);
+    console.log(`Subject: ${event.message.subject}`);
+    console.log(`Body: ${event.message.body_text}`);
+  }
+});
+```
+
+```python Python
+import asyncio, json, os
+from websockets import connect
+
+async def main():
+    uri = "wss://api.openmail.sh/v1/ws"
+    headers = {"Authorization": f"Bearer {os.environ['OPENMAIL_API_KEY']}"}
+
+    async with connect(uri, extra_headers=headers) as ws:
+        await ws.send(json.dumps({"type": "subscribe"}))
+
+        async for raw in ws:
+            event = json.loads(raw)
+
+            if event.get("type") == "subscribed":
+                print("Subscribed — inboxes:", event["inbox_ids"], "events:", event["event_types"])
+            elif event.get("event") == "message.received":
+                print(f"From: {event['message']['from']}")
+                print(f"Subject: {event['message']['subject']}")
+                print(f"Body: {event['message']['body_text']}")
+
+asyncio.run(main())
+```
+
+</CodeGroup>
+
+---
+
+## Production example
+
+Adds reconnection with exponential backoff and `last_event_id` replay to avoid losing events during disconnects.
+
+<CodeGroup>
+
+```javascript Node.js
+const WebSocket = require("ws");
+
+const OPENMAIL_API_KEY = process.env.OPENMAIL_API_KEY;
+let lastEventId = null;
+let retries = 0;
+
+function connect() {
+  const ws = new WebSocket("wss://api.openmail.sh/v1/ws", {
+    headers: { Authorization: `Bearer ${OPENMAIL_API_KEY}` },
+  });
+
+  ws.on("open", () => {
+    console.log("Connected to OpenMail");
+    const sub = { type: "subscribe" };
+    if (lastEventId) sub.last_event_id = lastEventId;
+    ws.send(JSON.stringify(sub));
+    retries = 0;
+  });
+
+  ws.on("message", (data) => {
+    const event = JSON.parse(data);
+
+    if (event.type === "subscribed") {
+      console.log("Subscribed — inboxes:", event.inbox_ids, "events:", event.event_types);
+      return;
+    }
+
+    if (event.event === "message.received") {
+      lastEventId = event.event_id;
+      console.log(`New email from: ${event.message.from}`);
+      console.log(`Subject: ${event.message.subject}`);
+
+      const container = getContainerByInboxId(event.inbox_id);
+      container.deliverEmail({
+        threadId: event.thread_id,
+        message: event.message,
+      });
+    }
+  });
+
+  ws.on("close", (code) => {
+    console.log(`Disconnected (${code}), reconnecting...`);
+    setTimeout(connect, Math.min(1000 * Math.pow(2, retries++), 30000));
+  });
+
+  ws.on("error", (err) => {
+    console.error("WebSocket error:", err.message);
+  });
+}
+
+connect();
+```
+
+```python Python
+import asyncio, json, os
+from websockets import connect
+
+OPENMAIL_API_KEY = os.environ["OPENMAIL_API_KEY"]
+last_event_id = None
+
+async def listen():
+    global last_event_id
+    uri = "wss://api.openmail.sh/v1/ws"
+    headers = {"Authorization": f"Bearer {OPENMAIL_API_KEY}"}
+
+    async for ws in connect(uri, extra_headers=headers):
+        try:
+            sub = {"type": "subscribe"}
+            if last_event_id:
+                sub["last_event_id"] = last_event_id
+            await ws.send(json.dumps(sub))
+
+            async for raw in ws:
+                event = json.loads(raw)
+
+                if event.get("type") == "subscribed":
+                    print("Subscribed — inboxes:", event["inbox_ids"], "events:", event["event_types"])
+                    continue
+
+                if event.get("event") == "message.received":
+                    last_event_id = event["event_id"]
+                    print(f"New email from: {event['message']['from']}")
+                    print(f"Subject: {event['message']['subject']}")
+
+                    container = get_container_by_inbox_id(event["inbox_id"])
+                    container.deliver_email(
+                        thread_id=event["thread_id"],
+                        message=event["message"],
+                    )
+
+        except Exception:
+            continue  # auto-reconnects
+
+asyncio.run(listen())
+```
+
+</CodeGroup>
+
+<CardGroup cols={2}>
+  <Card title="WebSockets overview" icon="eye" href="/concepts/websockets">
+    Why WebSockets, connecting, delivery semantics.
+  </Card>
+  <Card title="Protocol reference" icon="code" href="/pages/websockets/protocol">
+    Message types, subscribe options, event replay, connection management.
+  </Card>
+  <Card title="Event payload" icon="bell" href="/pages/webhooks/events">
+    Full field descriptions for the event payload.
+  </Card>
+</CardGroup>

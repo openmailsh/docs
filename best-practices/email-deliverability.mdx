@@ -1,0 +1,128 @@
+---
+title: "Email deliverability"
+description: "Best practices for landing your emails in the inbox, not the spam folder"
+icon: mail-check
+---
+
+Email deliverability is the art and science of getting your emails into your recipients' inboxes. It's not just about hitting "send" — it's about building a good reputation with email providers like Gmail and Outlook so they trust you're sending valuable content, not spam.
+
+High deliverability is the key to successful email automation. This guide covers both your sending strategy and your email content.
+
+### The technical foundation: SPF, DKIM, and DMARC
+
+Before you send your first email, it's important to have the right technical foundation in place. SPF, DKIM, and DMARC are DNS records that act as a digital signature, proving to email providers that you are who you say you are.
+
+<Tip>
+  OpenMail handles all of this automatically for `openmail.sh` — no setup needed on your end. Just something to know about.
+</Tip>
+
+All inboxes use `openmail.sh` by default. OpenMail handles SPF, DKIM, and DMARC automatically. Need a custom domain like `agent@yourdomain.com`? [Contact us](mailto:support@openmail.to).
+
+<CardGroup>
+  <Card title="Inboxes" icon="inbox" href="/concepts/inboxes">
+    Learn about inbox address formats and how to configure your sending domain.
+  </Card>
+</CardGroup>
+
+## High-volume sending strategy
+
+How you send your emails is just as important as what you send. If you're sending a large volume of emails, follow these steps to build and maintain a strong sender reputation.
+
+<Steps>
+  <Step title="Warm up your inboxes">
+    Don't go from zero to a thousand emails overnight. Email providers get
+    suspicious of new inboxes that immediately send a high volume. Start slow
+    and gradually increase your sending volume over several days or weeks. This
+    "warm-up" process signals that you're a legitimate sender.
+
+    <Note>
+      **Example warm-up schedule:**
+      - Day 1: 10 emails/inbox
+      - Day 2: 20 emails/inbox
+      - Day 3: 40 emails/inbox
+      - ...and so on, doubling until you reach your target.
+    </Note>
+
+    See [Rate limits](/concepts/rate-limits) for per-inbox sending limits.
+  </Step>
+
+  <Step title="Distribute across inboxes">
+    Instead of sending 10,000 emails from a single inbox, send 100 emails from
+    100 different inboxes. This distributes your sending volume, reduces the
+    risk of any single inbox getting flagged, and looks much more natural to
+    email providers. OpenMail's ability to create inboxes at scale makes this
+    easy to implement.
+  </Step>
+
+  <Step title="Protect your reputation">
+    A domain's reputation is its most valuable asset. If you use a custom
+    domain for outreach, consider rotating sending identities so a reputation
+    hit on one doesn't impact the rest.
+  </Step>
+</Steps>
+
+## High-impact content strategy
+
+The content of your email plays a huge role in whether it's seen as a valuable message or as spam.
+
+<Steps>
+  <Step title="Personalize everything">
+    Address your recipients by name in the subject line and email body. Use
+    other data points you have to make the email feel like a one-to-one
+    conversation, not a mass blast. Generic emails are a major red flag for spam
+    filters.
+  </Step>
+
+  <Step title="Write like a human, not a marketer">
+    Avoid "spammy" keywords (e.g., "free," "buy now," "limited time offer"),
+    excessive exclamation points, and ALL CAPS. Write in a natural,
+    conversational tone. The goal is to start a conversation, not to close a
+    sale in the first email.
+  </Step>
+
+  <Step title="Skip images and tracking pixels">
+    Images embedded in the email body set off spam filters. Open-tracking pixels
+    are just tiny images encoded into the body — email providers know it. Drop
+    them to improve deliverability.
+  </Step>
+
+  <Step title="Delay your links">
+    Email providers are wary of links, especially in the first message of a
+    conversation. Send your initial outreach with no links or images. Wait for
+    the recipient to reply, and *then* send your call-to-action link. This
+    looks like a natural conversation to providers.
+  </Step>
+
+  <Step title="Always include plain text">
+    Email providers often flag HTML-only emails as spam. Including a plain text
+    alternative demonstrates legitimacy and increases your chances of reaching
+    the inbox.
+  </Step>
+</Steps>
+
+## Suppressions
+
+OpenMail automatically maintains a suppression list for bounces and spam complaints. Recipients who bounce or mark your email as spam are suppressed from future sends.
+
+<CardGroup>
+  <Card title="Suppressions" icon="ban" href="/concepts/suppressions">
+    Learn how suppression lists work and how to manage them.
+  </Card>
+</CardGroup>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Rate limits" icon="gauge" href="/concepts/rate-limits">
+    Per-inbox send limits and cold outreach throttling.
+  </Card>
+  <Card title="Idempotency" icon="repeat" href="/best-practices/idempotency">
+    Safe retries so agents never send duplicate emails.
+  </Card>
+  <Card title="Inboxes" icon="inbox" href="/concepts/inboxes">
+    Address formats, external IDs, and multi-tenant routing.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Full endpoint documentation.
+  </Card>
+</CardGroup>

@@ -1,0 +1,46 @@
+---
+title: "API Overview"
+description: "Base URL, request format, and error handling"
+icon: list
+---
+
+## Base URL
+
+```
+https://api.openmail.sh
+```
+
+## Request format
+
+- All request bodies are JSON (`Content-Type: application/json`)
+- All responses are JSON
+- Dates are ISO 8601 (`2026-02-24T10:00:00.000Z`)
+- IDs are UUIDs
+
+## Error format
+
+All errors return a consistent structure:
+
+```json
+{
+  "error": "error_code",
+  "message": "Human-readable description"
+}
+```
+
+## Common error codes
+
+| Status | Code | Description |
+|--------|------|-------------|
+| 400 | `invalid_mailbox_name` | Mailbox name doesn't meet format requirements |
+| 400 | `missing_idempotency_key` | Send endpoint requires Idempotency-Key header |
+| 401 | `unauthorized` | Invalid or missing API key |
+| 404 | `not_found` | Resource doesn't exist or doesn't belong to your account |
+| 409 | `address_taken` | Mailbox name or address already in use |
+| 422 | `recipient_suppressed` | Recipient is on the suppression list |
+| 429 | `rate_limit_exceeded` | Too many requests - check `Retry-After` header |
+| 429 | `cold_outreach_limit` | Cold send limit exceeded for new inbox |
+
+## Idempotency
+
+The `POST /v1/inboxes/:id/send` endpoint requires an `Idempotency-Key` header. If you retry a request with the same key, we return the original response without sending a duplicate email. Keys are scoped to your account and expire after 24 hours.

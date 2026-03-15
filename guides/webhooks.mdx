@@ -1,0 +1,167 @@
+---
+title: "Setup"
+description: "Configure and implement webhook endpoints for inbound email"
+icon: wrench
+---
+
+Configure a webhook URL in the [Dashboard](https://console.openmail.sh). When inbound email arrives, OpenMail POSTs to your endpoint.
+
+## Implementation flow
+
+1. Receive POST at your endpoint.
+2. Read raw body, `X-Timestamp`, `X-Signature`, `X-Event-Id`.
+3. [Verify the signature](/pages/webhooks/verification) before processing.
+4. Parse JSON, check `event === "message.received"`.
+5. Use `inbox_id` to route to the right agent/container.
+6. Return `200` within 15 seconds.
+
+## Local development with ngrok
+
+For local development, you need a public URL so OpenMail can reach your machine. [ngrok](https://ngrok.com/) creates a secure tunnel from a public URL to your local server.
+
+1. Install ngrok: `brew install ngrok` (macOS) or download from [ngrok.com](https://ngrok.com)
+2. Sign up and add your authtoken: `ngrok config add-authtoken YOUR_AUTHTOKEN`
+3. Start your webhook server (see examples below)
+4. In another terminal: `ngrok http 3000`
+5. Copy the `https://` forwarding URL (e.g. `https://abc123.ngrok-free.app`)
+6. In the [Dashboard](https://console.openmail.sh) → **Settings**, set webhook URL to `https://abc123.ngrok-free.app/webhooks`
+7. Copy your webhook secret into `.env` as `OPENMAIL_WEBHOOK_SECRET`
+
+Free ngrok accounts have 2-hour session limits. When the tunnel disconnects, restart ngrok and update the webhook URL in the dashboard.
+
+## Full server examples
+
+<CodeGroup>
+
+```python Python (Flask)
+import os
+import json
+import hmac
+import hashlib
+import time
+from flask import Flask, request
+
+app = Flask(__name__)
+SECRET = os.environ["OPENMAIL_WEBHOOK_SECRET"]
+
+def verify_webhook(payload: bytes, timestamp: str, signature: str) -> bool:
+    message = f"{timestamp}.{payload.decode()}".encode()
+    expected = hmac.new(SECRET.encode(), message, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(signature, expected)
+
+@app.route("/webhooks", methods=["POST"])
+def webhook():
+    payload = request.get_data()
+    timestamp = request.headers.get("X-Timestamp", "")
+    signature = request.headers.get("X-Signature", "")
+
+    if not verify_webhook(payload, timestamp, signature):
+        return "", 400
+
+    if abs(time.time() - int(timestamp)) > 300:
+        return "", 400
+
+    data = json.loads(payload.decode())
+    if data.get("event") == "message.received":
+        # Route by inbox_id, process async
+        inbox_id = data.get("inbox_id")
+        message = data.get("message", {})
+        # ... handle message
+    return "", 200
+
+if __name__ == "__main__":
+    app.run(port=3000)
+```
+
+```javascript Node.js (Express)
+const express = require("express");
+const crypto = require("crypto");
+
+const app = express();
+const SECRET = process.env.OPENMAIL_WEBHOOK_SECRET;
+
+function verifyWebhook(payload, timestamp, signature) {
+  const expected = crypto
+    .createHmac("sha256", SECRET)
+    .update(`${timestamp}.${payload}`)
+    .digest("hex");
+  return crypto.timingSafeEqual(
+    Buffer.from(signature, "hex"),
+    Buffer.from(expected, "hex")
+  );
+}
+
+app.post("/webhooks", express.raw({ type: "application/json" }), (req, res) => {
+  const payload = req.body.toString();
+  const timestamp = req.headers["x-timestamp"] || "";
+  const signature = req.headers["x-signature"] || "";
+
+  if (!verifyWebhook(payload, timestamp, signature)) {
+    return res.status(400).send();
+  }
+
+  if (Math.abs(Date.now() / 1000 - parseInt(timestamp, 10)) > 300) {
+    return res.status(400).send();
+  }
+
+  const data = JSON.parse(payload);
+  if (data.event === "message.received") {
+    const { inbox_id, message } = data;
+    // ... handle message
+  }
+  res.status(200).send();
+});
+
+app.listen(3000);
+```
+
+</CodeGroup>
+
+<Warning>
+  Use `express.raw()` for the webhook route, not `express.json()`. Signature verification requires the exact raw body.
+</Warning>
+
+## Testing locally
+
+1. Start your server and ngrok.
+2. Set the webhook URL and secret in the dashboard.
+3. Use **Test webhook** in **Settings** to send a test event.
+4. Or send an email to one of your inbox addresses and watch the console.
+
+## Production deployment
+
+Deploy your webhook server to a hosting provider with a stable public HTTPS URL. Options include [Render](https://render.com/), [Railway](https://railway.app/), [Fly.io](https://fly.io/), [Vercel](https://vercel.com/) (serverless), or any cloud provider.
+
+- Set `OPENMAIL_WEBHOOK_SECRET` as an environment variable.
+- Update the webhook URL in the dashboard to your production URL.
+- Always verify signatures in production - never skip verification.
+
+## Best practices
+
+- **Respond quickly** - Return `200` within 15 seconds. Process asynchronously if needed.
+- **Idempotency** - Use `event_id` to deduplicate. We may retry; your handler should be idempotent.
+- **Attachment URLs** - Fetch promptly; signed URLs expire.
+- **Verify signatures** - Never process webhooks without verifying.
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Signature verification fails | Use the raw request body, not parsed JSON. Ensure secret matches the dashboard. Check `X-Timestamp` is within 5 minutes. |
+| Webhook not receiving events | Verify ngrok is running and the forwarding URL matches the dashboard. Ensure your server is listening on the correct port. |
+| Port already in use | Change the port in your server and ngrok: `ngrok http 4000` |
+| ngrok tunnel disconnects | Free accounts have 2-hour limits. Restart ngrok and update the webhook URL in the dashboard. |
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Events" icon="bell" href="/pages/webhooks/events">
+    Payload structure and field descriptions.
+  </Card>
+  <Card title="Verification" icon="shield-check" href="/pages/webhooks/verification">
+    HMAC formula and verification steps.
+  </Card>
+  <Card title="Overview" icon="book" href="/concepts/webhooks">
+    Delivery semantics, retry policy.
+  </Card>
+</CardGroup>

@@ -1,0 +1,41 @@
+---
+title: "FAQ"
+description: "Frequently asked questions"
+icon: circle-question-mark
+---
+
+## How do I get started?
+
+Install the CLI with `npm install -g @openmail/cli`, run `openmail setup`, and you're done. Setup prompts for auth and creates your first inbox. See the [Quickstart](/quickstart) for the full walkthrough (CLI or API tabs).
+
+## How does pricing work?
+
+You get 3 inboxes and 3,000 emails per month free forever. No credit card required. Developer plan from €9/month for 10 inboxes and 10,000 emails. Launch from €49/month for higher volume. Cancel anytime. [See full pricing](https://openmail.sh/pricing).
+
+## How do I get an API key?
+
+Sign up at [console.openmail.sh](https://console.openmail.sh). Complete the setup wizard and your API key is ready immediately. See [Quickstart](/quickstart) for the full setup flow.
+
+## How do I receive inbound email?
+
+Via WebSocket or webhook. WebSocket is recommended for agents — no public URL needed, instant delivery. Connect to `wss://api.openmail.sh/v1/ws` with your API key. For webhooks, set your URL in the [Dashboard](https://console.openmail.sh). See [WebSockets](/concepts/websockets) and [Webhooks](/guides/webhooks) for full setup.
+
+## Can an agent have multiple inboxes?
+
+Yes. Create as many inboxes as you need. Each event includes `inbox_id`, so you can map it to the correct user or agent in your app. See [Inboxes](/concepts/inboxes).
+
+## Can I create many inboxes?
+
+Yes. One account, many inboxes. No separate tenant abstraction - create inboxes and route by `inbox_id`.
+
+## How do webhooks work?
+
+Configure a webhook URL in the [Dashboard](https://console.openmail.sh). When inbound email arrives, we POST a `message.received` event. See [Overview](/concepts/webhooks) and [Setup](/guides/webhooks).
+
+## What's the Idempotency-Key for?
+
+The send endpoint requires it. Use a unique UUID per send so retries don't create duplicate emails. See [Idempotency](/best-practices/idempotency).
+
+## How do I handle attachments?
+
+Inbound attachments include a signed URL in the payload. Fetch promptly; URLs expire. See [Attachments](/concepts/attachments).
