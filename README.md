@@ -1,34 +1,15 @@
 # OpenMail docs
 
-Documentation for [OpenMail](https://openmail.sh), built with [Mintlify](https://mintlify.com).
+This repository contains the source for [docs.openmail.sh](https://docs.openmail.sh) — the official documentation for [OpenMail](https://openmail.sh).
 
-## Local development
+## What's in here
 
-```bash
-pnpm install
-pnpm run dev
-```
+- **Quickstart** — get up and running in minutes
+- **Guides** — webhooks, WebSockets, API integration
+- **Concepts** — inboxes, threading, attachments, rate limits
+- **API reference** — full OpenAPI spec with request/response examples
+- **Best practices** — deliverability, idempotency
 
-Preview at http://localhost:3000.
+## Contributing
 
-## Deployment
-
-Docs deploy to **docs.openmail.sh** via Mintlify:
-
-1. Install the [Mintlify GitHub app](https://dashboard.mintlify.com/settings/organization/github-app)
-2. Connect this repo (`openmailsh/docs`)
-3. Mintlify auto-deploys on push to main
-
-## Content
-
-- **Guides** - Getting started, Core concepts, Integration
-- **API reference** - OpenAPI spec at `api-reference/openapi.json`. Regenerate with `node scripts/generate-openapi.js` if needed.
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `pnpm run dev` | Local preview |
-| `pnpm run validate` | Validate docs build |
-| `pnpm run broken-links` | Check for broken links |
-| `pnpm run generate:openapi` | Regenerate OpenAPI spec |
+Found a typo? Something unclear? Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
