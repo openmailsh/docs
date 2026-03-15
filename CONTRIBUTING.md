@@ -1,34 +1,53 @@
-> **Customize this file**: Tailor this template to your project by noting specific contribution types you're looking for, adding a Code of Conduct, or adjusting the writing guidelines to match your style.
+# Contributing to OpenMail docs
 
-# Contribute to the documentation
+Thanks for helping improve the OpenMail documentation! Contributions of all kinds are welcome — fixing typos, clarifying explanations, adding examples, or documenting new features.
 
-Thank you for your interest in contributing to our documentation! This guide will help you get started.
+## Quick edits
 
-## How to contribute
+The fastest way to fix something small:
 
-### Option 1: Edit directly on GitHub
+1. Find the page at [docs.openmail.sh](https://docs.openmail.sh)
+2. Click **Edit this page** (pencil icon in the footer)
+3. Make your edit directly on GitHub and open a pull request
 
-1. Navigate to the page you want to edit
-2. Click the "Edit this file" button (the pencil icon)
-3. Make your changes and submit a pull request
+## Local development
 
-### Option 2: Local development
+For larger changes, run the docs site locally:
 
-1. Fork and clone this repository
-2. Install the Mintlify CLI: `npm i -g mint`
-3. Create a branch for your changes
-4. Make changes
-5. Navigate to the docs directory and run `mint dev`
-6. Preview your changes at `http://localhost:3000`
-7. Commit your changes and submit a pull request
+```bash
+git clone https://github.com/openmailsh/docs.git
+cd docs
+npm install
+npm run dev
+```
 
-For more details on local development, see the [README](README.md).
+Preview at [http://localhost:3000](http://localhost:3000).
 
-## Writing guidelines
+## Making changes
 
-- **Use active voice**: "Run the command" not "The command should be run"
-- **Address the reader directly**: Use "you" instead of "the user"
-- **Keep sentences concise**: Aim for one idea per sentence
-- **Lead with the goal**: Start instructions with what the user wants to accomplish
-- **Use consistent terminology**: Don't alternate between synonyms for the same concept
-- **Include examples**: Show, don't just tell
+1. Fork the repo and create a branch: `git checkout -b fix/clarify-webhook-events`
+2. Edit the relevant `.mdx` files
+3. Check for broken links: `npm run broken-links`
+4. Open a pull request against `main`
+
+## Content guidelines
+
+- Use active voice: "Run the command" not "The command should be run"
+- Address the reader directly with "you"
+- Keep sentences concise — one idea per sentence
+- Lead with the goal before the steps
+- Use sentence case for headings
+- Bold for UI elements: Click **Settings**
+- Code formatting for file names, commands, paths, and inline code
+
+## What to contribute
+
+- Fixing typos or unclear wording
+- Adding code examples
+- Documenting edge cases you discovered
+- Translating error messages into actionable steps
+- Flagging outdated content (open an issue)
+
+## Reporting issues
+
+If something in the docs is wrong or missing, [open an issue](https://github.com/openmailsh/docs/issues/new) describing what's incorrect and what it should say.
