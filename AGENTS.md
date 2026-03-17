@@ -1,7 +1,3 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
-
 # Documentation project instructions
 
 ## About this project
@@ -11,6 +7,24 @@
 - Configuration lives in `docs.json`
 - Run `mint dev` to preview locally
 - Run `mint broken-links` to check links
+
+## OpenAPI spec
+
+The API reference is driven by `api-reference/openapi.json`, which is generated from `scripts/generate-openapi.js`.
+
+**Never edit `api-reference/openapi.json` directly.** Always edit the spec object in `scripts/generate-openapi.js`, then regenerate:
+
+```bash
+node scripts/generate-openapi.js
+```
+
+This writes to two places at once:
+- `api-reference/openapi.json` — consumed by Mintlify for the API reference pages
+- `../openmail/apps/api/src/openapi.json` — served live at `https://api.openmail.sh/openapi.json`
+
+If the `openmail` repo is not present locally (e.g. in docs-only CI), the API sync is skipped with a warning.
+
+**When to regenerate**: any time you add, remove, or change an endpoint, request/response shape, or error code. Commit both output files together.
 
 ## Terminology
 

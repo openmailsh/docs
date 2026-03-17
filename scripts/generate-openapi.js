@@ -95,8 +95,12 @@ const spec = {
             description: "Address already in use",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
+          "422": {
+            description: "Plan inbox limit reached",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
           "429": {
-            description: "Rate limit exceeded (100/day)",
+            description: "Rate limit exceeded (100 inbox creations/day)",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
         },
@@ -188,9 +192,9 @@ const spec = {
                 required: ["to", "subject", "body"],
                 properties: {
                   to: { type: "string", format: "email" },
-                  subject: { type: "string", minLength: 1 },
-                  body: { type: "string", minLength: 1 },
-                  bodyHtml: { type: "string" },
+                  subject: { type: "string", minLength: 1, maxLength: 998 },
+                  body: { type: "string", minLength: 1, maxLength: 100000 },
+                  bodyHtml: { type: "string", maxLength: 500000 },
                   threadId: { type: "string", description: "Thread ID for replies" },
                 },
               },
@@ -227,7 +231,7 @@ const spec = {
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
           "429": {
-            description: "Rate limit or cold outreach limit",
+            description: "Rate limit exceeded (global daily, per-inbox daily, per-inbox burst) or cold outreach limit. Check the Retry-After response header.",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
         },
@@ -334,6 +338,43 @@ const spec = {
         },
       },
     },
+    "/v1/attachments/{messageId}/{filename}/text": {
+      get: {
+        summary: "Extract attachment text",
+        description: "Extracts and returns the plain text content of an attachment. Supports PDF, DOCX, XLSX, PPTX, images (via OCR), and other common formats. The result is cached on the message after the first extraction.",
+        operationId: "getAttachmentText",
+        parameters: [
+          { name: "messageId", in: "path", required: true, schema: { type: "string" } },
+          { name: "filename", in: "path", required: true, schema: { type: "string" } },
+        ],
+        responses: {
+          "200": {
+            description: "Extracted text content",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    filename: { type: "string" },
+                    contentType: { type: "string" },
+                    extractionMethod: { type: "string", description: "Method used to extract text (e.g. pdf, docx, ocr)" },
+                    text: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          "404": {
+            description: "Attachment not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+          "422": {
+            description: "Text could not be extracted from the attachment",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -406,6 +447,17 @@ const spec = {
 
 const fs = require("fs");
 const path = require("path");
-const outPath = path.join(__dirname, "..", "api-reference", "openapi.json");
-fs.writeFileSync(outPath, JSON.stringify(spec, null, 2));
-console.log("Wrote", outPath);
+
+const json = JSON.stringify(spec, null, 2);
+
+const docsPath = path.join(__dirname, "..", "api-reference", "openapi.json");
+fs.writeFileSync(docsPath, json);
+console.log("Wrote", docsPath);
+
+const apiPath = path.join(__dirname, "..", "..", "openmail", "apps", "api", "src", "openapi.json");
+if (fs.existsSync(path.dirname(apiPath))) {
+  fs.writeFileSync(apiPath, json);
+  console.log("Wrote", apiPath);
+} else {
+  console.warn("Skipped API sync — path not found:", apiPath);
+}

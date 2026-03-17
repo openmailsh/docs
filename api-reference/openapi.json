@@ -126,8 +126,18 @@
               }
             }
           },
+          "422": {
+            "description": "Plan inbox limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "429": {
-            "description": "Rate limit exceeded (100/day)",
+            "description": "Rate limit exceeded (100 inbox creations/day)",
             "content": {
               "application/json": {
                 "schema": {
@@ -301,14 +311,17 @@
                   },
                   "subject": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 998
                   },
                   "body": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 100000
                   },
                   "bodyHtml": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "threadId": {
                     "type": "string",
@@ -380,7 +393,7 @@
             }
           },
           "429": {
-            "description": "Rate limit or cold outreach limit",
+            "description": "Rate limit exceeded (global daily, per-inbox daily, per-inbox burst) or cold outreach limit. Check the Retry-After response header.",
             "content": {
               "application/json": {
                 "schema": {
@@ -599,8 +612,8 @@
     },
     "/v1/attachments/{messageId}/{filename}/text": {
       "get": {
-        "summary": "Get attachment text",
-        "description": "Returns extracted text content from an attachment. Uses cached text if available, otherwise downloads and extracts on demand. Supports PDF, images (OCR), Office documents, CSV, and plain text files.",
+        "summary": "Extract attachment text",
+        "description": "Extracts and returns the plain text content of an attachment. Supports PDF, DOCX, XLSX, PPTX, images (via OCR), and other common formats. The result is cached on the message after the first extraction.",
         "operationId": "getAttachmentText",
         "parameters": [
           {
@@ -635,11 +648,11 @@
                       "type": "string"
                     },
                     "extractionMethod": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Method used to extract text (e.g. pdf, docx, ocr)"
                     },
                     "text": {
-                      "type": "string",
-                      "description": "Extracted text content from the attachment"
+                      "type": "string"
                     }
                   }
                 }
@@ -657,7 +670,7 @@
             }
           },
           "422": {
-            "description": "Text extraction failed for this file type",
+            "description": "Text could not be extracted from the attachment",
             "content": {
               "application/json": {
                 "schema": {
@@ -743,15 +756,6 @@
                 "url": {
                   "type": "string",
                   "description": "Signed URL for download"
-                },
-                "parsedText": {
-                  "type": "string",
-                  "nullable": true,
-                  "description": "Extracted text content from the attachment. Present for supported file types (PDF, images via OCR, Office docs, CSV, plain text)."
-                },
-                "extractionMethod": {
-                  "type": "string",
-                  "description": "How text was extracted: pdf, ocr, office, csv, text, unsupported, or an error variant."
                 }
               }
             }
