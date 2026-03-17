@@ -1,0 +1,78 @@
+---
+title: "Custom domains"
+description: "Send and receive email from your own domain"
+icon: globe
+---
+
+By default, inboxes use `@openmail.sh` addresses. With a custom domain you can use any domain you own — for example `agent@yourdomain.com`.
+
+## How it works
+
+1. Add your domain in the dashboard
+2. OpenMail returns the DNS records you need to set
+3. Once DNS propagates, verify the domain
+4. Activate it — all new inboxes will use your domain
+
+## Adding a domain
+
+Go to **Settings → Domains** in the dashboard and click **Add domain**. Enter the domain you want to use (e.g. `mail.acme.com`).
+
+<Note>
+  You can use a subdomain like `mail.acme.com` or an apex domain like `acme.com`. A subdomain is generally easier to configure without affecting other email on your domain.
+</Note>
+
+After adding your domain, OpenMail returns three DNS records to set at your registrar.
+
+## DNS records
+
+| Type | Host | Value |
+|------|------|-------|
+| MX | `@` (or your subdomain) | `mxa.mailgun.org` (priority 10) |
+| MX | `@` (or your subdomain) | `mxb.mailgun.org` (priority 10) |
+| TXT | `@` (or your subdomain) | `v=spf1 include:spf.openmail.sh ~all` |
+| TXT | `openmail._domainkey` (+ your subdomain) | Provided by OpenMail |
+
+**MX records** route inbound email to OpenMail.
+
+**SPF record** authorises OpenMail to send on your domain's behalf. If you already have an SPF record, add `include:spf.openmail.sh` to the existing record rather than creating a new one.
+
+**DKIM record** adds a cryptographic signature to outbound email, proving messages were sent by you. The value is unique to your account and provided after you add the domain.
+
+DNS changes typically propagate within minutes but can take up to 48 hours.
+
+## Verifying your domain
+
+Once you've set your DNS records, click **Verify** in the dashboard. OpenMail checks all three record types and updates the domain status to `verified`.
+
+If verification fails, double-check each record at your registrar and try again. Common issues:
+
+- Existing MX records that weren't replaced
+- SPF record merged incorrectly (only one `v=spf1` per domain is allowed)
+- DKIM host copied without the subdomain suffix
+
+## Activating your domain
+
+A verified domain must be activated before inboxes use it. Click **Activate** in the dashboard.
+
+<Warning>
+  You cannot change the active domain after creating inboxes. Delete all inboxes first if you need to switch domains.
+</Warning>
+
+Once activated, every new inbox you create will use your domain:
+
+```
+{mailboxName}@yourdomain.com
+```
+
+## Limits
+
+| Plan | Custom domains |
+|------|---------------|
+| Free | 1 |
+| Pro | Unlimited |
+
+## Removing a domain
+
+You can delete a custom domain from the dashboard as long as it is not the active domain. Activate a different domain first, then delete the old one.
+
+Deleting a domain removes it from OpenMail but does not delete your DNS records — you can remove those from your registrar separately.

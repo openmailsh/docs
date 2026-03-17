@@ -42,6 +42,7 @@
             "group": "Core concepts",
             "pages": [
               "concepts/inboxes",
+              "concepts/custom-domains",
               "concepts/threading",
               "concepts/attachments",
               "concepts/suppressions",
