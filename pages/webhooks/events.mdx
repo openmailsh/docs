@@ -42,7 +42,9 @@ OpenMail sends webhooks when inbound email is received.
         "filename": "document.pdf",
         "contentType": "application/pdf",
         "sizeBytes": 12345,
-        "url": "https://api.openmail.sh/v1/attachments/msg_.../document.pdf"
+        "url": "https://api.openmail.sh/v1/attachments/msg_.../document.pdf",
+        "parsedText": "Invoice #2847\nDate: March 15, 2026\nAmount: $1,250.00",
+        "extractionMethod": "pdf"
       }
     ],
     "received_at": "2024-03-21T10:05:00.000Z"
@@ -63,7 +65,7 @@ OpenMail sends webhooks when inbound email is received.
 | `message.from` | Sender email address |
 | `message.subject` | Email subject line |
 | `message.body_text` | Plain-text body |
-| `message.attachments` | Array of attachments. Each has `url` - fetch promptly; signed URLs expire. |
+| `message.attachments` | Array of attachments with `url`, `parsedText` (extracted content), and `extractionMethod`. See [Attachments](/concepts/attachments). |
 
 ## Headers
 

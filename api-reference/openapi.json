@@ -596,6 +596,78 @@
           }
         }
       }
+    },
+    "/v1/attachments/{messageId}/{filename}/text": {
+      "get": {
+        "summary": "Get attachment text",
+        "description": "Returns extracted text content from an attachment. Uses cached text if available, otherwise downloads and extracts on demand. Supports PDF, images (OCR), Office documents, CSV, and plain text files.",
+        "operationId": "getAttachmentText",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Extracted text content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "filename": {
+                      "type": "string"
+                    },
+                    "contentType": {
+                      "type": "string"
+                    },
+                    "extractionMethod": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string",
+                      "description": "Extracted text content from the attachment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attachment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Text extraction failed for this file type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -671,6 +743,15 @@
                 "url": {
                   "type": "string",
                   "description": "Signed URL for download"
+                },
+                "parsedText": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Extracted text content from the attachment. Present for supported file types (PDF, images via OCR, Office docs, CSV, plain text)."
+                },
+                "extractionMethod": {
+                  "type": "string",
+                  "description": "How text was extracted: pdf, ocr, office, csv, text, unsupported, or an error variant."
                 }
               }
             }

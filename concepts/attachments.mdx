@@ -1,16 +1,50 @@
 ---
 title: "Attachments"
-description: "Access files from inbound emails"
+description: "Access files and extracted text from inbound emails"
 icon: paperclip
 ---
 
-When an inbound email includes attachments, OpenMail stores them and provides signed download URLs.
+When an inbound email includes attachments, OpenMail stores them, extracts readable text, and provides signed download URLs.
 
 ## How it works
 
 1. Email arrives with attachments
 2. We upload each file to secure storage
-3. Attachment metadata (filename, content type, size, download URL) is included in the webhook payload and message responses
+3. Text is extracted automatically based on file type
+4. Attachment metadata — including extracted text — is included in the webhook payload and message responses
+
+## Text extraction
+
+OpenMail automatically extracts readable text from common attachment types so your agent can read the content directly from the webhook payload or API response, without downloading and parsing files.
+
+| File type | Examples |
+|-----------|----------|
+| PDF | Invoices, receipts, contracts |
+| Images | Scanned documents, screenshots |
+| Office docs | `.docx`, `.xlsx`, `.pptx`, `.odt` |
+| CSV / TSV | Spreadsheets, data exports |
+| Plain text | `.txt`, `.md`, `.json`, `.html`, `.xml`, `.yaml`, `.log` |
+
+Each attachment includes a `parsedText` field when extraction succeeds:
+
+```json
+{
+  "filename": "invoice.pdf",
+  "contentType": "application/pdf",
+  "sizeBytes": 45000,
+  "url": "https://api.openmail.sh/v1/attachments/msg_.../invoice.pdf",
+  "parsedText": "Invoice #2847\nDate: March 15, 2026\nAmount: $1,250.00\n...",
+  "extractionMethod": "pdf"
+}
+```
+
+The `extractionMethod` field tells you how the text was extracted: `pdf`, `ocr`, `office`, `csv`, or `text`. If extraction failed or the file type is unsupported, `parsedText` is omitted and `extractionMethod` indicates the reason (e.g. `unsupported`, `pdf_error`, `skipped_too_large`).
+
+### Limits
+
+- Files larger than 10 MB are skipped for extraction
+- Extracted text is capped at 50,000 characters per attachment
+- Unsupported binary formats (video, audio, archives) return `extractionMethod: "unsupported"`
 
 ## Downloading attachments
 
@@ -27,7 +61,31 @@ curl -L https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf \
   -H "Authorization: Bearer om_..."
 ```
 
-## Limits
+## On-demand text extraction
 
-- Maximum attachment size is determined by the email provider (typically 25MB per email)
-- Attachment URLs in webhook payloads should be fetched promptly; signed URLs expire
+For attachments that were stored before text extraction was available, or to re-extract text, use the `/text` endpoint:
+
+```
+GET /v1/attachments/{messageId}/{filename}/text
+```
+
+```bash
+curl https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf/text \
+  -H "Authorization: Bearer om_..."
+```
+
+Returns:
+
+```json
+{
+  "filename": "receipt.pdf",
+  "contentType": "application/pdf",
+  "extractionMethod": "pdf",
+  "text": "Invoice #2847\nDate: March 15, 2026\n..."
+}
+```
+
+## Size limits
+
+- Maximum attachment size is determined by the email provider (typically 25 MB per email)
+- Attachment download URLs expire after 15 minutes

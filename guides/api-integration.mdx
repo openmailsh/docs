@@ -207,7 +207,16 @@ The event payload is identical for both methods:
     "to": "jane@openmail.sh",
     "subject": "Re: Your order",
     "body_text": "Thanks for following up...",
-    "attachments": [],
+    "attachments": [
+      {
+        "filename": "receipt.pdf",
+        "contentType": "application/pdf",
+        "sizeBytes": 34210,
+        "url": "https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf",
+        "parsedText": "Order confirmation #1042\nTotal: $89.99",
+        "extractionMethod": "pdf"
+      }
+    ],
     "received_at": "2026-02-24T10:05:00.000Z"
   }
 }
