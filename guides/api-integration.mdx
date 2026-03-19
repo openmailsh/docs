@@ -178,10 +178,27 @@ curl -s "https://api.openmail.sh/v1/threads/{thread_id}/messages" \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 ```
 
+## Send with attachments
+
+Use multipart/form-data to attach files:
+
+```bash
+curl -s -X POST "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/send" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -F "to=recipient@example.com" \
+  -F "subject=Report attached" \
+  -F "body=See the attached file." \
+  -F "attachments=@/path/to/report.pdf"
+```
+
+Multiple files: repeat the `-F "attachments=@..."` flag. Max 25 MB total per email.
+
 ## Notes
 
 - Always include `Idempotency-Key` when sending (prevents duplicates on retry)
 - Use `threadId` when replying so the email threads correctly in the recipient's client
+- For attachments, use `multipart/form-data` with `-F` flags instead of `-d` JSON
 - `$OPENMAIL_*` variables are read from the container environment at runtime
 ````
 
