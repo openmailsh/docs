@@ -1,0 +1,64 @@
+---
+title: "Sender rules"
+description: "Control which senders can reach your inboxes with allow and block lists"
+icon: shield-check
+---
+
+Sender rules let you control who can send email to your inboxes. You can block specific senders or domains, or switch to allowlist mode so only approved senders get through.
+
+## How it works
+
+Every inbound email is checked against your sender rules before delivery. Rules match on either a full email address (`user@example.com`) or an entire domain (`example.com`).
+
+There are two rule types:
+
+| Type | Effect |
+|------|--------|
+| `block` | Emails from this sender or domain are silently dropped |
+| `allow` | Used in allowlist mode — only these senders get through |
+
+## Filter modes
+
+Your account has an **inbound filter mode** that controls how rules are applied:
+
+| Mode | Behavior |
+|------|----------|
+| `none` (default) | All inbound email is accepted. Block rules still apply. |
+| `allowlist` | Only senders matching an allow rule are accepted. Everything else is dropped. |
+
+### Default mode (`none`)
+
+In default mode, all inbound email is delivered unless the sender matches a block rule. Use this when you only need to block a few known bad senders.
+
+### Allowlist mode
+
+In allowlist mode, only senders that match an allow rule are delivered. All other email is dropped. Use this when your agent should only communicate with a known set of contacts.
+
+<Note>
+  Block rules are always enforced, even in allowlist mode. If a sender matches both an allow rule and a block rule, the block rule wins.
+</Note>
+
+## Rule matching
+
+Rules match against the sender's email address (`From` header):
+
+- **Email rules** match the exact address: `spam@example.com`
+- **Domain rules** match any address at that domain: `example.com` blocks `alice@example.com`, `bob@example.com`, etc.
+
+Values are case-insensitive and normalized to lowercase.
+
+## Managing rules
+
+You can manage sender rules from the **Allow/Block List** page in your [Dashboard](https://console.openmail.sh) settings. From there you can:
+
+- Add email addresses or domains to your allow or block list
+- Switch between `none` and `allowlist` filter modes
+- Remove rules you no longer need
+
+## What happens to filtered email
+
+Emails that are blocked or not in the allowlist are silently dropped. They do not trigger [webhook](/concepts/webhooks) or [WebSocket](/concepts/websockets) events, and they do not appear in your inbox.
+
+<Tip>
+  Sender rules work alongside [suppressions](/concepts/suppressions). Suppressions automatically block addresses that have bounced or been reported as spam. Sender rules give you manual control on top of that.
+</Tip>

@@ -36,6 +36,10 @@ Configure a webhook URL in the [Dashboard](https://console.openmail.sh). When in
 
 The send endpoint requires it. Use a unique UUID per send so retries don't create duplicate emails. See [Idempotency](/best-practices/idempotency).
 
+## Can I block or filter inbound senders?
+
+Yes. Use sender rules to block specific email addresses or entire domains. You can also switch to allowlist mode so only approved senders reach your inboxes. Manage rules from **Settings > Allow/Block List** in the [Dashboard](https://console.openmail.sh). See [Sender rules](/concepts/sender-rules).
+
 ## How do I handle attachments?
 
 Inbound attachments include a signed URL in the payload. Fetch promptly; URLs expire. See [Attachments](/concepts/attachments).

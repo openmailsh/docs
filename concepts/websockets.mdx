@@ -65,7 +65,7 @@ When a customer has both an active WebSocket connection and a webhook URL config
 | WebSocket disconnected, webhook URL set | Webhook (with retries) |
 | Neither | Event stored, marked as failed |
 
-Events use the same [payload structure](/pages/webhooks/events) as webhooks.
+Events use the same [payload structure](/pages/webhooks/events) as webhooks. Emails that are blocked by [sender rules](/concepts/sender-rules) or filtered out by allowlist mode do not generate events.
 
 ## Comparison with webhooks
 

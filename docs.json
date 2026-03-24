@@ -46,6 +46,7 @@
               "concepts/threading",
               "concepts/attachments",
               "concepts/suppressions",
+              "concepts/sender-rules",
               "concepts/rate-limits"
             ]
           },
