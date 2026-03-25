@@ -26,3 +26,42 @@ This ensures your reply threads correctly in the recipient's email client (Gmail
 ## Thread context
 
 Fetch all messages in a thread via `GET /v1/threads/:id/messages`. Messages are returned in chronological order, giving your agent the full conversation history to inform its next action.
+
+## Read/unread tracking
+
+Every thread has an `is_read` flag that tracks whether your agent has processed it. This prevents agents from reprocessing the same emails.
+
+### How it works
+
+- New inbound threads start as **unread** (`is_read: false`)
+- Sending a reply automatically marks the thread as **read**
+- Your agent explicitly marks threads as read via `PATCH /v1/threads/:id`
+
+### Recommended flow
+
+<Steps>
+  <Step title="Poll for unread threads">
+    Fetch only threads your agent hasn't processed yet.
+    ```bash
+    GET /v1/inboxes/:id/threads?is_read=false
+    ```
+  </Step>
+  <Step title="Process the thread">
+    Fetch messages, run your agent logic, send a reply if needed.
+    ```bash
+    GET /v1/threads/:id/messages
+    ```
+  </Step>
+  <Step title="Mark as read">
+    After successful processing, mark the thread as read so it won't appear on the next poll.
+    ```bash
+    PATCH /v1/threads/:id
+    { "is_read": true }
+    ```
+    If your agent sends a reply, this happens automatically.
+  </Step>
+</Steps>
+
+<Tip>
+  If your agent uses webhooks or WebSockets, the same pattern applies — mark the thread as read after handling the event. Then use `?is_read=false` as a safety net to catch any events missed during downtime.
+</Tip>

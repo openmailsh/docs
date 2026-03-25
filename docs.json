@@ -123,6 +123,7 @@
               "POST /v1/inboxes/{id}/send",
               "GET /v1/inboxes/{id}/messages",
               "GET /v1/inboxes/{id}/threads",
+              "PATCH /v1/threads/{id}",
               "GET /v1/threads/{id}/messages"
             ]
           },

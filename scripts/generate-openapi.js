@@ -290,11 +290,18 @@ const spec = {
     "/v1/inboxes/{id}/threads": {
       get: {
         summary: "List threads",
+        description: "List threads for an inbox. Use is_read to filter by read status — for example, ?is_read=false returns only unread threads.",
         operationId: "listThreads",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
           { name: "limit", in: "query", schema: { type: "integer", default: 50, maximum: 100 } },
           { name: "offset", in: "query", schema: { type: "integer", default: 0 } },
+          {
+            name: "is_read",
+            in: "query",
+            schema: { type: "boolean" },
+            description: "Filter by read status. true = read threads only, false = unread threads only. Omit to return all.",
+          },
         ],
         responses: {
           "200": {
@@ -314,6 +321,47 @@ const spec = {
         },
       },
     },
+    "/v1/threads/{id}": {
+      patch: {
+        summary: "Update thread",
+        description: "Update a thread's read status. Use this to mark a thread as read after your agent has processed it, or as unread to re-queue it for later processing.",
+        operationId: "updateThread",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["is_read"],
+                properties: {
+                  is_read: { type: "boolean", description: "Set to true to mark as read, false to mark as unread" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Thread updated",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    ok: { type: "boolean" },
+                  },
+                },
+              },
+            },
+          },
+          "404": {
+            description: "Thread not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+        },
+      },
+    },
     "/v1/threads/{id}/messages": {
       get: {
         summary: "Get thread messages",
@@ -329,6 +377,7 @@ const spec = {
                   properties: {
                     threadId: { type: "string" },
                     subject: { type: "string" },
+                    isRead: { type: "boolean", description: "Whether the thread has been marked as read" },
                     data: { type: "array", items: { $ref: "#/components/schemas/Message" } },
                   },
                 },
@@ -440,6 +489,7 @@ const spec = {
         properties: {
           id: { type: "string" },
           subject: { type: "string" },
+          isRead: { type: "boolean", description: "Whether the thread has been marked as read. Defaults to false for new inbound threads. Auto-set to true when a reply is sent." },
           lastMessageAt: { type: "string", format: "date-time" },
           createdAt: { type: "string", format: "date-time" },
           messageCount: { type: "integer" },
