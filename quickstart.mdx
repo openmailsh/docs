@@ -11,54 +11,81 @@ Get your AI agent its own email address in two commands.
 - Node.js 20+
 - [OpenMail account](https://console.openmail.sh) (free, no credit card)
 
-<div className="openmail-prompt-card">
-<Prompt
-  description="Use this pre-built prompt to get started faster."
-  icon="wand-sparkles"
-  actions={["copy", "cursor"]}
->
-Read https://docs.openmail.sh/quickstart then add OpenMail to our OpenClaw agent:
+<Tabs>
+  <Tab title="Claude Code">
+    <Steps>
+      <Step title="Install the skill">
+        Inside Claude Code, run:
+        ```
+        /plugin marketplace add openmailsh/skills
+        /plugin install openmail@openmailsh-skills
+        ```
+        Claude Code now knows how to use OpenMail.
+      </Step>
+      <Step title="Run setup">
+        In your terminal:
+        ```bash
+        npx @openmail/cli setup --agent claude-code
+        ```
+        This opens your browser to sign in, prompts for a mailbox name, creates your inbox, and writes credentials to `~/.claude/openmail.env`.
+      </Step>
+      <Step title="Verify">
+        ```bash
+        npx @openmail/cli status
+        ```
+        Your agent can now send and receive email. Ask Claude Code to send a test email to confirm.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="OpenClaw">
+    <div className="openmail-prompt-card">
+    <Prompt
+      description="Use this pre-built prompt to get started faster."
+      icon="wand-sparkles"
+      actions={["copy", "cursor"]}
+    >
+    Read https://docs.openmail.sh/quickstart then add OpenMail to our OpenClaw agent:
 
-1. `npm install -g @openmail/cli`
-2. Ask the user for their API key (from https://console.openmail.sh/settings/api), inbox name, and display name, then run `openmail setup --api-key "<key>" --mailbox-name "<name>" --display-name "<display name>" --mode notify`
-</Prompt>
-</div>
+    1. `npm install -g @openmail/cli`
+    2. Ask the user for their API key (from https://console.openmail.sh/settings/api), inbox name, and display name, then run `openmail setup --api-key "<key>" --mailbox-name "<name>" --display-name "<display name>" --mode notify`
+    </Prompt>
+    </div>
 
-## Step 1: Install
+    <Steps>
+      <Step title="Install">
+        ```bash
+        npm install -g @openmail/cli
+        ```
+      </Step>
+      <Step title="Setup">
+        ```bash
+        openmail setup
+        ```
+        Creates your inbox, writes the skill file to `~/.openclaw/skills/openmail/SKILL.md`, and saves credentials to `~/.openclaw/openmail.env`. Pass `--api-key om_...` to skip the auth prompt.
 
-```bash
-npm install -g @openmail/cli
-```
-
-## Step 2: Setup
-
-```bash
-openmail setup
-```
-
-Creates your inbox, writes the skill file to `~/.openclaw/skills/openmail/SKILL.md`, and saves credentials to `~/.openclaw/openmail.env`. Pass `--api-key om_...` to skip the auth prompt.
-
-When setup completes, run `openmail status` to confirm everything is working:
-
-```bash
-openmail status
-```
-
-<Note>
-  **WebSocket bridge** - Setup starts the bridge automatically via systemd (Linux) or launchd (macOS). On Windows, setup prints the command to run manually — add it to your process manager to keep it running.
-</Note>
-
-## Step 3: Send an email
-
-```bash
-openmail send --to hello@example.com --subject "Hello from OpenMail" --body "I have my own inbox!"
-```
-
-Add files with `--attach` (repeatable):
-
-```bash
-openmail send --to hello@example.com --subject "Report" --body "See attached" --attach report.pdf
-```
+        When setup completes, confirm everything is working:
+        ```bash
+        openmail status
+        ```
+        <Note>
+          **WebSocket bridge** — Setup starts the bridge automatically via systemd (Linux) or launchd (macOS). On Windows, setup prints the command to run manually.
+        </Note>
+      </Step>
+      <Step title="Send an email">
+        ```bash
+        openmail send --to hello@example.com --subject "Hello from OpenMail" --body "I have my own inbox!"
+        ```
+        Add files with `--attach` (repeatable):
+        ```bash
+        openmail send --to hello@example.com --subject "Report" --body "See attached" --attach report.pdf
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="API / SDK">
+    See the [API integration guide](/guides/api-integration) for creating inboxes and sending email programmatically with any language or framework.
+  </Tab>
+</Tabs>
 
 ## More commands
 
