@@ -150,6 +150,10 @@
         "href": "https://openmail.sh/pricing"
       },
       {
+        "label": "Status",
+        "href": "https://openmail.hyperping.app"
+      },
+      {
         "label": "Support",
         "href": "mailto:support@openmail.to"
       }
