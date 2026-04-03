@@ -23,7 +23,11 @@
   "redirects": [
     { "source": "/quickstart/cli", "destination": "/quickstart" },
     { "source": "/quickstart/api", "destination": "/guides/api-integration" },
-    { "source": "/guides/cli-quickstart", "destination": "/quickstart" }
+    { "source": "/guides/cli-quickstart", "destination": "/quickstart" },
+    { "source": "/guides/skills/openmail", "destination": "/integrations/skill-files/openmail" },
+    { "source": "/guides/skills/references/setup", "destination": "/integrations/skill-files/setup" },
+    { "source": "/guides/skills/references/errors", "destination": "/integrations/skill-files/errors" },
+    { "source": "/guides/skills/references/api", "destination": "/integrations/skill-files/api" }
   ],
   "navigation": {
     "tabs": [
@@ -71,6 +75,12 @@
             "group": "Guides",
             "pages": [
               "guides/api-integration"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/openclaw"
             ]
           },
           {
