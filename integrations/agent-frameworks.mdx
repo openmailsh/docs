@@ -1,0 +1,297 @@
+---
+title: "Agent frameworks"
+description: "Wire OpenMail into LangChain, Vercel AI SDK, or any framework that supports tool calling."
+icon: cpu
+---
+
+Give your agent email tools that call the OpenMail REST API directly — no CLI dependency needed.
+
+## Prerequisites
+
+- [OpenMail account](https://console.openmail.sh) with API key
+- An inbox already created (see [API integration — Step 1](/guides/api-integration#step-1-create-an-inbox))
+
+Set these environment variables before running any of the examples below:
+
+```bash
+OPENMAIL_API_KEY=om_live_...
+OPENMAIL_INBOX_ID=inb_...
+OPENMAIL_ADDRESS=agent@example.openmail.sh
+```
+
+## Tools to implement
+
+| Tool | What it does |
+|------|-------------|
+| `send_email` | Send an email (or reply in a thread) |
+| `check_inbox` | List unread threads |
+| `read_thread` | Get all messages in a thread and mark it as read |
+
+---
+
+## LangChain (Python)
+
+```python
+import os
+import uuid
+import requests
+from langchain_core.tools import tool
+
+API_KEY = os.environ["OPENMAIL_API_KEY"]
+INBOX_ID = os.environ["OPENMAIL_INBOX_ID"]
+BASE = "https://api.openmail.sh/v1"
+HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+
+
+@tool
+def send_email(to: str, subject: str, body: str, thread_id: str | None = None) -> dict:
+    """Send an email. Pass thread_id to reply in an existing thread."""
+    payload = {"to": to, "subject": subject, "body": body}
+    if thread_id:
+        payload["threadId"] = thread_id
+    resp = requests.post(
+        f"{BASE}/inboxes/{INBOX_ID}/send",
+        headers={**HEADERS, "Idempotency-Key": str(uuid.uuid4())},
+        json=payload,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+@tool
+def check_inbox() -> list[dict]:
+    """List unread threads — use this to check for new mail."""
+    resp = requests.get(
+        f"{BASE}/inboxes/{INBOX_ID}/threads",
+        headers=HEADERS,
+        params={"is_read": "false", "limit": "20"},
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+@tool
+def read_thread(thread_id: str) -> list[dict]:
+    """Get all messages in a thread (oldest first) and mark it as read."""
+    resp = requests.get(
+        f"{BASE}/threads/{thread_id}/messages",
+        headers=HEADERS,
+    )
+    resp.raise_for_status()
+    messages = resp.json()
+
+    requests.patch(
+        f"{BASE}/threads/{thread_id}",
+        headers=HEADERS,
+        json={"is_read": True},
+    )
+    return messages
+```
+
+### Wire the agent
+
+```python
+from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
+
+agent = create_react_agent(
+    ChatOpenAI(model="gpt-4o"),
+    tools=[send_email, check_inbox, read_thread],
+)
+
+result = agent.invoke(
+    {"messages": [{"role": "user", "content": "Check my inbox and summarise any new emails."}]}
+)
+```
+
+---
+
+## Vercel AI SDK (TypeScript)
+
+```typescript
+import { tool } from "ai";
+import { z } from "zod";
+
+const API_KEY = process.env.OPENMAIL_API_KEY!;
+const INBOX_ID = process.env.OPENMAIL_INBOX_ID!;
+const BASE = "https://api.openmail.sh/v1";
+const headers = { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" };
+
+const sendEmail = tool({
+  description: "Send an email. Pass threadId to reply in an existing thread.",
+  inputSchema: z.object({
+    to: z.string().describe("Recipient email address"),
+    subject: z.string().describe("Email subject"),
+    body: z.string().describe("Plain text body"),
+    threadId: z.string().optional().describe("Thread ID to reply in"),
+  }),
+  execute: async ({ to, subject, body, threadId }) => {
+    const resp = await fetch(`${BASE}/inboxes/${INBOX_ID}/send`, {
+      method: "POST",
+      headers: { ...headers, "Idempotency-Key": crypto.randomUUID() },
+      body: JSON.stringify({ to, subject, body, ...(threadId && { threadId }) }),
+    });
+    if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
+    return resp.json();
+  },
+});
+
+const checkInbox = tool({
+  description: "List unread threads — use this to check for new mail.",
+  inputSchema: z.object({}),
+  execute: async () => {
+    const resp = await fetch(
+      `${BASE}/inboxes/${INBOX_ID}/threads?is_read=false&limit=20`,
+      { headers },
+    );
+    if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
+    return resp.json();
+  },
+});
+
+const readThread = tool({
+  description: "Get all messages in a thread (oldest first) and mark it as read.",
+  inputSchema: z.object({
+    threadId: z.string().describe("Thread ID to read"),
+  }),
+  execute: async ({ threadId }) => {
+    const resp = await fetch(`${BASE}/threads/${threadId}/messages`, { headers });
+    if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
+    const messages = await resp.json();
+
+    await fetch(`${BASE}/threads/${threadId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ is_read: true }),
+    });
+    return messages;
+  },
+});
+```
+
+### Wire the agent
+
+```typescript
+import { streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+const result = streamText({
+  model: openai("gpt-4o"),
+  tools: { sendEmail, checkInbox, readThread },
+  maxSteps: 5,
+  prompt: "Check my inbox and summarise any new emails.",
+});
+
+for await (const part of result.textStream) {
+  process.stdout.write(part);
+}
+```
+
+---
+
+## Generic (fetch)
+
+For any framework that supports function calling — define these as your tool implementations.
+
+```javascript
+const API_KEY = process.env.OPENMAIL_API_KEY;
+const INBOX_ID = process.env.OPENMAIL_INBOX_ID;
+const BASE = "https://api.openmail.sh/v1";
+const headers = { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" };
+
+async function sendEmail({ to, subject, body, threadId }) {
+  const resp = await fetch(`${BASE}/inboxes/${INBOX_ID}/send`, {
+    method: "POST",
+    headers: { ...headers, "Idempotency-Key": crypto.randomUUID() },
+    body: JSON.stringify({ to, subject, body, ...(threadId && { threadId }) }),
+  });
+  if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
+  return resp.json();
+}
+
+async function checkInbox() {
+  const resp = await fetch(
+    `${BASE}/inboxes/${INBOX_ID}/threads?is_read=false&limit=20`,
+    { headers },
+  );
+  if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
+  return resp.json();
+}
+
+async function readThread(threadId) {
+  const resp = await fetch(`${BASE}/threads/${threadId}/messages`, { headers });
+  if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
+  const messages = await resp.json();
+
+  await fetch(`${BASE}/threads/${threadId}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ is_read: true }),
+  });
+  return messages;
+}
+```
+
+Pass these functions as tool implementations in your framework's tool-calling API. The JSON schemas for the LLM are:
+
+```json
+[
+  {
+    "name": "send_email",
+    "description": "Send an email. Pass threadId to reply in an existing thread.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "to": { "type": "string", "description": "Recipient email address" },
+        "subject": { "type": "string", "description": "Email subject" },
+        "body": { "type": "string", "description": "Plain text body" },
+        "threadId": { "type": "string", "description": "Thread ID to reply in" }
+      },
+      "required": ["to", "subject", "body"]
+    }
+  },
+  {
+    "name": "check_inbox",
+    "description": "List unread threads — use this to check for new mail.",
+    "parameters": { "type": "object", "properties": {} }
+  },
+  {
+    "name": "read_thread",
+    "description": "Get all messages in a thread (oldest first) and mark it as read.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "threadId": { "type": "string", "description": "Thread ID to read" }
+      },
+      "required": ["threadId"]
+    }
+  }
+]
+```
+
+---
+
+## Inbound email
+
+The tools above let your agent poll for new mail with `check_inbox`. For real-time delivery, connect a **WebSocket** listener or configure a **webhook** — both push `message.received` events as they arrive.
+
+See the [API integration guide — Step 4](/guides/api-integration#step-4-handle-inbound-email) for full WebSocket and webhook code examples with Node.js and Python.
+
+---
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="API integration" icon="code" href="/guides/api-integration">
+    Create inboxes, inject env vars, and handle inbound for multi-tenant apps.
+  </Card>
+  <Card title="API reference" icon="square-terminal" href="/api-reference/introduction">
+    Full endpoint documentation.
+  </Card>
+  <Card title="WebSockets" icon="bolt" href="/concepts/websockets">
+    Real-time event streaming — no public URL needed.
+  </Card>
+  <Card title="Attachments" icon="paperclip" href="/concepts/attachments">
+    Sending and receiving files.
+  </Card>
+</CardGroup>
