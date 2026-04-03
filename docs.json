@@ -80,7 +80,9 @@
           {
             "group": "Integrations",
             "pages": [
-              "integrations/openclaw"
+              "integrations/openclaw",
+              "integrations/claude-code",
+              "integrations/agent-frameworks"
             ]
           },
           {
