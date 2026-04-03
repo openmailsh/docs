@@ -38,6 +38,15 @@ Get your AI agent its own email address in two commands.
     </Steps>
   </Tab>
   <Tab title="OpenClaw">
+    <CardGroup cols={2}>
+      <Card title="OpenClaw integration" icon="book-open" href="/integrations/openclaw">
+        Paths, WebSocket bridge, and links to the packaged skill files.
+      </Card>
+      <Card title="Skill files (SKILL.md)" icon="files" href="/integrations/skill-files/openmail">
+        `SKILL.md` matches [`@openmail/cli`](https://github.com/openmailsh/cli); reference pages come from [openmailsh/skills](https://github.com/openmailsh/skills).
+      </Card>
+    </CardGroup>
+
     <div className="openmail-prompt-card">
     <Prompt
       description="Use this pre-built prompt to get started faster."
@@ -97,6 +106,7 @@ openmail threads get --thread-id <thread-id>
 
 ## Next steps
 
+- **OpenClaw** - See the [OpenClaw integration](/integrations/openclaw) guide and the **Skill files** tab for [SKILL.md](/integrations/skill-files/openmail) and [reference files](/integrations/skill-files/setup).
 - **Handle inbound email** - Route replies to your agent via [WebSocket](/concepts/websockets) or [webhooks](/guides/webhooks).
 - **Improve deliverability** - Follow [warm-up schedules](/best-practices/email-deliverability) to stay out of spam.
 - **Explore the API** - Full [API reference](/api-reference/introduction) for programmatic workflows.
