@@ -196,6 +196,12 @@ const spec = {
                   body: { type: "string", minLength: 1, maxLength: 100000 },
                   bodyHtml: { type: "string", maxLength: 500000 },
                   threadId: { type: "string", description: "Thread ID for replies" },
+                  replyTo: {
+                    type: "string",
+                    format: "email",
+                    description:
+                      "Optional. Address that replies should be routed to (set as the `Reply-To` MIME header). Free plan: must be the address of an inbox you own in OpenMail. Developer plan or higher: any valid email address.",
+                  },
                 },
               },
             },
@@ -209,6 +215,12 @@ const spec = {
                   body: { type: "string", minLength: 1, maxLength: 100000 },
                   bodyHtml: { type: "string", maxLength: 500000 },
                   threadId: { type: "string", description: "Thread ID for replies" },
+                  replyTo: {
+                    type: "string",
+                    format: "email",
+                    description:
+                      "Optional. Address that replies should be routed to (set as the `Reply-To` MIME header). Free plan: must be the address of an inbox you own in OpenMail. Developer plan or higher: any valid email address.",
+                  },
                   attachments: {
                     type: "array",
                     items: { type: "string", format: "binary" },
@@ -237,7 +249,12 @@ const spec = {
             },
           },
           "400": {
-            description: "Missing Idempotency-Key",
+            description: "Missing Idempotency-Key, invalid 'to' address, or invalid 'replyTo' address",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+          "403": {
+            description:
+              "Feature requires a paid plan. Returned when a free-plan customer sets `replyTo` to an address that is not one of their own OpenMail inboxes. Body includes `feature: \"external_reply_to\"`.",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
           "404": {
