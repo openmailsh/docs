@@ -1,0 +1,73 @@
+---
+title: "Usage"
+description: "Per-inbox metering for pass-through and pay-as-you-go billing"
+icon: gauge
+---
+
+OpenMail exposes granular usage so you can meter cost per inbox. If you treat each agent as its own inbox, this gives you per-agent metering out of the box — useful for passing cost through to your own users.
+
+## The usage endpoint
+
+`GET /v1/usage` returns a per-inbox breakdown plus account totals.
+
+```bash
+curl "https://api.openmail.sh/v1/usage?from=2026-05-01T00:00:00Z&to=2026-06-01T00:00:00Z" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+```json
+{
+  "from": "2026-05-01T00:00:00.000Z",
+  "to": "2026-06-01T00:00:00.000Z",
+  "groupBy": "inbox",
+  "inboxes": [
+    {
+      "inboxId": "inb_abc",
+      "address": "agent-1@yourco.com",
+      "inbound": 128,
+      "outbound": 64,
+      "attachmentBytes": 5242880,
+      "storedBytes": 7340032
+    }
+  ],
+  "totals": {
+    "inbound": 128,
+    "outbound": 64,
+    "attachmentBytes": 5242880,
+    "storedBytes": 7340032
+  }
+}
+```
+
+## Query parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `from` | ISO 8601 start (inclusive). Defaults to 30 days ago. |
+| `to` | ISO 8601 end (exclusive). Defaults to now. |
+| `group_by` | `inbox` (default) returns the per-inbox breakdown plus totals. `account` returns totals only. |
+
+The maximum window is 92 days.
+
+## Metrics
+
+| Field | Meaning |
+|-------|---------|
+| `inbound` | Inbound messages received in the window. |
+| `outbound` | Outbound messages sent in the window. |
+| `attachmentBytes` | Sum of attachment bytes across messages in the window (transferred volume). |
+| `storedBytes` | Current stored bytes for the inbox right now (point-in-time), not bound to the window. |
+
+<Note>
+  `inbound`, `outbound`, and `attachmentBytes` are **windowed** — they reflect activity in `[from, to)`. `storedBytes` is **point-in-time** — it reflects what is occupying storage now, which is the right basis for storage billing.
+</Note>
+
+## Metering pattern
+
+For pay-as-you-go pass-through:
+
+- Bill **per email** from `inbound + outbound` over a billing window.
+- Bill **per attachment volume** from `attachmentBytes` over the window.
+- Bill **per storage** from the latest `storedBytes` (snapshot it at the end of each period).
+
+Poll `GET /v1/usage` on your billing cadence (for example daily or hourly) and store the deltas. Inboxes with no activity still appear with zeroed counts, so you always get a complete per-agent list.
