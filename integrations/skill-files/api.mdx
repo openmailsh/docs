@@ -245,11 +245,14 @@ Returns attachment data. Signed URL included in message payload — fetch prompt
 
 ## Rate limits
 
-| Resource | Limit |
-|---|---|
-| Inbox creation | 100 per day |
-| Send per inbox | 10 per minute, 200 per day |
-| API requests | 1,000 per minute |
+| Resource | Limit | Scope |
+|---|---|---|
+| Inbox creation | 100 per day | Per account |
+| Send burst | 10 per minute | Per inbox |
+| Send daily | 200 per day | Per inbox |
+| Cold outreach (first 30 days) | 20 per day | Per inbox |
+
+There is no fixed global "requests per minute" limit. On a `429`, read the `Retry-After` and `X-RateLimit-*` headers and back off until the window resets.
 
 ---
 
