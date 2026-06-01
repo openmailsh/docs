@@ -20,11 +20,21 @@ API keys are prefixed with `om_` for production.
 
 See [Quickstart](/quickstart) for the full setup flow.
 
+## Multiple API keys
+
+Your account has a primary key (shown in the dashboard), and you can issue additional **named** keys via the API:
+
+- `POST /v1/api-keys` with `{ "name": "..." }` creates a key and returns its value **once** — store it securely.
+- `GET /v1/api-keys` lists your keys with masked previews (the full value is never returned again).
+- `DELETE /v1/api-keys/{id}` revokes a key immediately.
+
+Issue separate keys per environment or per fleet so you can revoke one without disrupting the others. You don't need to round-robin keys to scale — [rate limits](/concepts/rate-limits) are mostly per inbox, so spread load across inboxes instead.
+
 ## Security
 
-- Keep your API key secret. Do not expose it in client-side code.
+- Keep your API keys secret. Do not expose them in client-side code.
 - Each API key is scoped to a single account. Requests authenticate to the account that owns the key.
-- If you believe your key has been compromised, contact support immediately for rotation.
+- If you believe a key has been compromised, revoke it with `DELETE /v1/api-keys/{id}` (or rotate the primary key from the dashboard).
 
 ## Invalid authentication
 
