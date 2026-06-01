@@ -11,7 +11,7 @@ By default, inboxes use `@openmail.sh` addresses. With a custom domain you can u
 1. Add your domain in the dashboard
 2. OpenMail returns the DNS records you need to set
 3. Once DNS propagates, verify the domain
-4. Activate it — all new inboxes will use your domain
+4. Create inboxes on it by passing the domain when you create an inbox
 
 ## Adding a domain
 
@@ -50,19 +50,37 @@ If verification fails, double-check each record at your registrar and try again.
 - SPF record merged incorrectly (only one `v=spf1` per domain is allowed)
 - DKIM host copied without the subdomain suffix
 
-## Activating your domain
+## Using your domain
 
-A verified domain must be activated before inboxes use it. Click **Activate** in the dashboard.
+Once a domain shows as **Verified**, it is ready to use — there is no separate activation step. Verifying the domain is what makes it available.
 
-<Warning>
-  You cannot change the active domain after creating inboxes. Delete all inboxes first if you need to switch domains.
-</Warning>
+Your account default domain never switches automatically. To create an inbox on your custom domain, choose it explicitly:
 
-Once activated, every new inbox you create will use your domain:
+<CodeGroup>
+
+```bash API
+curl -X POST https://api.openmail.sh/v1/inboxes \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mailboxName": "support",
+    "domain": "yourdomain.com"
+  }'
+```
+
+```text Dashboard
+Inboxes → Create inbox → pick yourdomain.com in the domain selector
+```
+
+</CodeGroup>
+
+The resulting address uses your domain:
 
 ```
 {mailboxName}@yourdomain.com
 ```
+
+If you omit `domain`, the inbox is created on your account default domain (for example `@openmail.sh`). Passing a domain that is not verified or does not belong to your account returns `invalid_domain`.
 
 ## Limits
 
@@ -77,6 +95,6 @@ Custom domains are available on paid plans.
 
 ## Removing a domain
 
-You can delete a custom domain from the dashboard as long as it is not the active domain. Activate a different domain first, then delete the old one.
+You can delete a custom domain from the dashboard as long as it has no inboxes. Delete the inboxes on that domain first, then remove the domain.
 
 Deleting a domain removes it from OpenMail but does not delete your DNS records — you can remove those from your registrar separately.
