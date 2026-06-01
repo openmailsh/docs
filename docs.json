@@ -51,7 +51,8 @@
               "concepts/attachments",
               "concepts/suppressions",
               "concepts/sender-rules",
-              "concepts/rate-limits"
+              "concepts/rate-limits",
+              "concepts/usage"
             ]
           },
           {

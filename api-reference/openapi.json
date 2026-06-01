@@ -413,6 +413,71 @@
         }
       }
     },
+    "/v1/usage": {
+      "get": {
+        "summary": "Get usage",
+        "description": "Per-inbox usage for metering and pass-through billing. Counts and attachment bytes are scoped to the [from, to) window; storedBytes is the current point-in-time storage for the inbox. Defaults to the last 30 days. Max window is 92 days.",
+        "operationId": "getUsage",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "ISO 8601 start (inclusive). Defaults to 30 days ago."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "ISO 8601 end (exclusive). Defaults to now."
+          },
+          {
+            "name": "group_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inbox",
+                "account"
+              ],
+              "default": "inbox"
+            },
+            "description": "`inbox` (default) returns a per-inbox breakdown plus totals; `account` returns totals only."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usage report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or too-large date range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/inboxes/{id}/send": {
       "post": {
         "summary": "Send email",
@@ -996,6 +1061,78 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "InboxUsage": {
+        "type": "object",
+        "properties": {
+          "inboxId": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "format": "email"
+          },
+          "inbound": {
+            "type": "integer",
+            "description": "Inbound messages received in the window"
+          },
+          "outbound": {
+            "type": "integer",
+            "description": "Outbound messages sent in the window"
+          },
+          "attachmentBytes": {
+            "type": "integer",
+            "description": "Sum of attachment bytes across messages in the window"
+          },
+          "storedBytes": {
+            "type": "integer",
+            "description": "Current stored bytes for the inbox (point-in-time)"
+          }
+        }
+      },
+      "UsageReport": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "groupBy": {
+            "type": "string",
+            "enum": [
+              "inbox",
+              "account"
+            ]
+          },
+          "inboxes": {
+            "type": "array",
+            "description": "Per-inbox breakdown. Empty when group_by=account.",
+            "items": {
+              "$ref": "#/components/schemas/InboxUsage"
+            }
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "inbound": {
+                "type": "integer"
+              },
+              "outbound": {
+                "type": "integer"
+              },
+              "attachmentBytes": {
+                "type": "integer"
+              },
+              "storedBytes": {
+                "type": "integer"
+              }
+            }
           }
         }
       },
