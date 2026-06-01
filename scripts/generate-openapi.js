@@ -73,6 +73,11 @@ const spec = {
                     maxLength: 200,
                     description: "Sender display name shown in the From header",
                   },
+                  domain: {
+                    type: "string",
+                    description:
+                      "Domain for the inbox address. Defaults to your account domain (e.g. `openmail.sh`). Pass a verified custom domain you own to create the inbox on it (e.g. `agent-mail.example.com`). The domain must already be added and verified for your account; the account default never switches automatically.",
+                  },
                 },
               },
             },
@@ -88,7 +93,8 @@ const spec = {
             },
           },
           "400": {
-            description: "Invalid mailbox name",
+            description:
+              "Invalid mailbox name, or `domain` is not a verified custom domain belonging to your account",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
           "409": {
