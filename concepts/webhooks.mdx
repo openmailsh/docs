@@ -13,6 +13,33 @@ Instead of constantly polling the API to check for new emails, you register a UR
 - **Real-time** - Build agents that reply to emails in seconds.
 - **Efficient** - No polling; saves compute and simplifies your logic.
 
+## Account vs. per-inbox webhooks
+
+You can configure webhooks at two levels:
+
+- **Account webhook** - A single URL for your whole account, set in **Settings**. Every inbox without its own webhook delivers here.
+- **Per-inbox webhook** - A URL set on an individual inbox. Useful when you provision many inboxes (for example one per agent) and want each to receive its own mail on its own endpoint.
+
+OpenMail resolves the delivery target for each event in this order:
+
+1. An active real-time WebSocket connection for the account
+2. The inbox's own `webhookUrl` (if set)
+3. The account `webhookUrl` (fallback)
+
+Each webhook is signed with the secret that belongs to the URL it is delivered to. Set a per-inbox webhook when creating an inbox or by updating it:
+
+```bash
+# Create an inbox with its own webhook
+curl -X POST https://api.openmail.sh/v1/inboxes \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "mailboxName": "agent-42", "webhookUrl": "https://hooks.example.com/agent-42" }'
+
+# The response includes a one-time webhookSecret — store it.
+```
+
+Clear a per-inbox webhook (revert to the account webhook) by setting it to `null` via `PATCH /v1/inboxes/{id}`. Rotate its secret with `POST /v1/inboxes/{id}/webhook/rotate-secret`, and verify connectivity with `POST /v1/inboxes/{id}/webhook/test`.
+
 ## Delivery semantics
 
 - **At-least-once delivery** - We may deliver the same event more than once. Use `event_id` to deduplicate.

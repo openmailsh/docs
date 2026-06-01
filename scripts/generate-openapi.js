@@ -78,6 +78,11 @@ const spec = {
                     description:
                       "Domain for the inbox address. Defaults to your account domain (e.g. `openmail.sh`). Pass a verified custom domain you own to create the inbox on it (e.g. `agent-mail.example.com`). The domain must already be added and verified for your account; the account default never switches automatically.",
                   },
+                  webhookUrl: {
+                    type: "string",
+                    description:
+                      "Optional HTTPS URL to receive inbound events for this inbox. When set, OpenMail generates a per-inbox signing secret (returned once in the response). Falls back to the account webhook when omitted.",
+                  },
                 },
               },
             },
@@ -144,6 +149,12 @@ const spec = {
                     maxLength: 200,
                     description: "Sender display name. Set null to clear.",
                   },
+                  webhookUrl: {
+                    type: "string",
+                    nullable: true,
+                    description:
+                      "Per-inbox webhook URL (HTTPS). Set a value to point this inbox at its own endpoint (a signing secret is generated and returned once on first set). Set null or an empty string to clear it and fall back to the account webhook.",
+                  },
                 },
               },
             },
@@ -158,6 +169,10 @@ const spec = {
             description: "Not found",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
+          "422": {
+            description: "Invalid webhook URL (failed SSRF/format validation)",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
         },
       },
       delete: {
@@ -168,6 +183,73 @@ const spec = {
           "204": { description: "Inbox deleted" },
           "404": {
             description: "Not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/webhook/rotate-secret": {
+      post: {
+        summary: "Rotate inbox webhook secret",
+        description:
+          "Generate a new HMAC signing secret for the inbox webhook. The inbox must already have a webhook URL set. The new secret is returned once.",
+        operationId: "rotateInboxWebhookSecret",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            description: "New secret",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: { webhookSecret: { type: "string" } },
+                },
+              },
+            },
+          },
+          "400": {
+            description: "No webhook URL set on this inbox",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+          "404": {
+            description: "Not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/webhook/test": {
+      post: {
+        summary: "Send a test webhook",
+        description:
+          "Send a signed `setup.test` event to the inbox webhook URL to verify connectivity and signature handling.",
+        operationId: "testInboxWebhook",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            description: "Test delivered",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    ok: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          "400": {
+            description: "No webhook URL set on this inbox",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+          "404": {
+            description: "Not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          },
+          "502": {
+            description: "The webhook endpoint did not accept the test event",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
           },
         },
@@ -474,6 +556,17 @@ const spec = {
           id: { type: "string", description: "OpenMail inbox ID" },
           address: { type: "string", format: "email", description: "Full email address" },
           displayName: { type: "string", description: "Sender display name", nullable: true },
+          webhookUrl: {
+            type: "string",
+            nullable: true,
+            description:
+              "Per-inbox webhook URL. When set, inbound events for this inbox are delivered here instead of the account webhook. Null means the account-level webhook is used.",
+          },
+          webhookSecret: {
+            type: "string",
+            description:
+              "HMAC signing secret for the inbox webhook. Returned only in the response that creates or rotates it — store it securely; it is not returned again.",
+          },
           createdAt: { type: "string", format: "date-time" },
         },
       },
