@@ -1,5 +1,6 @@
 ---
-title: "FAQ"
+title: "Frequently Asked Questions"
+sidebarTitle: "FAQ"
 description: "Frequently asked questions about OpenMail — inboxes, pricing, custom domains, sending limits, authentication, and agent integrations answered."
 icon: circle-question-mark
 ---
@@ -14,11 +15,11 @@ You get 3 inboxes and 3,000 emails per month free forever. No credit card requir
 
 ## How do I get an API key?
 
-Sign up at [console.openmail.sh](https://console.openmail.sh). Complete the setup wizard and your API key is ready immediately. See [Quickstart](/quickstart) for the full setup flow.
+Sign up at [console.openmail.sh](https://console.openmail.sh/login). Complete the setup wizard and your API key is ready immediately. See [Quickstart](/quickstart) for the full setup flow.
 
 ## How do I receive inbound email?
 
-Via WebSocket or webhook. WebSocket is recommended for agents — no public URL needed, instant delivery. Connect to `wss://api.openmail.sh/v1/ws` with your API key. For webhooks, set your URL in the [Dashboard](https://console.openmail.sh). See [WebSockets](/concepts/websockets) and [Webhooks](/guides/webhooks) for full setup.
+Via WebSocket or webhook. WebSocket is recommended for agents — no public URL needed, instant delivery. Connect to `wss://api.openmail.sh/v1/ws` with your API key. For webhooks, set your URL in the [Dashboard](https://console.openmail.sh/login). See [WebSockets](/concepts/websockets) and [Webhooks](/guides/webhooks) for full setup.
 
 ## Can an agent have multiple inboxes?
 
@@ -30,7 +31,7 @@ Yes. One account, many inboxes. No separate tenant abstraction - create inboxes 
 
 ## How do webhooks work?
 
-Configure a webhook URL in the [Dashboard](https://console.openmail.sh). When inbound email arrives, we POST a `message.received` event. See [Overview](/concepts/webhooks) and [Setup](/guides/webhooks).
+Configure a webhook URL in the [Dashboard](https://console.openmail.sh/login). When inbound email arrives, we POST a `message.received` event. See [Overview](/concepts/webhooks) and [Setup](/guides/webhooks).
 
 ## What's the Idempotency-Key for?
 
@@ -38,7 +39,7 @@ The send endpoint requires it. Use a unique UUID per send so retries don't creat
 
 ## Can I block or filter inbound senders?
 
-Yes. Use sender rules to block specific email addresses or entire domains. You can also switch to allowlist mode so only approved senders reach your inboxes. Manage rules from **Settings > Allow/Block List** in the [Dashboard](https://console.openmail.sh). See [Sender rules](/concepts/sender-rules).
+Yes. Use sender rules to block specific email addresses or entire domains. You can also switch to allowlist mode so only approved senders reach your inboxes. Manage rules from **Settings > Allow/Block List** in the [Dashboard](https://console.openmail.sh/login). See [Sender rules](/concepts/sender-rules).
 
 ## How do I handle attachments?
 

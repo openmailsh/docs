@@ -115,6 +115,7 @@ const spec = {
     "/v1/inboxes/{id}": {
       get: {
         summary: "Get inbox",
+        description: "Retrieve a single inbox by its ID, including its address, display name, and creation time.",
         operationId: "getInbox",
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
@@ -130,6 +131,7 @@ const spec = {
       },
       patch: {
         summary: "Update inbox",
+        description: "Update an inbox's settings, such as the sender display name shown in the From header.",
         operationId: "updateInbox",
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         requestBody: {
@@ -162,6 +164,7 @@ const spec = {
       },
       delete: {
         summary: "Delete inbox",
+        description: "Permanently delete an inbox and stop delivery to its address. This action cannot be undone.",
         operationId: "deleteInbox",
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
@@ -281,6 +284,7 @@ const spec = {
     "/v1/inboxes/{id}/messages": {
       get: {
         summary: "List messages",
+        description: "List all messages in an inbox, across every thread. Supports pagination for high-volume inboxes.",
         operationId: "listMessages",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
@@ -388,6 +392,7 @@ const spec = {
     "/v1/threads/{id}/messages": {
       get: {
         summary: "Get thread messages",
+        description: "Retrieve a thread and all of its messages in order, with read status and full message content.",
         operationId: "getThreadMessages",
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {

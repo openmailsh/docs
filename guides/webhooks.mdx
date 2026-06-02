@@ -4,7 +4,7 @@ description: "Configure webhook endpoints to receive inbound email events from O
 icon: wrench
 ---
 
-Configure a webhook URL in the [Dashboard](https://console.openmail.sh). When inbound email arrives, OpenMail POSTs to your endpoint.
+Configure a webhook URL in the [Dashboard](https://console.openmail.sh/login). When inbound email arrives, OpenMail POSTs to your endpoint.
 
 ## Implementation flow
 
@@ -24,7 +24,7 @@ For local development, you need a public URL so OpenMail can reach your machine.
 3. Start your webhook server (see examples below)
 4. In another terminal: `ngrok http 3000`
 5. Copy the `https://` forwarding URL (e.g. `https://abc123.ngrok-free.app`)
-6. In the [Dashboard](https://console.openmail.sh) → **Settings**, set webhook URL to `https://abc123.ngrok-free.app/webhooks`
+6. In the [Dashboard](https://console.openmail.sh/login) → **Settings**, set webhook URL to `https://abc123.ngrok-free.app/webhooks`
 7. Copy your webhook secret into `.env` as `OPENMAIL_WEBHOOK_SECRET`
 
 Free ngrok accounts have 2-hour session limits. When the tunnel disconnects, restart ngrok and update the webhook URL in the dashboard.

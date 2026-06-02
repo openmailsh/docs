@@ -2,6 +2,18 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "OpenMail",
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "og:site_name": "OpenMail Docs",
+      "og:type": "website",
+      "og:image": "https://openmail.sh/og-image.png",
+      "og:image:width": "1200",
+      "og:image:height": "630",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "https://openmail.sh/og-image.png"
+    }
+  },
   "colors": {
     "primary": "#09090b",
     "light": "#e5e5e5",
@@ -173,7 +185,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://console.openmail.sh"
+      "href": "https://console.openmail.sh/login"
     }
   },
   "contextual": {
@@ -188,7 +200,7 @@
   "footer": {
     "socials": {
       "website": "https://openmail.sh",
-      "discord": "https://discord.gg/eFfQFMZbsK"
+      "discord": "https://discord.com/invite/eFfQFMZbsK"
     }
   },
   "integrations": {
