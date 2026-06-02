@@ -1,6 +1,6 @@
 ---
 title: "Custom domains"
-description: "Send and receive email from your own domain"
+description: "Send and receive email from your own domain with OpenMail. Configure custom domains with SPF, DKIM, and DMARC — all handled automatically on inbox provisioning."
 icon: globe
 ---
 
@@ -81,6 +81,44 @@ The resulting address uses your domain:
 ```
 
 If you omit `domain`, the inbox is created on your account default domain (for example `@openmail.sh`). Passing a domain that is not verified or does not belong to your account returns `invalid_domain`.
+
+## Sender avatars (BIMI)
+
+You can publish a logo for your domain so mailbox providers that support [BIMI](https://bimigroup.org) (Brand Indicators for Message Identification) — such as Gmail and Apple Mail — show it next to messages you send.
+
+BIMI is configured **per domain**, not per inbox. Every inbox on the domain shares the same avatar, because the logo is published in DNS at the domain level. Gmail and Outlook do not support per-address avatars for programmatic senders.
+
+### Requirements
+
+- A **verified** custom domain with DMARC enforced (`p=quarantine` or `p=reject`).
+- An SVG logo in the **SVG Tiny Portable/Secure (SVG Tiny PS)** profile, hosted over HTTPS.
+- For Gmail and Apple Mail, a **Verified Mark Certificate (VMC)** is also required. Without a VMC the record is still valid but most providers will not display the logo.
+
+### Configuring BIMI
+
+Set the logo (and optional VMC) on a verified domain:
+
+```bash
+curl -X PATCH https://api.openmail.sh/dashboard/domains/{domainId}/bimi \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "logoUrl": "https://cdn.yourdomain.com/logo.svg",
+    "vmcUrl": "https://cdn.yourdomain.com/vmc.pem"
+  }'
+```
+
+OpenMail then returns a `default._bimi` TXT record to add at your registrar, alongside your existing MX, SPF, and DKIM records:
+
+| Type | Host | Value |
+|------|------|-------|
+| TXT | `default._bimi` | `v=BIMI1; l=https://cdn.yourdomain.com/logo.svg; a=https://cdn.yourdomain.com/vmc.pem;` |
+
+Pass an empty string for `logoUrl` to remove the avatar. `vmcUrl` is optional; omit it to publish a logo-only record.
+
+<Note>
+  Avatar display is controlled by the receiving provider, not OpenMail. Even with a valid record and VMC, providers roll out BIMI gradually and may take time to show your logo.
+</Note>
 
 ## Limits
 
