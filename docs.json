@@ -7,9 +7,9 @@
     "light": "#e5e5e5",
     "dark": "#09090b"
   },
-  "modeToggle": {
+  "appearance": {
     "default": "dark",
-    "isHidden": false
+    "strict": false
   },
   "styling": {
     "codeblocks": {
