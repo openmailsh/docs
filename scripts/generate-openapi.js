@@ -287,6 +287,11 @@ const spec = {
                     type: "string",
                     description: "Thread ID for replies",
                   },
+                  includeQuote: {
+                    type: "boolean",
+                    description:
+                      "When replying with threadId, append a quoted copy of the previous message to the body. Defaults to true. Set false to send only your reply text.",
+                  },
                   replyTo: {
                     type: "string",
                     format: "email",
@@ -319,6 +324,11 @@ const spec = {
                   threadId: {
                     type: "string",
                     description: "Thread ID for replies",
+                  },
+                  includeQuote: {
+                    type: "boolean",
+                    description:
+                      "When replying with threadId, append a quoted copy of the previous message to the body. Defaults to true. Set false to send only your reply text.",
                   },
                   replyTo: {
                     type: "string",

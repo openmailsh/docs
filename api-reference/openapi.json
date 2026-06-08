@@ -330,11 +330,15 @@
                   "bodyHtml": {
                     "type": "string",
                     "maxLength": 500000,
-                    "description": "Advanced. Rarely needed. Provide only when the plain-text and HTML versions must differ. Omit for normal sends — put HTML in `body` instead."
+                    "description": "Provide only when the plain-text and HTML versions must differ. Omit for normal sends — put HTML in `body` instead."
                   },
                   "threadId": {
                     "type": "string",
                     "description": "Thread ID for replies"
+                  },
+                  "includeQuote": {
+                    "type": "boolean",
+                    "description": "When replying with threadId, append a quoted copy of the previous message to the body. Defaults to true. Set false to send only your reply text."
                   },
                   "replyTo": {
                     "type": "string",
@@ -376,6 +380,10 @@
                   "threadId": {
                     "type": "string",
                     "description": "Thread ID for replies"
+                  },
+                  "includeQuote": {
+                    "type": "boolean",
+                    "description": "When replying with threadId, append a quoted copy of the previous message to the body. Defaults to true. Set false to send only your reply text."
                   },
                   "replyTo": {
                     "type": "string",

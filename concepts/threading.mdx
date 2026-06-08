@@ -23,6 +23,8 @@ When you send with a `threadId`, we automatically set:
 
 This ensures your reply threads correctly in the recipient's email client (Gmail, Outlook, etc.).
 
+We also append a quoted copy of the previous message to the body by default (the familiar `On … wrote:` block with `>`-prefixed lines). Pass `includeQuote: false` to send only your reply text.
+
 ## Thread context
 
 Fetch all messages in a thread via `GET /v1/threads/:id/messages`. Messages are returned in chronological order, giving your agent the full conversation history to inform its next action.

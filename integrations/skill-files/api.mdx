@@ -24,7 +24,7 @@ openmail send \
   --subject "Subject" \
   --body "Plain text body."
 
-# Reply in thread (subject ignored)
+# Reply in thread (quotes previous message automatically)
 openmail send \
   --to "recipient@example.com" \
   --thread-id "thr_..." \
@@ -43,7 +43,8 @@ Flags:
 - `--to` (required) — recipient address
 - `--subject` (required unless `--thread-id` is set) — email subject
 - `--body` (required) — plain text or HTML (HTML is auto-detected and rendered)
-- `--thread-id` — reply in an existing thread
+- `--thread-id` — reply in an existing thread (quotes previous message by default)
+- `--no-quote` — send only your reply text, skip quoted history
 - `--attach` — file path to attach (repeatable)
 - `--inbox-id` — override default inbox
 
@@ -201,6 +202,9 @@ Idempotency-Key: <uuid>
 `body` accepts plain text or HTML. HTML is auto-detected and rendered; a
 plain-text fallback is generated automatically. The optional `bodyHtml` field
 is for advanced API use only — when the plain-text and HTML versions must differ.
+
+When `threadId` is set, the API appends a quoted copy of the previous message to
+the body by default. Pass `"includeQuote": false` to send only your reply text.
 
 `replyTo` is optional. When set, the email's `Reply-To` header is populated
 with that address so replies route there instead of to the sending inbox.
