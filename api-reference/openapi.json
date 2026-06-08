@@ -324,11 +324,13 @@
                   "body": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100000
+                    "maxLength": 100000,
+                    "description": "Email body. Plain text or HTML — HTML is auto-detected and rendered, with a plain-text fallback generated automatically."
                   },
                   "bodyHtml": {
                     "type": "string",
-                    "maxLength": 500000
+                    "maxLength": 500000,
+                    "description": "Advanced. Rarely needed. Provide only when the plain-text and HTML versions must differ. Omit for normal sends — put HTML in `body` instead."
                   },
                   "threadId": {
                     "type": "string",
@@ -363,11 +365,13 @@
                   "body": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100000
+                    "maxLength": 100000,
+                    "description": "Email body. Plain text or HTML — HTML is auto-detected and rendered, with a plain-text fallback generated automatically."
                   },
                   "bodyHtml": {
                     "type": "string",
-                    "maxLength": 500000
+                    "maxLength": 500000,
+                    "description": "Advanced. Rarely needed. Provide only when the plain-text and HTML versions must differ. Omit for normal sends — put HTML in `body` instead."
                   },
                   "threadId": {
                     "type": "string",

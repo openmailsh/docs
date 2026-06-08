@@ -28,7 +28,7 @@ openmail send \
   --body "Plain text body."
 ```
 
-Reply in a thread with `--thread-id thr_...`. Add HTML with `--body-html "<p>...</p>"`. Attach files with `--attach <path>` (repeatable). The response includes `messageId` and `threadId` — store `threadId` to continue the conversation later.
+Reply in a thread with `--thread-id thr_...`. Put HTML directly in `--body` — it is detected and rendered automatically. Attach files with `--attach <path>` (repeatable). The response includes `messageId` and `threadId` — store `threadId` to continue the conversation later.
 
 **Always reply in the existing thread.** When the user asks you to reply to an email, look up the thread with `openmail threads list` first, then use `--thread-id`. Never create a new thread unless the user explicitly asks for one.
 

@@ -35,14 +35,17 @@ const spec = {
           },
         ],
         responses: {
-          "200": {
+          200: {
             description: "List of inboxes",
             content: {
               "application/json": {
                 schema: {
                   type: "object",
                   properties: {
-                    data: { type: "array", items: { $ref: "#/components/schemas/Inbox" } },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Inbox" },
+                    },
                     total: { type: "integer" },
                   },
                 },
@@ -84,7 +87,7 @@ const spec = {
           },
         },
         responses: {
-          "201": {
+          201: {
             description: "Inbox created",
             content: {
               "application/json": {
@@ -92,22 +95,38 @@ const spec = {
               },
             },
           },
-          "400": {
+          400: {
             description:
               "Invalid mailbox name, or `domain` is not a verified custom domain belonging to your account",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
-          "409": {
+          409: {
             description: "Address already in use",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
-          "422": {
+          422: {
             description: "Plan inbox limit reached",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
-          "429": {
+          429: {
             description: "Rate limit exceeded (100 inbox creations/day)",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
@@ -115,25 +134,49 @@ const spec = {
     "/v1/inboxes/{id}": {
       get: {
         summary: "Get inbox",
-        description: "Retrieve a single inbox by its ID, including its address, display name, and creation time.",
+        description:
+          "Retrieve a single inbox by its ID, including its address, display name, and creation time.",
         operationId: "getInbox",
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-        responses: {
-          "200": {
-            description: "Inbox details",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Inbox" } } },
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
           },
-          "404": {
+        ],
+        responses: {
+          200: {
+            description: "Inbox details",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Inbox" },
+              },
+            },
+          },
+          404: {
             description: "Not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
       patch: {
         summary: "Update inbox",
-        description: "Update an inbox's settings, such as the sender display name shown in the From header.",
+        description:
+          "Update an inbox's settings, such as the sender display name shown in the From header.",
         operationId: "updateInbox",
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         requestBody: {
           content: {
             "application/json": {
@@ -152,26 +195,46 @@ const spec = {
           },
         },
         responses: {
-          "200": {
+          200: {
             description: "Inbox updated",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Inbox" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Inbox" },
+              },
+            },
           },
-          "404": {
+          404: {
             description: "Not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
       delete: {
         summary: "Delete inbox",
-        description: "Permanently delete an inbox and stop delivery to its address. This action cannot be undone.",
+        description:
+          "Permanently delete an inbox and stop delivery to its address. This action cannot be undone.",
         operationId: "deleteInbox",
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
-          "204": { description: "Inbox deleted" },
-          "404": {
+          204: { description: "Inbox deleted" },
+          404: {
             description: "Not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
@@ -183,7 +246,12 @@ const spec = {
           "Send an email from an inbox. Requires Idempotency-Key header. Use threadId to reply to an existing thread.",
         operationId: "sendEmail",
         parameters: [
-          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
           {
             name: "Idempotency-Key",
             in: "header",
@@ -202,9 +270,23 @@ const spec = {
                 properties: {
                   to: { type: "string", format: "email" },
                   subject: { type: "string", minLength: 1, maxLength: 998 },
-                  body: { type: "string", minLength: 1, maxLength: 100000 },
-                  bodyHtml: { type: "string", maxLength: 500000 },
-                  threadId: { type: "string", description: "Thread ID for replies" },
+                  body: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 100000,
+                    description:
+                      "Email body. Plain text or HTML — HTML is auto-detected and rendered, with a plain-text fallback generated automatically.",
+                  },
+                  bodyHtml: {
+                    type: "string",
+                    maxLength: 500000,
+                    description:
+                      "Provide only when the plain-text and HTML versions must differ. Omit for normal sends — put HTML in `body` instead.",
+                  },
+                  threadId: {
+                    type: "string",
+                    description: "Thread ID for replies",
+                  },
                   replyTo: {
                     type: "string",
                     format: "email",
@@ -221,9 +303,23 @@ const spec = {
                 properties: {
                   to: { type: "string", format: "email" },
                   subject: { type: "string", minLength: 1, maxLength: 998 },
-                  body: { type: "string", minLength: 1, maxLength: 100000 },
-                  bodyHtml: { type: "string", maxLength: 500000 },
-                  threadId: { type: "string", description: "Thread ID for replies" },
+                  body: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 100000,
+                    description:
+                      "Email body. Plain text or HTML — HTML is auto-detected and rendered, with a plain-text fallback generated automatically.",
+                  },
+                  bodyHtml: {
+                    type: "string",
+                    maxLength: 500000,
+                    description:
+                      "Advanced. Rarely needed. Provide only when the plain-text and HTML versions must differ. Omit for normal sends — put HTML in `body` instead.",
+                  },
+                  threadId: {
+                    type: "string",
+                    description: "Thread ID for replies",
+                  },
                   replyTo: {
                     type: "string",
                     format: "email",
@@ -241,7 +337,7 @@ const spec = {
           },
         },
         responses: {
-          "200": {
+          200: {
             description: "Email sent (or idempotent replay)",
             content: {
               "application/json": {
@@ -251,32 +347,57 @@ const spec = {
                     messageId: { type: "string" },
                     threadId: { type: "string" },
                     providerMessageId: { type: "string" },
-                    status: { type: "string", enum: ["pending", "sent", "failed"] },
+                    status: {
+                      type: "string",
+                      enum: ["pending", "sent", "failed"],
+                    },
                   },
                 },
               },
             },
           },
-          "400": {
-            description: "Missing Idempotency-Key, invalid 'to' address, or invalid 'replyTo' address",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
-          },
-          "403": {
+          400: {
             description:
-              "Feature requires a paid plan. Returned when a free-plan customer sets `replyTo` to an address that is not one of their own OpenMail inboxes. Body includes `feature: \"external_reply_to\"`.",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+              "Missing Idempotency-Key, invalid 'to' address, or invalid 'replyTo' address",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
-          "404": {
+          403: {
+            description:
+              'Feature requires a paid plan. Returned when a free-plan customer sets `replyTo` to an address that is not one of their own OpenMail inboxes. Body includes `feature: "external_reply_to"`.',
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
+          },
+          404: {
             description: "Inbox or thread not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
-          "422": {
+          422: {
             description: "Recipient suppressed (bounce/complaint)",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
-          "429": {
-            description: "Rate limit exceeded (global daily, per-inbox daily, per-inbox burst) or cold outreach limit. Check the Retry-After response header.",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+          429: {
+            description:
+              "Rate limit exceeded (global daily, per-inbox daily, per-inbox burst) or cold outreach limit. Check the Retry-After response header.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
@@ -284,12 +405,26 @@ const spec = {
     "/v1/inboxes/{id}/messages": {
       get: {
         summary: "List messages",
-        description: "List all messages in an inbox, across every thread. Supports pagination for high-volume inboxes.",
+        description:
+          "List all messages in an inbox, across every thread. Supports pagination for high-volume inboxes.",
         operationId: "listMessages",
         parameters: [
-          { name: "id", in: "path", required: true, schema: { type: "string" } },
-          { name: "limit", in: "query", schema: { type: "integer", default: 50, maximum: 100 } },
-          { name: "offset", in: "query", schema: { type: "integer", default: 0 } },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 50, maximum: 100 },
+          },
+          {
+            name: "offset",
+            in: "query",
+            schema: { type: "integer", default: 0 },
+          },
           {
             name: "direction",
             in: "query",
@@ -297,14 +432,17 @@ const spec = {
           },
         ],
         responses: {
-          "200": {
+          200: {
             description: "List of messages",
             content: {
               "application/json": {
                 schema: {
                   type: "object",
                   properties: {
-                    data: { type: "array", items: { $ref: "#/components/schemas/Message" } },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Message" },
+                    },
                     total: { type: "integer" },
                   },
                 },
@@ -317,28 +455,46 @@ const spec = {
     "/v1/inboxes/{id}/threads": {
       get: {
         summary: "List threads",
-        description: "List threads for an inbox. Use is_read to filter by read status — for example, ?is_read=false returns only unread threads.",
+        description:
+          "List threads for an inbox. Use is_read to filter by read status — for example, ?is_read=false returns only unread threads.",
         operationId: "listThreads",
         parameters: [
-          { name: "id", in: "path", required: true, schema: { type: "string" } },
-          { name: "limit", in: "query", schema: { type: "integer", default: 50, maximum: 100 } },
-          { name: "offset", in: "query", schema: { type: "integer", default: 0 } },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 50, maximum: 100 },
+          },
+          {
+            name: "offset",
+            in: "query",
+            schema: { type: "integer", default: 0 },
+          },
           {
             name: "is_read",
             in: "query",
             schema: { type: "boolean" },
-            description: "Filter by read status. true = read threads only, false = unread threads only. Omit to return all.",
+            description:
+              "Filter by read status. true = read threads only, false = unread threads only. Omit to return all.",
           },
         ],
         responses: {
-          "200": {
+          200: {
             description: "List of threads",
             content: {
               "application/json": {
                 schema: {
                   type: "object",
                   properties: {
-                    data: { type: "array", items: { $ref: "#/components/schemas/Thread" } },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Thread" },
+                    },
                     total: { type: "integer" },
                   },
                 },
@@ -351,9 +507,17 @@ const spec = {
     "/v1/threads/{id}": {
       patch: {
         summary: "Update thread",
-        description: "Update a thread's read status. Use this to mark a thread as read after your agent has processed it, or as unread to re-queue it for later processing.",
+        description:
+          "Update a thread's read status. Use this to mark a thread as read after your agent has processed it, or as unread to re-queue it for later processing.",
         operationId: "updateThread",
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -362,14 +526,18 @@ const spec = {
                 type: "object",
                 required: ["is_read"],
                 properties: {
-                  is_read: { type: "boolean", description: "Set to true to mark as read, false to mark as unread" },
+                  is_read: {
+                    type: "boolean",
+                    description:
+                      "Set to true to mark as read, false to mark as unread",
+                  },
                 },
               },
             },
           },
         },
         responses: {
-          "200": {
+          200: {
             description: "Thread updated",
             content: {
               "application/json": {
@@ -382,9 +550,13 @@ const spec = {
               },
             },
           },
-          "404": {
+          404: {
             description: "Thread not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
@@ -392,11 +564,19 @@ const spec = {
     "/v1/threads/{id}/messages": {
       get: {
         summary: "Get thread messages",
-        description: "Retrieve a thread and all of its messages in order, with read status and full message content.",
+        description:
+          "Retrieve a thread and all of its messages in order, with read status and full message content.",
         operationId: "getThreadMessages",
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
-          "200": {
+          200: {
             description: "Thread with messages",
             content: {
               "application/json": {
@@ -405,8 +585,14 @@ const spec = {
                   properties: {
                     threadId: { type: "string" },
                     subject: { type: "string" },
-                    isRead: { type: "boolean", description: "Whether the thread has been marked as read" },
-                    data: { type: "array", items: { $ref: "#/components/schemas/Message" } },
+                    isRead: {
+                      type: "boolean",
+                      description: "Whether the thread has been marked as read",
+                    },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Message" },
+                    },
                   },
                 },
               },
@@ -418,17 +604,32 @@ const spec = {
     "/v1/attachments/{messageId}/{filename}": {
       get: {
         summary: "Get attachment",
-        description: "Returns a 302 redirect to a signed URL for the attachment.",
+        description:
+          "Returns a 302 redirect to a signed URL for the attachment.",
         operationId: "getAttachment",
         parameters: [
-          { name: "messageId", in: "path", required: true, schema: { type: "string" } },
-          { name: "filename", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "messageId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "filename",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
         ],
         responses: {
-          "302": { description: "Redirect to attachment URL" },
-          "404": {
+          302: { description: "Redirect to attachment URL" },
+          404: {
             description: "Attachment not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
@@ -436,14 +637,25 @@ const spec = {
     "/v1/attachments/{messageId}/{filename}/text": {
       get: {
         summary: "Extract attachment text",
-        description: "Extracts and returns the plain text content of an attachment. Supports PDF, DOCX, XLSX, PPTX, images (via OCR), and other common formats. The result is cached on the message after the first extraction.",
+        description:
+          "Extracts and returns the plain text content of an attachment. Supports PDF, DOCX, XLSX, PPTX, images (via OCR), and other common formats. The result is cached on the message after the first extraction.",
         operationId: "getAttachmentText",
         parameters: [
-          { name: "messageId", in: "path", required: true, schema: { type: "string" } },
-          { name: "filename", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "messageId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "filename",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
         ],
         responses: {
-          "200": {
+          200: {
             description: "Extracted text content",
             content: {
               "application/json": {
@@ -452,20 +664,32 @@ const spec = {
                   properties: {
                     filename: { type: "string" },
                     contentType: { type: "string" },
-                    extractionMethod: { type: "string", description: "Method used to extract text (e.g. pdf, docx, ocr)" },
+                    extractionMethod: {
+                      type: "string",
+                      description:
+                        "Method used to extract text (e.g. pdf, docx, ocr)",
+                    },
                     text: { type: "string" },
                   },
                 },
               },
             },
           },
-          "404": {
+          404: {
             description: "Attachment not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
-          "422": {
+          422: {
             description: "Text could not be extracted from the attachment",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
           },
         },
       },
@@ -477,8 +701,16 @@ const spec = {
         type: "object",
         properties: {
           id: { type: "string", description: "OpenMail inbox ID" },
-          address: { type: "string", format: "email", description: "Full email address" },
-          displayName: { type: "string", description: "Sender display name", nullable: true },
+          address: {
+            type: "string",
+            format: "email",
+            description: "Full email address",
+          },
+          displayName: {
+            type: "string",
+            description: "Sender display name",
+            nullable: true,
+          },
           createdAt: { type: "string", format: "date-time" },
         },
       },
@@ -517,7 +749,11 @@ const spec = {
         properties: {
           id: { type: "string" },
           subject: { type: "string" },
-          isRead: { type: "boolean", description: "Whether the thread has been marked as read. Defaults to false for new inbound threads. Auto-set to true when a reply is sent." },
+          isRead: {
+            type: "boolean",
+            description:
+              "Whether the thread has been marked as read. Defaults to false for new inbound threads. Auto-set to true when a reply is sent.",
+          },
           lastMessageAt: { type: "string", format: "date-time" },
           createdAt: { type: "string", format: "date-time" },
           messageCount: { type: "integer" },
@@ -550,7 +786,16 @@ const docsPath = path.join(__dirname, "..", "api-reference", "openapi.json");
 fs.writeFileSync(docsPath, json);
 console.log("Wrote", docsPath);
 
-const apiPath = path.join(__dirname, "..", "..", "openmail", "apps", "api", "src", "openapi.json");
+const apiPath = path.join(
+  __dirname,
+  "..",
+  "..",
+  "openmail",
+  "apps",
+  "api",
+  "src",
+  "openapi.json",
+);
 if (fs.existsSync(path.dirname(apiPath))) {
   fs.writeFileSync(apiPath, json);
   console.log("Wrote", apiPath);
