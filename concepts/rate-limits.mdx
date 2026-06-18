@@ -16,14 +16,26 @@ OpenMail enforces rate limits to protect domain reputation and ensure deliverabi
 
 ## Cold outreach throttle
 
-A "cold" send is an email to a recipient who has never sent an inbound message to this inbox. Cold sends have additional limits:
+A "cold" send is an email to a recipient who has never sent an inbound message to this inbox. Cold sends have two independent caps, both reset per UTC day. A send only goes through if it is under **both**.
+
+### Per-inbox cap
 
 | Inbox age | Cold send limit |
 |-----------|-----------------|
 | First 30 days | 20/day per inbox |
 | After 30 days | Standard daily limit (200/day) |
 
-This protects your domain reputation while it warms up. Relationship email (replies to existing threads) is not affected.
+### Per-account cap
+
+A separate cap applies across all of your inboxes combined, so adding more inboxes does not multiply your cold quota. It scales with your plan and loosens once your account is more than 30 days old:
+
+| Plan | First 30 days | After 30 days |
+|------|---------------|---------------|
+| Free | 30/day | 100/day |
+| Developer | 150/day | 500/day |
+| Launch | 500/day | 2,000/day |
+
+Enterprise plans are exempt from the per-account cap. These limits protect your domain reputation while it warms up. Relationship email (replies to recipients who have emailed you) is always "warm" and bypasses both caps.
 
 ## Rate limit responses
 
