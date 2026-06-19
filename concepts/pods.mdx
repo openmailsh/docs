@@ -12,19 +12,23 @@ Pods are designed for multi-tenant apps. If you run one agent for yourself, you 
 
 ```
 Account (your OpenMail account, one API key)
+├── Domain (account-wide)       ← usable by every pod; optional
 ├── Default pod                 ← inboxes land here unless you say otherwise
 │   ├── Inbox
 │   └── Inbox
 ├── Pod (your customer A)
+│   ├── Domain (scoped)         ← only this pod can use it
 │   ├── Inbox
 │   └── Inbox
 └── Pod (your customer B)
+    ├── Domain (scoped)
     ├── Inbox
     └── Inbox
 ```
 
 - **Account** — Your business. One account, one set of API keys, one bill.
 - **Pod** — A tenant in your product (a customer, end user, agent, or environment). Provides organizational isolation between sets of inboxes.
+- **Domain** — A verified custom domain. Either **account-wide** (lives at account level, any pod can use it) or **scoped to one pod** (lives under that pod). A domain cannot be scoped to more than one pod, but not all pods.
 - **Inbox** — An email address. Always belongs to exactly one pod.
 
 ## When to use pods
@@ -45,11 +49,13 @@ The same building block — one pod per tenant — maps onto a few common shapes
 ```
 Account
 ├── Pod  clientId: "acme"          (Acme Corp)
-│   ├── support@openmail.sh
-│   └── billing@openmail.sh
+│   ├── Domain: acme.com
+│   ├── support@acme.com
+│   └── billing@acme.com
 └── Pod  clientId: "techstart"     (TechStart Inc)
-    ├── hello@openmail.sh
-    └── team@openmail.sh
+    ├── Domain: techstart.io
+    ├── hello@techstart.io
+    └── team@techstart.io
 ```
 
 **Agency / white-label** — one pod per client you manage on their behalf:
@@ -131,7 +137,16 @@ An inbox always belongs to exactly one pod. Inboxes cannot be moved between pods
 
 ## Custom domains and pods
 
-[Custom domains](/concepts/custom-domains) can be **account-wide** (usable by every pod) or **scoped to one pod**. When creating an inbox on a pod-scoped domain, the inbox must be in that same pod; account-wide domains work in any pod. Manage scope from the dashboard — see [Pod scoping](/concepts/custom-domains#pod-scoping).
+[Custom domains](/concepts/custom-domains) sit in one of two places in the hierarchy:
+
+| Scope | Where it lives | Who can use it |
+|-------|----------------|----------------|
+| **Account-wide** | Under the account (not inside a pod) | Any pod |
+| **Pod-scoped** | Under that pod | Only inboxes in that pod |
+
+When you create an inbox, `domain` and `podId` must agree: pod-scoped domains require the inbox in that same pod; account-wide domains work in any pod. You cannot scope a domain to several pods but not all — it is either one pod or every pod.
+
+Manage scope from the dashboard (**Settings → Domains**, or a pod's **Domains** tab). See [Pod scoping](/concepts/custom-domains#pod-scoping) for DNS, verification, and reassignment rules.
 
 ## What pods do and don't isolate
 
@@ -148,7 +163,7 @@ You can delete a pod with `DELETE /v1/pods/:id`, with these guardrails:
 - The pod must not **own pod-scoped custom domains** — reassign them to account-wide or another pod first, or you'll get `pod_has_domains` (409).
 - The **default pod** cannot be deleted (`default_pod`, 409).
 
-Deleting a pod does not delete inboxes; it only removes an empty container. To offboard a customer, delete their inboxes, then the pod (you can address the pod by your own `clientId`):
+Deleting a pod does not delete inboxes or domains; it only removes an empty container. To offboard a customer, clean up their pod-scoped resources first (you can address the pod by your own `clientId`):
 
 ```bash
 # 1. List the pod's inboxes
@@ -159,7 +174,10 @@ curl "https://api.openmail.sh/v1/inboxes?podId=tenant_8f2a" \
 curl -X DELETE https://api.openmail.sh/v1/inboxes/INBOX_ID \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 
-# 3. Now the pod is empty and can be deleted
+# 3. Reassign or delete any pod-scoped domains (dashboard: widen to account-wide,
+#    move to another pod, or delete the domain once it has no inboxes)
+
+# 4. Now the pod is empty and can be deleted
 curl -X DELETE https://api.openmail.sh/v1/pods/tenant_8f2a \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 ```
@@ -220,6 +238,9 @@ Notes:
   </Accordion>
   <Accordion title="Can I restrict an API key to a single pod?">
     Not today. Account API keys can access every pod. If you need per-tenant access boundaries, enforce them in your own application layer for now.
+  </Accordion>
+  <Accordion title="Can each pod have its own custom domain?">
+    Yes. Scope a domain to one pod and create inboxes on it only inside that pod — for example `support@acme.com` under the Acme pod and `hello@techstart.io` under the TechStart pod. You can also add account-wide domains that every pod shares.
   </Accordion>
 </AccordionGroup>
 
