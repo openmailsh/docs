@@ -39,14 +39,28 @@ Enterprise plans are exempt from the per-account cap. These limits protect your 
 
 ## Rate limit responses
 
-When rate limited, the API returns `429` with a `Retry-After` header:
+When rate limited, the API returns `429` with a `Retry-After` header and a set of `X-RateLimit-*` headers describing the limit that was hit:
+
+| Header | Description |
+|--------|-------------|
+| `Retry-After` | Seconds to wait before retrying. |
+| `X-RateLimit-Limit` | The limit that applied to this request. |
+| `X-RateLimit-Remaining` | Requests remaining in the window (`0` on a 429). |
+| `X-RateLimit-Reset` | Unix timestamp (seconds) when the window resets. |
 
 ```json
 {
   "error": "rate_limit_exceeded",
+  "scope": "burst",
   "message": "Max 10 sends per minute per inbox"
 }
 ```
+
+The `scope` field identifies which limit was hit: `burst`, `daily`, or `global` for send limits. The cold-outreach throttle returns `error: "cold_outreach_limit"` with `scope: "cold_outreach"`. Read `Retry-After` (or `X-RateLimit-Reset`) and back off until the window resets rather than retrying immediately.
+
+<Note>
+  These limits are mostly **per inbox** (burst, daily, cold outreach) plus a **per-account** daily send cap and inbox-creation cap. There is no fixed global "requests per minute" limit — pace your sends against the per-inbox limits above. Because limits are per inbox, you generally do not need multiple API keys to scale: spread load across inboxes instead.
+</Note>
 
 ## Why this matters
 

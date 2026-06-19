@@ -78,10 +78,11 @@ Attachment URLs in inbound messages are signed and expire after a short window. 
 
 ## Rate limits
 
-| Resource | Limit |
-|----------|-------|
-| Inbox creation | 100 per day per account |
-| Send per inbox | 10 per minute, 200 per day |
-| API requests | 1,000 per minute per account |
+| Resource | Limit | Scope |
+|----------|-------|-------|
+| Inbox creation | 100 per day | Per account |
+| Send burst | 10 per minute | Per inbox |
+| Send daily | 200 per day | Per inbox |
+| Cold outreach (first 30 days) | 20 per day | Per inbox |
 
-When rate limited, wait for the duration specified in the `Retry-After` header before retrying.
+There is no fixed global "requests per minute" limit. When rate limited, the API returns `429` with `Retry-After` and `X-RateLimit-Limit` / `X-RateLimit-Remaining` / `X-RateLimit-Reset` headers, plus a `scope` field (`burst`, `daily`, `global`, or `cold_outreach`). Wait for the `Retry-After` duration before retrying.
