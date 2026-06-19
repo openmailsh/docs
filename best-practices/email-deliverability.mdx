@@ -13,10 +13,10 @@ High deliverability is the key to successful email automation. This guide covers
 Before you send your first email, it's important to have the right technical foundation in place. SPF, DKIM, and DMARC are DNS records that act as a digital signature, proving to email providers that you are who you say you are.
 
 <Tip>
-  OpenMail handles all of this automatically for `openmail.sh` — no setup needed on your end. Just something to know about.
+  OpenMail handles SPF, DKIM, and DMARC automatically for `openmail.sh` — great for getting started. For high-volume cold outreach, verify your own custom domain (Developer plan and above). See [Custom domains](/concepts/custom-domains).
 </Tip>
 
-All inboxes use `openmail.sh` by default. OpenMail handles SPF, DKIM, and DMARC automatically. Need a custom domain like `agent@yourdomain.com`? See [Custom domains](/concepts/custom-domains) (Developer plan and above).
+All inboxes use `openmail.sh` by default. For production outreach at scale, send from a verified custom domain like `outreach@yourcompany.com` so your reputation belongs to you.
 
 <CardGroup>
   <Card title="Inboxes" icon="inbox" href="/concepts/inboxes">
@@ -52,6 +52,20 @@ How you send your emails is just as important as what you send. If you're sendin
     risk of any single inbox getting flagged, and looks much more natural to
     email providers. OpenMail's ability to create inboxes at scale makes this
     easy to implement.
+
+    <Warning>
+      **Distribute on your domain.** Use multiple inboxes on a verified custom
+      domain — one per agent, campaign, or [pod](/concepts/pods) tenant. Do
+      not run high-volume cold outreach from shared `@openmail.sh` addresses.
+    </Warning>
+
+    <Note>
+      **Reputation, not quota.** Inbox distribution protects per-inbox
+      reputation and helps you stay under per-inbox daily limits. Your
+      [account cold cap](/concepts/rate-limits) is shared across all inboxes —
+      adding more inboxes does not multiply total cold volume. Upgrade your plan
+      if you need a higher ceiling.
+    </Note>
   </Step>
 
   <Step title="Protect your reputation">
