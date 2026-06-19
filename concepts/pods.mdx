@@ -48,40 +48,42 @@ The same building block — one pod per tenant — maps onto a few common shapes
 
 ```
 Account
-├── Pod  clientId: "acme"          (Acme Corp)
-│   ├── Domain: acme.com
-│   ├── support@acme.com
-│   └── billing@acme.com
-└── Pod  clientId: "techstart"     (TechStart Inc)
-    ├── Domain: techstart.io
-    ├── hello@techstart.io
-    └── team@techstart.io
+├── Pod  clientId: "org_k9v2"       (Lumen Labs)
+│   ├── Domain: mail.lumenlabs.co
+│   ├── alerts@mail.lumenlabs.co
+│   └── noreply@mail.lumenlabs.co
+└── Pod  clientId: "org_m3p1"       (Waypoint Health)
+    ├── Domain: inbox.waypoint.health
+    ├── intake@inbox.waypoint.health
+    └── records@inbox.waypoint.health
 ```
 
 **Agency / white-label** — one pod per client you manage on their behalf:
 
 ```
 Account
-├── Pod  clientId: "client-retail"   (Retail Co)
-│   └── info@openmail.sh
-└── Pod  clientId: "client-fintech"  (FinTech)
-    └── support@openmail.sh
+├── Pod  clientId: "client_bergmann"   (Bergmann & Co)
+│   ├── hello@openmail.sh
+│   └── projects@openmail.sh
+└── Pod  clientId: "client_solstice"   (Solstice Events)
+    ├── Domain: rsvp.solstice.events
+    └── events@rsvp.solstice.events
 ```
 
 **AI agent platform** — one pod per agent, each with its own set of inboxes:
 
 ```
 Account
-├── Pod  "support-agent"
-│   ├── help@openmail.sh
-│   └── tickets@openmail.sh
-└── Pod  "sales-agent"
-    ├── sales@openmail.sh
-    └── outreach@openmail.sh
+├── Pod  "inbox-triage"
+│   ├── triage@openmail.sh
+│   └── escalations@openmail.sh
+└── Pod  "outreach-sequence"
+    ├── sequence@openmail.sh
+    └── followups@openmail.sh
 ```
 
 <Note>
-  Addresses use `@openmail.sh` here for clarity. Inboxes can also use a verified [custom domain](/concepts/custom-domains).
+  Examples mix `@openmail.sh` and [custom domains](/concepts/custom-domains) on purpose — many teams start on OpenMail addresses and add a scoped domain per tenant when they go live.
 </Note>
 
 ## The default pod
@@ -100,8 +102,8 @@ When you create a pod you can pass your own `clientId` — a stable identifier f
 
 ```json
 {
-  "clientId": "tenant_8f2a",
-  "name": "Acme Corp"
+  "clientId": "org_k9v2",
+  "name": "Lumen Labs"
 }
 ```
 
@@ -109,14 +111,14 @@ The `clientId` must be unique within your account. Once set, you can address a p
 
 ```bash
 # Get a pod by your own identifier
-curl https://api.openmail.sh/v1/pods/tenant_8f2a \
+curl https://api.openmail.sh/v1/pods/org_k9v2 \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 
 # Create an inbox directly in that pod
 curl -X POST https://api.openmail.sh/v1/inboxes \
   -H "Authorization: Bearer $OPENMAIL_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"podId": "tenant_8f2a"}'
+  -d '{"podId": "org_k9v2"}'
 ```
 
 <Tip>
@@ -167,7 +169,7 @@ Deleting a pod does not delete inboxes or domains; it only removes an empty cont
 
 ```bash
 # 1. List the pod's inboxes
-curl "https://api.openmail.sh/v1/inboxes?podId=tenant_8f2a" \
+curl "https://api.openmail.sh/v1/inboxes?podId=org_k9v2" \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 
 # 2. Delete each inbox (deleting an inbox also removes its messages and threads)
@@ -178,7 +180,7 @@ curl -X DELETE https://api.openmail.sh/v1/inboxes/INBOX_ID \
 #    move to another pod, or delete the domain once it has no inboxes)
 
 # 4. Now the pod is empty and can be deleted
-curl -X DELETE https://api.openmail.sh/v1/pods/tenant_8f2a \
+curl -X DELETE https://api.openmail.sh/v1/pods/org_k9v2 \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 ```
 
@@ -240,7 +242,7 @@ Notes:
     Not today. Account API keys can access every pod. If you need per-tenant access boundaries, enforce them in your own application layer for now.
   </Accordion>
   <Accordion title="Can each pod have its own custom domain?">
-    Yes. Scope a domain to one pod and create inboxes on it only inside that pod — for example `support@acme.com` under the Acme pod and `hello@techstart.io` under the TechStart pod. You can also add account-wide domains that every pod shares.
+    Yes. Scope a domain to one pod and create inboxes on it only inside that pod — for example `alerts@mail.lumenlabs.co` in the Lumen Labs pod and `intake@inbox.waypoint.health` in the Waypoint Health pod. You can also add account-wide domains that every pod shares.
   </Accordion>
 </AccordionGroup>
 
