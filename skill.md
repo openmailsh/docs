@@ -28,9 +28,11 @@ openmail send \
   --body "Plain text body."
 ```
 
-Reply in a thread with `--thread-id thr_...`. Put HTML directly in `--body` — it is detected and rendered automatically. Attach files with `--attach <path>` (repeatable). The response includes `messageId` and `threadId` — store `threadId` to continue the conversation later.
+Reply in a thread with `--thread-id thr_...`. `--subject` is optional when replying — the thread subject is used automatically. Add `--cc addr` (repeatable) to copy other recipients. Put HTML directly in `--body` — it is detected and rendered automatically. Attach files with `--attach <path>` (repeatable). The response includes `messageId` and `threadId` — store `threadId` to continue the conversation later.
 
 **Always reply in the existing thread.** When the user asks you to reply to an email, look up the thread with `openmail threads list` first, then use `--thread-id`. Never create a new thread unless the user explicitly asks for one.
+
+**When you were CC'd:** run `openmail threads get` and check `deliveryRole` on the inbound message. If it is `cc`, reply to `headerTo` (who they wrote to), not `fromAddr` (who sent it). OpenMail auto-CCs `fromAddr` on thread replies so they stay on the conversation.
 
 ## Checking for new mail
 
@@ -76,7 +78,11 @@ Each message has:
 |---|---|
 | `id` | Message identifier |
 | `threadId` | Conversation thread |
-| `fromAddr` | Sender address |
+| `fromAddr` | Who sent the email |
+| `toAddr` | Your OpenMail inbox address |
+| `headerTo` | Who the sender addressed (use for CC replies) |
+| `deliveryRole` | `to` if you were the main recipient, `cc` if you were copied |
+| `cc` | Other people copied on the email |
 | `subject` | Subject line |
 | `bodyText` | Plain text body (use this) |
 | `attachments` | Array with `filename`, `url`, `sizeBytes` |
