@@ -117,6 +117,9 @@ Message object:
   "inboxId": "inb_...",
   "fromAddr": "Alice <alice@example.com>",
   "toAddr": "agent@openmail.sh",
+  "headerTo": "bob@example.com",
+  "deliveryRole": "cc",
+  "cc": ["agent@openmail.sh"],
   "subject": "Hello",
   "bodyText": "Plain text content",
   "bodyHtml": "<p>HTML content</p>",
@@ -131,6 +134,8 @@ Message object:
   "createdAt": "2024-01-01T00:00:00.000Z"
 }
 ```
+
+When `deliveryRole` is `cc`, reply to `headerTo` — not `fromAddr`. OpenMail auto-CCs `fromAddr` on thread replies.
 
 ### Inboxes
 
