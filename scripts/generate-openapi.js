@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 /**
  * Generates the OpenAPI spec as valid JSON.
- * Run: node scripts/generate-openapi.js > api-reference/openapi.json
+ * Run: node scripts/generate-openapi.js
+ *
+ * When the openmail repo is checked out alongside this project, the generator
+ * reads apps/api/src/openapi.json from there (the API team's source of truth)
+ * and writes it to both api-reference/openapi.json and back to openmail if present.
+ * Otherwise it falls back to the inline `spec` object below.
  */
 const spec = {
   openapi: "3.0.3",
@@ -790,7 +795,21 @@ const spec = {
 const fs = require("fs");
 const path = require("path");
 
-const json = JSON.stringify(spec, null, 2);
+const openmailSpecPath = path.join(
+  __dirname,
+  "..",
+  "..",
+  "openmail",
+  "apps",
+  "api",
+  "src",
+  "openapi.json",
+);
+const finalSpec = fs.existsSync(openmailSpecPath)
+  ? JSON.parse(fs.readFileSync(openmailSpecPath, "utf8"))
+  : spec;
+
+const json = JSON.stringify(finalSpec, null, 2);
 
 const docsPath = path.join(__dirname, "..", "api-reference", "openapi.json");
 fs.writeFileSync(docsPath, json);

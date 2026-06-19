@@ -58,6 +58,7 @@
             "group": "Core concepts",
             "pages": [
               "concepts/inboxes",
+              "concepts/pods",
               "concepts/custom-domains",
               "concepts/threading",
               "concepts/attachments",
@@ -130,6 +131,16 @@
               "api-reference/introduction",
               "api-reference/overview",
               "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Pods",
+            "pages": [
+              "GET /v1/pods",
+              "POST /v1/pods",
+              "GET /v1/pods/{id}",
+              "PATCH /v1/pods/{id}",
+              "DELETE /v1/pods/{id}"
             ]
           },
           {

@@ -19,6 +19,259 @@
     }
   ],
   "paths": {
+    "/v1/pods": {
+      "get": {
+        "summary": "List pods",
+        "description": "List all pods for your account. The default pod is always returned first. Supports pagination.",
+        "operationId": "listPods",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 100
+            },
+            "description": "Max results to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            },
+            "description": "Number of results to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Pod"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create pod",
+        "description": "Create a new pod (an isolated sub-account for one of your end users or tenants). Pass your own `clientId` to map the pod to a record in your system and address it later without storing the OpenMail ID.",
+        "operationId": "createPod",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 255,
+                    "description": "Your own stable identifier for this pod (e.g. your user/tenant ID). Must be unique within your account. Use it in place of the pod ID on any pod or inbox endpoint."
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 255,
+                    "description": "Human-readable label shown in the console."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pod created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pod"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A pod with the same `clientId` already exists in your account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pods/{id}": {
+      "get": {
+        "summary": "Get pod",
+        "description": "Retrieve a single pod by its OpenMail ID or your own `clientId`.",
+        "operationId": "getPod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Pod ID or your own `clientId`"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pod details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pod"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update pod",
+        "description": "Update a pod's `clientId` or `name`. Only the fields you include are changed.",
+        "operationId": "updatePod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Pod ID or your own `clientId`"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 255,
+                    "description": "Your own identifier for this pod. Set null to clear."
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 255,
+                    "description": "Human-readable label. Set null to clear."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pod updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pod"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A pod with the same `clientId` already exists in your account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete pod",
+        "description": "Permanently delete a pod. The pod must be empty (no inboxes or pod-scoped domains) and cannot be the default pod.",
+        "operationId": "deletePod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Pod ID or your own `clientId`"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pod deleted"
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Pod still has inboxes (`pod_not_empty`), still owns pod-scoped domains (`pod_has_domains`), or is the default pod (`default_pod`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/inboxes": {
       "get": {
         "summary": "List inboxes",
@@ -43,6 +296,14 @@
               "default": 0
             },
             "description": "Number of results to skip"
+          },
+          {
+            "name": "podId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter to inboxes in a single pod. Accepts the pod ID or your own `clientId`. An unknown value returns an empty list."
           }
         ],
         "responses": {
@@ -93,6 +354,10 @@
                   "domain": {
                     "type": "string",
                     "description": "Domain for the inbox address. Defaults to your account domain (e.g. `openmail.sh`). Pass a verified custom domain you own to create the inbox on it (e.g. `agent-mail.example.com`). The domain must already be added and verified for your account; the account default never switches automatically."
+                  },
+                  "podId": {
+                    "type": "string",
+                    "description": "Pod to create the inbox in. Accepts the pod ID or your own `clientId`. Omit to place the inbox in your account's default pod."
                   }
                 }
               }
@@ -111,7 +376,7 @@
             }
           },
           "400": {
-            "description": "Invalid mailbox name, or `domain` is not a verified custom domain belonging to your account",
+            "description": "Invalid mailbox name, `domain` is not verified or not available in the selected pod, or `podId` does not match a pod in your account",
             "content": {
               "application/json": {
                 "schema": {
@@ -279,7 +544,7 @@
     "/v1/inboxes/{id}/send": {
       "post": {
         "summary": "Send email",
-        "description": "Send an email from an inbox. Requires Idempotency-Key header. Use threadId to reply to an existing thread.",
+        "description": "Send an email from an inbox. Requires Idempotency-Key header. Use threadId to reply to an existing thread. When replying on a thread where your inbox was CC'd (deliveryRole cc), the original sender is automatically CC'd.",
         "operationId": "sendEmail",
         "parameters": [
           {
@@ -308,7 +573,6 @@
                 "type": "object",
                 "required": [
                   "to",
-                  "subject",
                   "body"
                 ],
                 "properties": {
@@ -319,7 +583,8 @@
                   "subject": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 998
+                    "maxLength": 998,
+                    "description": "Required for new threads. Optional when threadId is set — the thread subject is used automatically (with Re: prefix)."
                   },
                   "body": {
                     "type": "string",
@@ -344,6 +609,14 @@
                     "type": "string",
                     "format": "email",
                     "description": "Optional. Address that replies should be routed to (set as the `Reply-To` MIME header). Free plan: must be the address of an inbox you own in OpenMail. Developer plan or higher: any valid email address."
+                  },
+                  "cc": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "description": "Optional CC recipients."
                   }
                 }
               }
@@ -353,7 +626,6 @@
                 "type": "object",
                 "required": [
                   "to",
-                  "subject",
                   "body"
                 ],
                 "properties": {
@@ -364,7 +636,8 @@
                   "subject": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 998
+                    "maxLength": 998,
+                    "description": "Required for new threads. Optional when threadId is set — the thread subject is used automatically (with Re: prefix)."
                   },
                   "body": {
                     "type": "string",
@@ -389,6 +662,14 @@
                     "type": "string",
                     "format": "email",
                     "description": "Optional. Address that replies should be routed to (set as the `Reply-To` MIME header). Free plan: must be the address of an inbox you own in OpenMail. Developer plan or higher: any valid email address."
+                  },
+                  "cc": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "description": "Optional CC recipients."
                   },
                   "attachments": {
                     "type": "array",
@@ -844,12 +1125,43 @@
   },
   "components": {
     "schemas": {
+      "Pod": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "OpenMail pod ID"
+          },
+          "clientId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Your own identifier for the pod, if set."
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Human-readable label, if set."
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this is the account's default pod. Every account has exactly one; it is created automatically and cannot be deleted."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "Inbox": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "description": "OpenMail inbox ID"
+          },
+          "podId": {
+            "type": "string",
+            "description": "ID of the pod this inbox belongs to. Inboxes created without an explicit pod land in your account's default pod."
           },
           "address": {
             "type": "string",
@@ -887,7 +1199,29 @@
             "type": "string"
           },
           "toAddr": {
-            "type": "string"
+            "type": "string",
+            "description": "Your OpenMail inbox address for inbound messages. For outbound sends, the primary recipient."
+          },
+          "headerTo": {
+            "type": "string",
+            "nullable": true,
+            "description": "Inbound only. The address the sender wrote to (comma-separated if multiple). When deliveryRole is cc, reply to this address — not fromAddr."
+          },
+          "deliveryRole": {
+            "type": "string",
+            "enum": [
+              "to",
+              "cc"
+            ],
+            "nullable": true,
+            "description": "Inbound only. to if your inbox was the main recipient; cc if you were copied on the email."
+          },
+          "cc": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Email addresses copied on the message."
           },
           "subject": {
             "type": "string"

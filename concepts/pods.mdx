@@ -1,0 +1,236 @@
+---
+title: "Pods"
+description: "Pods are isolated sub-accounts inside your OpenMail account. Use them to keep each of your end users or tenants separate while billing stays on one account."
+icon: boxes
+---
+
+A pod is an isolated workspace inside your account. Each pod holds its own inboxes, so you can give every one of your end users (or tenants, agents, or projects) a clean, separate slice of OpenMail while keeping a single account and API key.
+
+Pods are designed for multi-tenant apps. If you run one agent for yourself, you don't need to think about them — your inboxes simply live in your account's default pod.
+
+## The hierarchy
+
+```
+Account (your OpenMail account, one API key)
+├── Default pod                 ← inboxes land here unless you say otherwise
+│   ├── Inbox
+│   └── Inbox
+├── Pod (your customer A)
+│   ├── Inbox
+│   └── Inbox
+└── Pod (your customer B)
+    ├── Inbox
+    └── Inbox
+```
+
+- **Account** — Your business. One account, one set of API keys, one bill.
+- **Pod** — A tenant in your product (a customer, end user, agent, or environment). Provides organizational isolation between sets of inboxes.
+- **Inbox** — An email address. Always belongs to exactly one pod.
+
+## When to use pods
+
+- **Multi-tenant SaaS / agencies** — Create one pod per customer account so their inboxes never mix with another customer's.
+- **White-label email** — Give each end user their own pod and keep their data cleanly separated under your brand.
+- **AI agent platforms** — Give each agent (support, sales, marketing) its own pod with dedicated inboxes.
+- **Environments or teams** — Separate staging from production, or teams from each other, under one account.
+
+If you just need many inboxes under one umbrella and don't require isolation, you can skip pods and create inboxes directly — they land in the default pod.
+
+## Common patterns
+
+The same building block — one pod per tenant — maps onto a few common shapes.
+
+**Multi-tenant SaaS** — one pod per customer company, addressed by your own tenant ID:
+
+```
+Account
+├── Pod  clientId: "acme"          (Acme Corp)
+│   ├── support@openmail.sh
+│   └── billing@openmail.sh
+└── Pod  clientId: "techstart"     (TechStart Inc)
+    ├── hello@openmail.sh
+    └── team@openmail.sh
+```
+
+**Agency / white-label** — one pod per client you manage on their behalf:
+
+```
+Account
+├── Pod  clientId: "client-retail"   (Retail Co)
+│   └── info@openmail.sh
+└── Pod  clientId: "client-fintech"  (FinTech)
+    └── support@openmail.sh
+```
+
+**AI agent platform** — one pod per agent, each with its own set of inboxes:
+
+```
+Account
+├── Pod  "support-agent"
+│   ├── help@openmail.sh
+│   └── tickets@openmail.sh
+└── Pod  "sales-agent"
+    ├── sales@openmail.sh
+    └── outreach@openmail.sh
+```
+
+<Note>
+  Addresses use `@openmail.sh` here for clarity. Inboxes can also use a verified [custom domain](/concepts/custom-domains).
+</Note>
+
+## The default pod
+
+Every account has exactly one **default pod**, created automatically when you sign up.
+
+- Any inbox you create without specifying a pod lands in the default pod.
+- The default pod is always listed first and is marked with `"isDefault": true`.
+- It cannot be deleted.
+
+This means pods are fully backward compatible: if you never touch the pods API, everything keeps working and your inboxes live in the default pod.
+
+## clientId
+
+When you create a pod you can pass your own `clientId` — a stable identifier from your own system, such as your user or tenant ID.
+
+```json
+{
+  "clientId": "tenant_8f2a",
+  "name": "Acme Corp"
+}
+```
+
+The `clientId` must be unique within your account. Once set, you can address a pod by it anywhere the API takes a pod identifier — without ever storing OpenMail's pod ID:
+
+```bash
+# Get a pod by your own identifier
+curl https://api.openmail.sh/v1/pods/tenant_8f2a \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+
+# Create an inbox directly in that pod
+curl -X POST https://api.openmail.sh/v1/inboxes \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"podId": "tenant_8f2a"}'
+```
+
+<Tip>
+  Pass your own user or tenant ID as `clientId` at signup. Then you can create and look up that tenant's inboxes using your ID, with no extra mapping table on your side.
+</Tip>
+
+Both `clientId` and `name` are optional. Omit `clientId` and OpenMail still generates a pod with its own ID.
+
+## Scoping inboxes to a pod
+
+Pods and inboxes connect through the inbox's `podId`:
+
+- **Create** — Pass `podId` (a pod ID or `clientId`) to `POST /v1/inboxes` to place the inbox in that pod. Omit it to use the default pod.
+- **List** — Pass `podId` to `GET /v1/inboxes` to return only that pod's inboxes.
+- **Read** — Every inbox response includes its `podId`.
+
+An inbox always belongs to exactly one pod. Inboxes cannot be moved between pods after creation — pick the pod when you create the inbox.
+
+## Custom domains and pods
+
+[Custom domains](/concepts/custom-domains) can be **account-wide** (usable by every pod) or **scoped to one pod**. When creating an inbox on a pod-scoped domain, the inbox must be in that same pod; account-wide domains work in any pod. Manage scope from the dashboard — see [Pod scoping](/concepts/custom-domains#pod-scoping).
+
+## What pods do and don't isolate
+
+Pods give you **organizational** isolation — a clean way to group and scope inboxes per tenant. They are not a network or permission boundary:
+
+- **Email is not walled off.** Inboxes in different pods are still ordinary email addresses; they can send to and receive from each other and the outside world.
+- **API keys are account-wide.** An account API key can read and write resources in *every* pod. There are no pod-scoped API keys today, so don't hand a raw account key to an end user as a way to limit them to their pod.
+
+## Lifecycle
+
+You can delete a pod with `DELETE /v1/pods/:id`, with these guardrails:
+
+- The pod must be **empty** — delete its inboxes first, or you'll get `pod_not_empty` (409).
+- The pod must not **own pod-scoped custom domains** — reassign them to account-wide or another pod first, or you'll get `pod_has_domains` (409).
+- The **default pod** cannot be deleted (`default_pod`, 409).
+
+Deleting a pod does not delete inboxes; it only removes an empty container. To offboard a customer, delete their inboxes, then the pod (you can address the pod by your own `clientId`):
+
+```bash
+# 1. List the pod's inboxes
+curl "https://api.openmail.sh/v1/inboxes?podId=tenant_8f2a" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+
+# 2. Delete each inbox (deleting an inbox also removes its messages and threads)
+curl -X DELETE https://api.openmail.sh/v1/inboxes/INBOX_ID \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+
+# 3. Now the pod is empty and can be deleted
+curl -X DELETE https://api.openmail.sh/v1/pods/tenant_8f2a \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+## Managing pods in the console
+
+You can also manage pods without code. In the console, open **Pods** to see every pod, create new ones, and open a pod to view its inboxes and pod-scoped domains. The default pod is labeled with a **Default** badge.
+
+## Give your agent the pods API
+
+Paste this into Cursor, Claude, or any coding agent to give it the full pods API in one shot:
+
+```text
+OpenMail Pods — multi-tenant isolation. REST API, bearer auth with an account API key.
+Base URL: https://api.openmail.sh
+Auth header: Authorization: Bearer <OPENMAIL_API_KEY>
+
+A pod is an isolated container for inboxes (one per tenant/customer/agent).
+Every account has one auto-created default pod; inboxes with no pod land there.
+Address any pod by its id OR by your own clientId.
+
+Pods:
+- GET    /v1/pods                 list pods (default pod first); ?limit&offset
+- POST   /v1/pods                 body: { clientId?, name? } -> 201 pod
+- GET    /v1/pods/{idOrClientId}  fetch one pod
+- PATCH  /v1/pods/{idOrClientId}  body: { clientId?, name? }
+- DELETE /v1/pods/{idOrClientId}  must be empty and not the default pod
+    409 pod_not_empty   -> delete its inboxes first
+    409 pod_has_domains -> reassign pod-scoped domains first
+    409 default_pod     -> the default pod cannot be deleted
+
+Inboxes (scoped to a pod):
+- POST /v1/inboxes        body: { podId?, mailboxName?, displayName? }
+    podId accepts a pod id or clientId; omit to use the default pod
+    400 invalid_pod -> podId did not match a pod in your account
+- GET  /v1/inboxes?podId=<idOrClientId>   list only that pod's inboxes
+- every inbox object includes its podId
+
+Notes:
+- Inboxes can't move between pods; choose the pod at creation time.
+- API keys are account-wide (no pod-scoped keys); pods are organizational isolation, not network isolation.
+```
+
+## Frequently asked questions
+
+<AccordionGroup>
+  <Accordion title="Do I need to use pods?">
+    No. Pods are optional. Every account has a default pod, so if you only manage email for yourself you can create inboxes directly and ignore pods entirely. Reach for pods when you need to isolate inboxes per customer or tenant.
+  </Accordion>
+  <Accordion title="Can inboxes in different pods email each other?">
+    Yes. Pods provide organizational isolation, not network isolation. Inboxes in different pods are ordinary email addresses and can send to and receive from one another like any other mailbox.
+  </Accordion>
+  <Accordion title="Can I move an inbox from one pod to another?">
+    No. An inbox's pod is fixed at creation. To "move" an inbox, create a new one in the target pod and delete the old one.
+  </Accordion>
+  <Accordion title="How many pods can I create?">
+    There's no enforced limit on the number of pods. Note that inboxes are still subject to your plan's inbox limit across the whole account.
+  </Accordion>
+  <Accordion title="Can I restrict an API key to a single pod?">
+    Not today. Account API keys can access every pod. If you need per-tenant access boundaries, enforce them in your own application layer for now.
+  </Accordion>
+</AccordionGroup>
+
+## API reference
+
+See the [API reference](/api-reference/introduction) for full request and response details. Pod endpoints:
+
+| Operation | Endpoint |
+|-----------|----------|
+| List pods | `GET /v1/pods` |
+| Create pod | `POST /v1/pods` |
+| Get pod | `GET /v1/pods/{id}` |
+| Update pod | `PATCH /v1/pods/{id}` |
+| Delete pod | `DELETE /v1/pods/{id}` |
