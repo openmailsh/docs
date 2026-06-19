@@ -80,7 +80,20 @@ The resulting address uses your domain:
 {mailboxName}@yourdomain.com
 ```
 
-If you omit `domain`, the inbox is created on your account default domain (for example `@openmail.sh`). Passing a domain that is not verified or does not belong to your account returns `invalid_domain`.
+If you omit `domain`, the inbox is created on your account default domain (for example `@openmail.sh`). Passing a domain that is not verified, does not belong to your account, or is scoped to a different pod returns `invalid_domain`.
+
+## Pod scoping
+
+Custom domains can be shared across your account or limited to a single [pod](/concepts/pods):
+
+| Scope | Meaning |
+|-------|---------|
+| **All pods** | Account-wide. Any pod can create inboxes on this domain. This is the default for existing domains. |
+| **One pod** | Only inboxes in that pod may use the domain. |
+
+When adding a domain in the dashboard, pick **All pods** or a specific pod. On a pod's detail page, the **Domains** tab lists domains scoped to that pod; account-wide domains still appear when creating inboxes inside the pod.
+
+To move a scoped domain to another pod (or make it account-wide), reassign it in the dashboard. Narrowing scope is blocked while inboxes on that domain live outside the target pod.
 
 ## Limits
 

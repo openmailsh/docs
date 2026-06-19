@@ -1,0 +1,91 @@
+---
+title: "Pods"
+description: "Isolate inboxes and custom domains per tenant with pods — OpenMail's namespace primitive for multi-tenant agent platforms."
+icon: layers
+---
+
+Pods let you run multiple isolated workloads inside one OpenMail account. Each pod is a namespace for inboxes (and optionally custom domains) belonging to one of your end users or tenants.
+
+Every account starts with a **default pod**. New inboxes land there unless you pass `podId` on create. You can create additional pods via the API, CLI, or dashboard.
+
+## When to use pods
+
+Use pods when you host agents for many customers and need:
+
+- Inboxes grouped per tenant without separate OpenMail accounts
+- Optional custom domains scoped to one tenant's pod
+- Your own stable ID (`clientId`) mapped to each pod so you never store OpenMail's UUID
+
+Pods are not separate billing accounts — limits and plans still apply at the account level.
+
+## Creating and addressing pods
+
+<CodeGroup>
+
+```bash API
+curl -X POST https://api.openmail.sh/v1/pods \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientId": "tenant_42",
+    "name": "Acme Corp"
+  }'
+```
+
+```bash CLI
+openmail pod create --client-id tenant_42 --name "Acme Corp"
+```
+
+</CodeGroup>
+
+On every pod and inbox endpoint you can pass either the OpenMail pod `id` or your own `clientId`.
+
+## Inboxes in pods
+
+Create an inbox inside a specific pod:
+
+<CodeGroup>
+
+```bash API
+curl -X POST https://api.openmail.sh/v1/inboxes \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mailboxName": "support",
+    "podId": "tenant_42"
+  }'
+```
+
+```bash CLI
+openmail inbox create --mailbox-name support --pod-id tenant_42
+```
+
+</CodeGroup>
+
+List inboxes for one pod:
+
+```bash
+openmail inbox list --pod-id tenant_42
+```
+
+Omit `podId` to use the account's default pod.
+
+## Custom domains and pods
+
+Custom domains can be **account-wide** (usable by every pod) or **scoped to one pod**. See [Custom domains](/concepts/custom-domains#pod-scoping).
+
+When creating an inbox on a pod-scoped domain, the inbox must be in that same pod. Account-wide domains work in any pod.
+
+## Deleting pods
+
+A pod can be deleted only when it:
+
+- Is not the default pod
+- Has no inboxes
+- Owns no pod-scoped custom domains (reassign them to **All pods** or another pod first)
+
+Attempting to delete a non-empty pod returns `409` with `pod_not_empty` or `pod_has_domains`.
+
+## Dashboard
+
+Manage pods under **Pods** in the console. Each pod has its own inboxes and a Domains tab for pod-scoped custom domains.
