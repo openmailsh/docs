@@ -75,7 +75,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 
 ## Reputation lifecycle payload
 
-`inbox.suspended`, `inbox.reactivated`, `pod.suspended`, and `pod.reactivated` share the structure below. They carry a `reputation` object instead of a `message`. For `pod.*` events, `inbox_id` and `inbox_address` are `null`.
+`inbox.suspended`, `inbox.reactivated`, `pod.suspended`, and `pod.reactivated` share the structure below. They carry a `reason` instead of a `message`. For `pod.*` events, `inbox_id` and `inbox_address` are `null`.
 
 ```json
 {
@@ -87,12 +87,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
   "inbox_id": "inb_92ma...",
   "inbox_address": "agent@yourdomain.com",
   "pod_id": "pod_abc...",
-  "reputation": {
-    "scope": "inbox",
-    "state": "suspended",
-    "reason": "bounce_rate_high",
-    "actor": "engine"
-  }
+  "reason": "high_bounce_rate"
 }
 ```
 
@@ -101,10 +96,18 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 | `inbox_id` | The affected inbox, or `null` for `pod.*` events |
 | `inbox_address` | The affected inbox's email address, or `null` for `pod.*` events |
 | `pod_id` | The affected pod (or the suspended inbox's pod), if any |
-| `reputation.scope` | `inbox` or `pod` — what was suspended/reactivated |
-| `reputation.state` | The new reputation state (e.g. `suspended`, `watch`) |
-| `reputation.reason` | Why it was suspended (e.g. `bounce_rate_high`); `null` on reactivation |
-| `reputation.actor` | What triggered it: `engine`, `phishing`, or `admin` |
+| `reason` | Why it was suspended (see below); `null` on `*.reactivated` events |
+
+### Reason codes
+
+| Code | Meaning |
+|------|---------|
+| `high_bounce_rate` | Too many of the inbox's recipients bounced |
+| `high_complaint_rate` | Too many recipients marked messages as spam |
+| `abuse` | Phishing or abusive sending was detected |
+| `pod_degraded` | The pod's overall sending health fell too far |
+| `manual_review` | Suspended by OpenMail staff pending review |
+| `other` | Suspended for another reason |
 
 A suspended inbox or pod is blocked from sending until reactivated. The reputation engine never auto-recovers a suspension — reactivation is an explicit action, which is when the `*.reactivated` event fires.
 
