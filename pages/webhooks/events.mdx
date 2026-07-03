@@ -1,16 +1,22 @@
 ---
 title: "Events"
-description: "OpenMail webhook event reference — event types, full payload structure, and field descriptions for inbound email, thread updates, and delivery errors."
+description: "OpenMail webhook event reference — event types, full payload structure, and field descriptions for inbound email and reputation lifecycle (inbox/pod suspension and reactivation) events."
 icon: bell
 ---
 
-OpenMail sends webhooks when inbound email is received. Emails that are blocked by [sender rules](/concepts/sender-rules) or filtered out by allowlist mode do not trigger events.
+OpenMail sends webhooks when inbound email is received, and when the reputation engine suspends or reactivates one of your inboxes or pods. Emails that are blocked by [sender rules](/concepts/sender-rules) or filtered out by allowlist mode do not trigger events.
 
 ## Events
 
 | Event | Description |
 |-------|-------------|
 | `message.received` | A new inbound email was delivered to an inbox |
+| `inbox.suspended` | An inbox was suspended (sending blocked) by the reputation engine or an admin |
+| `inbox.reactivated` | A previously suspended inbox was reactivated |
+| `pod.suspended` | A pod was suspended — every inbox in it is blocked from sending |
+| `pod.reactivated` | A previously suspended pod was reactivated |
+
+`inbox.*` and `pod.*` are **reputation lifecycle** events: they let you react when one of your end-users is cut off (for example, pause that agent) without your whole account being affected. We handle suspension automatically; these events tell you when it happens. They are delivered to your HTTP webhook only (not over [WebSockets](/concepts/websockets)).
 
 ## Use cases
 
@@ -56,7 +62,7 @@ OpenMail sends webhooks when inbound email is received. Emails that are blocked 
 
 | Field | Description |
 |-------|-------------|
-| `event` | Event type; currently always `message.received` |
+| `event` | Event type — e.g. `message.received` (see [Events](#events)) |
 | `event_id` | Unique ID for this delivery. Use for deduplication - we may retry. |
 | `occurred_at` | When the event happened. Use to sort if events arrive out of order. |
 | `inbox_id` | The inbox that received the message |
@@ -66,6 +72,42 @@ OpenMail sends webhooks when inbound email is received. Emails that are blocked 
 | `message.subject` | Email subject line |
 | `message.body_text` | Plain-text body |
 | `message.attachments` | Array of attachments with `url`, `parsedText` (extracted content), and `extractionMethod`. See [Attachments](/concepts/attachments). |
+
+## Reputation lifecycle payload
+
+`inbox.suspended`, `inbox.reactivated`, `pod.suspended`, and `pod.reactivated` share the structure below. They carry a `reason` instead of a `message`. For `pod.*` events, `inbox_id` and `inbox_address` are `null`.
+
+```json
+{
+  "event": "inbox.suspended",
+  "event_id": "evt_def456",
+  "occurred_at": "2024-03-21T10:05:00.000Z",
+  "inbox_id": "inb_92ma...",
+  "inbox_address": "agent@yourdomain.com",
+  "pod_id": "pod_abc...",
+  "reason": "high_bounce_rate"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `inbox_id` | The affected inbox, or `null` for `pod.*` events |
+| `inbox_address` | The affected inbox's email address, or `null` for `pod.*` events |
+| `pod_id` | The affected pod (or the suspended inbox's pod), if any |
+| `reason` | Why it was suspended (see below); `null` on `*.reactivated` events |
+
+### Reason codes
+
+| Code | Meaning |
+|------|---------|
+| `high_bounce_rate` | Too many of the inbox's recipients bounced |
+| `high_complaint_rate` | Too many recipients marked messages as spam |
+| `abuse` | Phishing or abusive sending was detected |
+| `pod_degraded` | The pod's overall sending health fell too far |
+| `manual_review` | Suspended by OpenMail staff pending review |
+| `other` | Suspended for another reason |
+
+A suspended inbox or pod is blocked from sending until reactivated. The reputation engine never auto-recovers a suspension — reactivation is an explicit action, which is when the `*.reactivated` event fires.
 
 ## Headers
 
