@@ -33,18 +33,14 @@
             "description": "OpenMail pod ID"
           },
           "clientId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "Your own identifier for the pod, if set."
+            "type": "string",
+            "description": "Your own identifier for the pod, if set.",
+            "nullable": true
           },
           "name": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "Human-readable label, if set."
+            "type": "string",
+            "description": "Human-readable label, if set.",
+            "nullable": true
           },
           "isDefault": {
             "type": "boolean",
@@ -65,18 +61,14 @@
             "description": "OpenMail API key ID"
           },
           "name": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "Human-readable label for the key, if set."
+            "type": "string",
+            "description": "Human-readable label for the key, if set.",
+            "nullable": true
           },
           "podId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "ID of the pod this key is scoped to. A key can only access resources in this pod."
+            "type": "string",
+            "description": "ID of the pod this key is scoped to. A key can only access resources in this pod.",
+            "nullable": true
           },
           "tokenPrefix": {
             "type": "string",
@@ -91,12 +83,10 @@
             "format": "date-time"
           },
           "lastUsedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": "string",
             "format": "date-time",
-            "description": "When the key last authenticated a request, or null if never used."
+            "description": "When the key last authenticated a request, or null if never used.",
+            "nullable": true
           }
         }
       },
@@ -134,25 +124,19 @@
             "description": "Full email address"
           },
           "displayName": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "Sender display name"
+            "type": "string",
+            "description": "Sender display name",
+            "nullable": true
           },
           "webhookUrl": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "URL that receives signed webhook events for this inbox, if set. Overrides the account-level webhook for this inbox only."
+            "type": "string",
+            "description": "URL that receives signed webhook events for this inbox, if set. Overrides the account-level webhook for this inbox only.",
+            "nullable": true
           },
           "webhookSecret": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "Signing secret for this inbox's webhook. Only present in the response when the secret is generated or rotated (on create, on first setting a webhook URL, or via the rotate-secret endpoint) — it is never returned afterward."
+            "type": "string",
+            "description": "Signing secret for this inbox's webhook. Only present in the response when the secret is generated or rotated (on create, on first setting a webhook URL, or via the rotate-secret endpoint) — it is never returned afterward.",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
@@ -181,23 +165,19 @@
             "description": "Your OpenMail inbox address for inbound messages. For outbound sends, the primary recipient."
           },
           "headerTo": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "Inbound only. The address the sender wrote to (comma-separated if multiple). When deliveryRole is cc, reply to this address — not fromAddr."
+            "type": "string",
+            "description": "Inbound only. The address the sender wrote to (comma-separated if multiple). When deliveryRole is cc, reply to this address — not fromAddr.",
+            "nullable": true
           },
           "deliveryRole": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": "string",
             "enum": [
               "to",
               "cc",
               null
             ],
-            "description": "Inbound only. to if your inbox was the main recipient; cc if you were copied on the email."
+            "description": "Inbound only. to if your inbox was the main recipient; cc if you were copied on the email.",
+            "nullable": true
           },
           "cc": {
             "type": "array",
@@ -311,20 +291,16 @@
                 "additionalProperties": false,
                 "properties": {
                   "clientId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": "string",
                     "maxLength": 255,
-                    "description": "Your own stable identifier for this pod (e.g. your user/tenant ID). Must be unique within your account. Use it in place of the pod ID on any pod or inbox endpoint."
+                    "description": "Your own stable identifier for this pod (e.g. your user/tenant ID). Must be unique within your account. Use it in place of the pod ID on any pod or inbox endpoint.",
+                    "nullable": true
                   },
                   "name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": "string",
                     "maxLength": 255,
-                    "description": "Human-readable label shown in the console."
+                    "description": "Human-readable label shown in the console.",
+                    "nullable": true
                   }
                 }
               }
@@ -503,20 +479,16 @@
                 "additionalProperties": false,
                 "properties": {
                   "clientId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": "string",
                     "maxLength": 255,
-                    "description": "Your own identifier for this pod. Set null to clear."
+                    "description": "Your own identifier for this pod. Set null to clear.",
+                    "nullable": true
                   },
                   "name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": "string",
                     "maxLength": 255,
-                    "description": "Human-readable label. Set null to clear."
+                    "description": "Human-readable label. Set null to clear.",
+                    "nullable": true
                   }
                 }
               }
@@ -669,12 +641,10 @@
                 "additionalProperties": false,
                 "properties": {
                   "name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": "string",
                     "maxLength": 255,
-                    "description": "Human-readable label to identify the key later."
+                    "description": "Human-readable label to identify the key later.",
+                    "nullable": true
                   }
                 }
               }
@@ -1177,20 +1147,16 @@
                 "additionalProperties": false,
                 "properties": {
                   "displayName": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": "string",
                     "maxLength": 200,
-                    "description": "Sender display name. Set null to clear."
+                    "description": "Sender display name. Set null to clear.",
+                    "nullable": true
                   },
                   "webhookUrl": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": "string",
                     "minLength": 0,
-                    "description": "URL to receive signed webhook events for this inbox. Set null to clear and revert to the account-level webhook. A signing secret is generated the first time a webhook URL is set on this inbox and returned once in the response body."
+                    "description": "URL to receive signed webhook events for this inbox. Set null to clear and revert to the account-level webhook. A signing secret is generated the first time a webhook URL is set on this inbox and returned once in the response body.",
+                    "nullable": true
                   }
                 }
               }
