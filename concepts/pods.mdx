@@ -187,6 +187,8 @@ curl -X DELETE https://api.openmail.sh/v1/pods/meridian/api-keys/KEY_ID \
 
 There's a per-pod cap on active keys; hitting it returns `api_key_limit_reached` (422) — revoke an unused key first. You can also mint and revoke keys from a pod's page in the console (account owners only).
 
+For the full tenant onboarding flow — pod, domain, inbox, and scoped key end to end — see the [Multi-tenancy guide](/guides/multi-tenancy).
+
 <Note>
   Pod-scoped keys are an access boundary on the OpenMail API, not a network boundary. Inboxes in a pod are still ordinary email addresses that can exchange mail with any other address.
 </Note>

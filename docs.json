@@ -87,7 +87,8 @@
           {
             "group": "Guides",
             "pages": [
-              "guides/api-integration"
+              "guides/api-integration",
+              "guides/multi-tenancy"
             ]
           },
           {
@@ -140,7 +141,10 @@
               "POST /v1/pods",
               "GET /v1/pods/{id}",
               "PATCH /v1/pods/{id}",
-              "DELETE /v1/pods/{id}"
+              "DELETE /v1/pods/{id}",
+              "POST /v1/pods/{id}/api-keys",
+              "GET /v1/pods/{id}/api-keys",
+              "DELETE /v1/pods/{id}/api-keys/{keyId}"
             ]
           },
           {

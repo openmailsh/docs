@@ -1,0 +1,259 @@
+---
+title: "Multi-tenancy"
+description: "Onboard a tenant end-to-end: create a pod, provision inboxes, and hand the tenant a pod-scoped API key that can only reach its own inboxes."
+icon: building-2
+---
+
+If you run OpenMail on behalf of many customers — a multi-tenant SaaS, an agency, or an AI agent platform — give each tenant its own [pod](/concepts/pods) and its own [pod-scoped API key](/concepts/pods#pod-scoped-api-keys). The pod keeps each tenant's inboxes cleanly separated, and the scoped key means the tenant's integration can only ever touch that one pod — it returns `403` on any other pod and can't manage pods or mint more keys.
+
+This guide walks the full onboarding flow: **pod → (optional) domain → inbox → scoped key**, then how to route inbound email back to the right tenant.
+
+## Prerequisites
+
+- An [OpenMail account](https://console.openmail.sh/login) with your **account-wide** API key. You'll use it to provision tenants — it stays on your side and is never handed out.
+- A stable tenant identifier from your own system (a user ID, org ID, or workspace ID) to use as the pod's `clientId`.
+
+<div className="openmail-prompt-card">
+<Prompt
+  description="Use this pre-built prompt to get started faster."
+  icon="wand-sparkles"
+  actions={["copy", "cursor"]}
+>
+Read https://docs.openmail.sh/guides/multi-tenancy then implement per-tenant onboarding for our app:
+
+1. On tenant signup, call POST /v1/pods with clientId set to our internal tenant ID
+2. Create the tenant's inbox with POST /v1/inboxes (podId = the clientId)
+3. Mint a pod-scoped key with POST /v1/pods/{clientId}/api-keys, store the returned token as that tenant's OPENMAIL_API_KEY (it is returned only once)
+4. Route inbound message.received events to the tenant by inbox_id
+
+Use the account-wide key only for steps 1–3. The tenant's own integration uses the scoped key.
+</Prompt>
+</div>
+
+## Step 1: Create a pod per tenant
+
+When a tenant signs up, create a pod and pass your own tenant ID as `clientId`. From then on you can address the pod by that ID everywhere — no mapping table on your side.
+
+<CodeGroup>
+
+```javascript Node.js
+const OPENMAIL_API_KEY = process.env.OPENMAIL_API_KEY; // account-wide key
+
+async function createTenantPod(tenantId, companyName) {
+  const res = await fetch("https://api.openmail.sh/v1/pods", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENMAIL_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ clientId: tenantId, name: companyName }),
+  });
+  if (!res.ok) throw new Error(`OpenMail: ${res.status}`);
+  return res.json(); // { id, clientId, name, isDefault: false, ... }
+}
+```
+
+```python Python
+import os, requests
+
+OPENMAIL_API_KEY = os.environ["OPENMAIL_API_KEY"]  # account-wide key
+
+def create_tenant_pod(tenant_id: str, company_name: str) -> dict:
+    res = requests.post(
+        "https://api.openmail.sh/v1/pods",
+        headers={"Authorization": f"Bearer {OPENMAIL_API_KEY}"},
+        json={"clientId": tenant_id, "name": company_name},
+    )
+    res.raise_for_status()
+    return res.json()  # { "id", "clientId", "name", "isDefault": False, ... }
+```
+
+</CodeGroup>
+
+<Tip>
+  `clientId` must be unique within your account. Reuse your own primary key (tenant ID, workspace ID) and you never have to store OpenMail's pod ID.
+</Tip>
+
+## Step 2 (optional): Give the tenant its own domain
+
+For white-label setups, scope a [custom domain](/concepts/custom-domains) to the pod so the tenant's inboxes live on their own domain (for example `support@meridian.io`). Add and verify the domain in the dashboard (**Settings → Domains**, then scope it to the pod), or from the pod's **Domains** tab. A pod-scoped domain can only be used by inboxes in that same pod.
+
+Skip this step to put the tenant's inboxes on your account's default domain (or an account-wide domain every pod shares).
+
+## Step 3: Create the tenant's inboxes
+
+Create inboxes directly in the pod by passing `podId` (the pod ID or your `clientId`). Every inbox belongs to exactly one pod and can't be moved later, so pick the pod at creation.
+
+<CodeGroup>
+
+```javascript Node.js
+async function createTenantInbox(tenantId, mailboxName) {
+  const res = await fetch("https://api.openmail.sh/v1/inboxes", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENMAIL_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ podId: tenantId, mailboxName }),
+  });
+  if (!res.ok) throw new Error(`OpenMail: ${res.status}`);
+  return res.json(); // { id, address, podId, ... }
+}
+```
+
+```python Python
+def create_tenant_inbox(tenant_id: str, mailbox_name: str) -> dict:
+    res = requests.post(
+        "https://api.openmail.sh/v1/inboxes",
+        headers={"Authorization": f"Bearer {OPENMAIL_API_KEY}"},
+        json={"podId": tenant_id, "mailboxName": mailbox_name},
+    )
+    res.raise_for_status()
+    return res.json()  # { "id", "address", "podId", ... }
+```
+
+</CodeGroup>
+
+## Step 4: Mint a pod-scoped API key
+
+Mint a key scoped to the tenant's pod. This is the key the tenant's integration will use — it can read and send only from this pod's inboxes.
+
+<Warning>
+  The full `token` is returned **once**, in this response, and can never be retrieved again. Store it as that tenant's secret immediately. Minting requires your **account-wide** key — a pod-scoped key can't mint keys.
+</Warning>
+
+<CodeGroup>
+
+```javascript Node.js
+async function mintTenantKey(tenantId) {
+  const res = await fetch(
+    `https://api.openmail.sh/v1/pods/${tenantId}/api-keys`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENMAIL_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: `${tenantId}-integration` }),
+    }
+  );
+  if (!res.ok) throw new Error(`OpenMail: ${res.status}`);
+  const key = await res.json();
+  return key.token; // "om_..." — shown only once
+}
+```
+
+```python Python
+def mint_tenant_key(tenant_id: str) -> str:
+    res = requests.post(
+        f"https://api.openmail.sh/v1/pods/{tenant_id}/api-keys",
+        headers={"Authorization": f"Bearer {OPENMAIL_API_KEY}"},
+        json={"name": f"{tenant_id}-integration"},
+    )
+    res.raise_for_status()
+    return res.json()["token"]  # "om_..." — shown only once
+```
+
+</CodeGroup>
+
+There's a per-pod cap on active keys; if you hit it you'll get `api_key_limit_reached` (422) — [list the pod's keys](/api-reference/authentication#account-wide-vs-pod-scoped-keys) and revoke an unused one first. Listing returns only a masked `tokenPrefix` and `last4`, never the token.
+
+## Step 5: Hand the scoped key to the tenant's integration
+
+Give the scoped token to whatever runs on the tenant's behalf — a per-tenant worker, an agent container, or the tenant's own environment. Because the key can't cross pods or manage pods, it's safe to isolate a tenant to their own inboxes:
+
+```bash
+# The tenant's integration sends only with its scoped key
+curl -X POST https://api.openmail.sh/v1/inboxes/INBOX_ID/send \
+  -H "Authorization: Bearer $TENANT_SCOPED_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"to": "customer@example.com", "subject": "Hello", "body": "..."}'
+
+# The same key gets 403 on any inbox in another pod
+```
+
+## Handle inbound email
+
+Every inbound event carries the `inbox_id` it arrived on. Map that to the tenant and deliver — the same routing you'd use for any per-inbox integration. See [API integration → Handle inbound email](/guides/api-integration#step-4-handle-inbound-email) for the full WebSocket and webhook handlers.
+
+```javascript
+// event = { event: "message.received", inbox_id, thread_id, message }
+const tenant = getTenantByInboxId(event.inbox_id);
+tenant.deliver({ threadId: event.thread_id, message: event.message });
+```
+
+<Note>
+  You can subscribe with your account-wide key to receive events across every pod, then fan out by `inbox_id`. A pod-scoped key's real-time subscription is filtered to its own pod, so a per-tenant worker only ever sees its tenant's events.
+</Note>
+
+## Full onboarding flow
+
+Putting the steps together — one function that provisions a tenant from scratch and returns the scoped key to store:
+
+<CodeGroup>
+
+```javascript Node.js
+async function onboardTenant(tenantId, companyName) {
+  await createTenantPod(tenantId, companyName);       // Step 1
+  const inbox = await createTenantInbox(tenantId, "support"); // Step 3
+  const scopedKey = await mintTenantKey(tenantId);    // Step 4
+
+  // Store scopedKey as this tenant's OPENMAIL_API_KEY (shown only once)
+  return { podId: tenantId, address: inbox.address, scopedKey };
+}
+```
+
+```python Python
+def onboard_tenant(tenant_id: str, company_name: str) -> dict:
+    create_tenant_pod(tenant_id, company_name)          # Step 1
+    inbox = create_tenant_inbox(tenant_id, "support")   # Step 3
+    scoped_key = mint_tenant_key(tenant_id)             # Step 4
+
+    # Store scoped_key as this tenant's OPENMAIL_API_KEY (shown only once)
+    return {"pod_id": tenant_id, "address": inbox["address"], "scoped_key": scoped_key}
+```
+
+</CodeGroup>
+
+## Offboarding a tenant
+
+To offboard, revoke the tenant's key and clean up their pod. Revoking is immediate — the key starts returning `401` on its next request.
+
+```bash
+# 1. Revoke the tenant's scoped key
+curl -X DELETE https://api.openmail.sh/v1/pods/meridian/api-keys/KEY_ID \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+
+# 2. Delete the pod's inboxes, reassign any pod-scoped domains, then delete the pod
+curl -X DELETE https://api.openmail.sh/v1/pods/meridian \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+A pod must be **empty** and own no pod-scoped domains before it can be deleted. See [Pods → Lifecycle](/concepts/pods#lifecycle) for the full teardown order and its guardrails.
+
+## Reference
+
+| What | Endpoint | Key required |
+|------|----------|--------------|
+| Create a tenant's pod | `POST /v1/pods` | Account-wide |
+| Create inboxes in the pod | `POST /v1/inboxes` (with `podId`) | Account-wide |
+| Mint the tenant's scoped key | `POST /v1/pods/{id}/api-keys` | Account-wide |
+| List a pod's keys (masked) | `GET /v1/pods/{id}/api-keys` | Account-wide |
+| Revoke a key | `DELETE /v1/pods/{id}/api-keys/{keyId}` | Account-wide |
+| Send / receive within a pod | `POST /v1/inboxes/{id}/send`, etc. | Pod-scoped or account-wide |
+
+<CardGroup cols={2}>
+  <Card title="Pods" icon="boxes" href="/concepts/pods">
+    The full pods model: isolation, `clientId`, patterns, and lifecycle.
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Account-wide vs. pod-scoped keys and the token-once rule.
+  </Card>
+  <Card title="Custom domains" icon="globe" href="/concepts/custom-domains">
+    Scope a domain to one pod for white-label tenant addresses.
+  </Card>
+  <Card title="API integration" icon="code" href="/guides/api-integration">
+    Per-inbox provisioning, skill files, and inbound routing.
+  </Card>
+</CardGroup>
