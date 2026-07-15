@@ -20,11 +20,22 @@ API keys are prefixed with `om_` for production.
 
 See [Quickstart](/quickstart) for the full setup flow.
 
+## Account-wide vs. pod-scoped keys
+
+There are two kinds of keys, and they authenticate the same way — as a Bearer token:
+
+- **Account-wide key** — the key you get at signup. It can read and write resources in every [pod](/concepts/pods), manage pods, and mint or revoke pod-scoped keys.
+- **Pod-scoped key** — a key minted for a single pod. It can only read and send from that pod's inboxes; it returns `403` on any resource in another pod and cannot create or delete pods or manage keys.
+
+Pod-scoped keys are the safe way to give one tenant, agent, or environment access to just its own inboxes. Mint them per pod with `POST /v1/pods/{id}/api-keys` (or from a pod's page in the console) — see [Pods → Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys). Minting requires an account-wide key.
+
+The full token is returned **once**, at creation, and cannot be retrieved again — store it securely. Listing keys returns only a non-secret prefix and last 4 characters.
+
 ## Security
 
 - Keep your API key secret. Do not expose it in client-side code.
-- Each API key is scoped to a single account. Requests authenticate to the account that owns the key.
-- If you believe your key has been compromised, contact support immediately for rotation.
+- Prefer a **pod-scoped key** over the account-wide key whenever an integration only needs one pod's inboxes. Revoke it with `DELETE /v1/pods/{id}/api-keys/{keyId}` — the key starts getting `401`s immediately.
+- If you believe your account-wide key has been compromised, contact support immediately for rotation.
 
 ## Invalid authentication
 
