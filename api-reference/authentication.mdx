@@ -20,11 +20,24 @@ API keys are prefixed with `om_` for production.
 
 See [Quickstart](/quickstart) for the full setup flow.
 
+## Account-wide vs. pod-scoped keys
+
+OpenMail has two kinds of API keys. Both authenticate the same way, as a Bearer token.
+
+| Key | Access |
+|-----|--------|
+| **Account-wide** | Every [pod](/concepts/pods). Can manage pods and mint or revoke pod-scoped keys. This is the key you get at signup. |
+| **Pod-scoped** | One pod. Can read and send from that pod's inboxes only. Returns `403` on other pods and cannot manage pods or keys. |
+
+Use a pod-scoped key to give a tenant, agent, or environment access to its own inboxes and nothing else. Mint one with `POST /v1/pods/{id}/api-keys` or from the pod's page in the console. Minting requires an account-wide key. See [Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys).
+
+The full token is returned once, at creation, and cannot be retrieved again — store it securely. Listing keys returns only a masked prefix and the last 4 characters.
+
 ## Security
 
 - Keep your API key secret. Do not expose it in client-side code.
-- Each API key is scoped to a single account. Requests authenticate to the account that owns the key.
-- If you believe your key has been compromised, contact support immediately for rotation.
+- Prefer a pod-scoped key when an integration only needs one pod's inboxes. Revoke it any time with `DELETE /v1/pods/{id}/api-keys/{keyId}` — revocation is immediate.
+- If you believe your account-wide key has been compromised, contact support immediately for rotation.
 
 ## Invalid authentication
 

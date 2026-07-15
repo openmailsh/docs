@@ -4,14 +4,14 @@ description: "Pods are isolated sub-accounts inside your OpenMail account. Use t
 icon: boxes
 ---
 
-A pod is an isolated workspace inside your account. Each pod holds its own inboxes, so you can give every one of your end users (or tenants, agents, or projects) a clean, separate slice of OpenMail while keeping a single account and API key.
+A pod is an isolated workspace inside your account. Each pod holds its own inboxes, so you can give every one of your end users (or tenants, agents, or projects) a clean, separate slice of OpenMail while keeping a single account and one bill. A [pod-scoped API key](#pod-scoped-api-keys) locks an integration to a single pod.
 
 Pods are designed for multi-tenant apps. If you run one agent for yourself, you don't need to think about them — your inboxes simply live in your account's default pod.
 
 ## The hierarchy
 
 ```
-Account (your OpenMail account, one API key)
+Account (your OpenMail account, account-wide API key)
 ├── Domain (account-wide)       ← usable by every pod; optional
 ├── Default pod                 ← inboxes land here unless you say otherwise
 │   ├── Inbox
@@ -153,10 +153,41 @@ Manage scope from the dashboard (**Settings → Domains**, or a pod's **Domains*
 
 ## What pods do and don't isolate
 
-Pods give you **organizational** isolation — a clean way to group and scope inboxes per tenant. They are not a network or permission boundary:
+Pods give you **organizational** isolation — a clean way to group and scope inboxes per tenant. They are not a network boundary:
 
 - **Email is not walled off.** Inboxes in different pods are still ordinary email addresses; they can send to and receive from each other and the outside world.
-- **API keys are account-wide.** An account API key can read and write resources in *every* pod. There are no pod-scoped API keys today, so don't hand a raw account key to an end user as a way to limit them to their pod.
+- **The account-wide key reaches everything.** The key you get at signup can read and write resources in *every* pod, so never hand it to an end user. Mint a [pod-scoped key](#pod-scoped-api-keys) instead — it can only reach its own pod.
+
+## Pod-scoped API keys
+
+Your account-wide key reaches every pod. To limit an integration — a tenant, an agent, an environment — to a single pod, mint a **pod-scoped key**:
+
+- It can **read and send** only from that pod's inboxes. Any cross-pod resource returns `403`.
+- It **cannot manage pods** and cannot mint or revoke keys.
+- Revoking it is immediate — the key returns `401` on its next request.
+
+Minting requires an **account-wide** key. The full `token` is returned once, at creation, and cannot be retrieved again — store it securely. Listing returns only a masked `tokenPrefix` and `last4` so you can identify a key without exposing it.
+
+```bash
+# Mint a key scoped to the Meridian pod (addressed by your own clientId)
+curl -X POST https://api.openmail.sh/v1/pods/meridian/api-keys \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "meridian-support-agent"}'
+# 201 -> { "id": "...", "token": "om_...", "podId": "...", "name": "...", "last4": "..." }
+
+# List the pod's keys (masked — no token)
+curl "https://api.openmail.sh/v1/pods/meridian/api-keys" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+
+# Revoke a key by its ID
+curl -X DELETE https://api.openmail.sh/v1/pods/meridian/api-keys/KEY_ID \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+Each pod has a cap on active keys. Hitting it returns `api_key_limit_reached` (422) — revoke an unused key first. You can also mint and revoke keys from a pod's page in the console (account owners only).
+
+See the [Multi-tenancy guide](/guides/multi-tenancy) for the full tenant onboarding flow: pod, inboxes, and scoped key end to end.
 
 ## Lifecycle
 
@@ -219,9 +250,17 @@ Inboxes (scoped to a pod):
 - GET  /v1/inboxes?podId=<idOrClientId>   list only that pod's inboxes
 - every inbox object includes its podId
 
+Pod-scoped API keys (mint requires an account-wide key):
+- POST   /v1/pods/{idOrClientId}/api-keys          body: { name? } -> 201 { token, ... }
+    token returned once; scoped to this pod (read/send only, 403 cross-pod, no pod mgmt)
+    422 api_key_limit_reached -> revoke an unused key first
+- GET    /v1/pods/{idOrClientId}/api-keys          list keys (masked: tokenPrefix + last4)
+- DELETE /v1/pods/{idOrClientId}/api-keys/{keyId}  revoke -> key gets 401 immediately
+
 Notes:
 - Inboxes can't move between pods; choose the pod at creation time.
-- API keys are account-wide (no pod-scoped keys); pods are organizational isolation, not network isolation.
+- The account-wide key reaches every pod; a pod-scoped key reaches only its own pod.
+- Pods are organizational isolation, not network isolation.
 ```
 
 ## Frequently asked questions
@@ -240,7 +279,7 @@ Notes:
     There's no enforced limit on the number of pods. Note that inboxes are still subject to your plan's inbox limits across the whole account — see [Inboxes](/concepts/inboxes#limits).
   </Accordion>
   <Accordion title="Can I restrict an API key to a single pod?">
-    Not today. Account API keys can access every pod. If you need per-tenant access boundaries, enforce them in your own application layer for now.
+    Yes. Mint a **pod-scoped key** with `POST /v1/pods/{id}/api-keys` or from the pod's page in the console. It can only read and send from that pod's inboxes; everything else returns `403`. The token is shown once at creation, and you can revoke the key at any time. See [Pod-scoped API keys](#pod-scoped-api-keys).
   </Accordion>
   <Accordion title="Can each pod have its own custom domain?">
     Yes. Scope a domain to one pod and create inboxes on it only inside that pod — for example `support@meridian.io` in the Meridian Analytics pod and `hello@cedarworks.com` in the Cedar Works pod. You can also add account-wide domains that every pod shares.
@@ -258,3 +297,6 @@ See the [API reference](/api-reference/introduction) for full request and respon
 | Get pod | `GET /v1/pods/{id}` |
 | Update pod | `PATCH /v1/pods/{id}` |
 | Delete pod | `DELETE /v1/pods/{id}` |
+| Mint pod-scoped API key | `POST /v1/pods/{id}/api-keys` |
+| List pod-scoped API keys | `GET /v1/pods/{id}/api-keys` |
+| Revoke pod-scoped API key | `DELETE /v1/pods/{id}/api-keys/{keyId}` |
