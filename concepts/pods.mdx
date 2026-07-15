@@ -4,7 +4,7 @@ description: "Pods are isolated sub-accounts inside your OpenMail account. Use t
 icon: boxes
 ---
 
-A pod is an isolated workspace inside your account. Each pod holds its own inboxes, so you can give every one of your end users (or tenants, agents, or projects) a clean, separate slice of OpenMail while keeping a single account and one bill. You can even mint a [pod-scoped API key](#pod-scoped-api-keys) that only reaches that one pod.
+A pod is an isolated workspace inside your account. Each pod holds its own inboxes, so you can give every one of your end users (or tenants, agents, or projects) a clean, separate slice of OpenMail while keeping a single account and one bill. A [pod-scoped API key](#pod-scoped-api-keys) locks an integration to a single pod.
 
 Pods are designed for multi-tenant apps. If you run one agent for yourself, you don't need to think about them — your inboxes simply live in your account's default pod.
 
@@ -26,7 +26,7 @@ Account (your OpenMail account, account-wide API key)
     └── Inbox
 ```
 
-- **Account** — Your business. One account, one bill, one account-wide API key (plus any pod-scoped keys you mint).
+- **Account** — Your business. One account, one set of API keys, one bill.
 - **Pod** — A tenant in your product (a customer, end user, agent, or environment). Provides organizational isolation between sets of inboxes.
 - **Domain** — A verified custom domain. Either **account-wide** (lives at account level, any pod can use it) or **scoped to one pod** (lives under that pod). A domain cannot be scoped to more than one pod, but not all pods.
 - **Inbox** — An email address. Always belongs to exactly one pod.
@@ -156,17 +156,17 @@ Manage scope from the dashboard (**Settings → Domains**, or a pod's **Domains*
 Pods give you **organizational** isolation — a clean way to group and scope inboxes per tenant. They are not a network boundary:
 
 - **Email is not walled off.** Inboxes in different pods are still ordinary email addresses; they can send to and receive from each other and the outside world.
-- **Your account-wide key still reaches everything.** The key you get at signup can read and write resources in *every* pod, so never hand it to an end user. To limit an integration to one pod, mint a [pod-scoped key](#pod-scoped-api-keys) instead — it can only reach that pod's inboxes and returns `403` on anything else.
+- **The account-wide key reaches everything.** The key you get at signup can read and write resources in *every* pod, so never hand it to an end user. Mint a [pod-scoped key](#pod-scoped-api-keys) instead — it can only reach its own pod.
 
 ## Pod-scoped API keys
 
-By default your account-wide key can reach every pod. When you want an integration — one tenant, one agent, one environment — to touch only a single pod, mint a **pod-scoped key**:
+Your account-wide key reaches every pod. To limit an integration — a tenant, an agent, an environment — to a single pod, mint a **pod-scoped key**:
 
 - It can **read and send** only from that pod's inboxes. Any cross-pod resource returns `403`.
-- It **cannot manage pods** (create, update, or delete) and **cannot mint or revoke keys**.
-- Revoking it is immediate — the key starts returning `401` on the next request.
+- It **cannot manage pods** and cannot mint or revoke keys.
+- Revoking it is immediate — the key returns `401` on its next request.
 
-Minting a key requires an **account-wide** key (a pod-scoped key can't mint more keys). The full `token` is returned **once**, at creation — store it securely, it cannot be retrieved again. Listing returns only a non-secret `tokenPrefix` and `last4` so you can identify a key without exposing it.
+Minting requires an **account-wide** key. The full `token` is returned once, at creation, and cannot be retrieved again — store it securely. Listing returns only a masked `tokenPrefix` and `last4` so you can identify a key without exposing it.
 
 ```bash
 # Mint a key scoped to the Meridian pod (addressed by your own clientId)
@@ -185,13 +185,9 @@ curl -X DELETE https://api.openmail.sh/v1/pods/meridian/api-keys/KEY_ID \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 ```
 
-There's a per-pod cap on active keys; hitting it returns `api_key_limit_reached` (422) — revoke an unused key first. You can also mint and revoke keys from a pod's page in the console (account owners only).
+Each pod has a cap on active keys. Hitting it returns `api_key_limit_reached` (422) — revoke an unused key first. You can also mint and revoke keys from a pod's page in the console (account owners only).
 
-For the full tenant onboarding flow — pod, domain, inbox, and scoped key end to end — see the [Multi-tenancy guide](/guides/multi-tenancy).
-
-<Note>
-  Pod-scoped keys are an access boundary on the OpenMail API, not a network boundary. Inboxes in a pod are still ordinary email addresses that can exchange mail with any other address.
-</Note>
+See the [Multi-tenancy guide](/guides/multi-tenancy) for the full tenant onboarding flow: pod, inboxes, and scoped key end to end.
 
 ## Lifecycle
 
@@ -283,7 +279,7 @@ Notes:
     There's no enforced limit on the number of pods. Note that inboxes are still subject to your plan's inbox limits across the whole account — see [Inboxes](/concepts/inboxes#limits).
   </Accordion>
   <Accordion title="Can I restrict an API key to a single pod?">
-    Yes. Mint a **pod-scoped key** with `POST /v1/pods/{id}/api-keys` (or from the pod's page in the console). It can only read and send from that pod's inboxes — every cross-pod resource returns `403`, and it can't manage pods or mint keys. The token is shown once at creation; revoke it any time with `DELETE /v1/pods/{id}/api-keys/{keyId}`. Your original account-wide key still reaches every pod, so keep that one to yourself. See [Pod-scoped API keys](#pod-scoped-api-keys).
+    Yes. Mint a **pod-scoped key** with `POST /v1/pods/{id}/api-keys` or from the pod's page in the console. It can only read and send from that pod's inboxes; everything else returns `403`. The token is shown once at creation, and you can revoke the key at any time. See [Pod-scoped API keys](#pod-scoped-api-keys).
   </Accordion>
   <Accordion title="Can each pod have its own custom domain?">
     Yes. Scope a domain to one pod and create inboxes on it only inside that pod — for example `support@meridian.io` in the Meridian Analytics pod and `hello@cedarworks.com` in the Cedar Works pod. You can also add account-wide domains that every pod shares.

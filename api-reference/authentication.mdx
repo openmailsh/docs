@@ -22,19 +22,21 @@ See [Quickstart](/quickstart) for the full setup flow.
 
 ## Account-wide vs. pod-scoped keys
 
-There are two kinds of keys, and they authenticate the same way — as a Bearer token:
+OpenMail has two kinds of API keys. Both authenticate the same way, as a Bearer token.
 
-- **Account-wide key** — the key you get at signup. It can read and write resources in every [pod](/concepts/pods), manage pods, and mint or revoke pod-scoped keys.
-- **Pod-scoped key** — a key minted for a single pod. It can only read and send from that pod's inboxes; it returns `403` on any resource in another pod and cannot create or delete pods or manage keys.
+| Key | Access |
+|-----|--------|
+| **Account-wide** | Every [pod](/concepts/pods). Can manage pods and mint or revoke pod-scoped keys. This is the key you get at signup. |
+| **Pod-scoped** | One pod. Can read and send from that pod's inboxes only. Returns `403` on other pods and cannot manage pods or keys. |
 
-Pod-scoped keys are the safe way to give one tenant, agent, or environment access to just its own inboxes. Mint them per pod with `POST /v1/pods/{id}/api-keys` (or from a pod's page in the console) — see [Pods → Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys). Minting requires an account-wide key.
+Use a pod-scoped key to give a tenant, agent, or environment access to its own inboxes and nothing else. Mint one with `POST /v1/pods/{id}/api-keys` or from the pod's page in the console. Minting requires an account-wide key. See [Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys).
 
-The full token is returned **once**, at creation, and cannot be retrieved again — store it securely. Listing keys returns only a non-secret prefix and last 4 characters.
+The full token is returned once, at creation, and cannot be retrieved again — store it securely. Listing keys returns only a masked prefix and the last 4 characters.
 
 ## Security
 
 - Keep your API key secret. Do not expose it in client-side code.
-- Prefer a **pod-scoped key** over the account-wide key whenever an integration only needs one pod's inboxes. Revoke it with `DELETE /v1/pods/{id}/api-keys/{keyId}` — the key starts getting `401`s immediately.
+- Prefer a pod-scoped key when an integration only needs one pod's inboxes. Revoke it any time with `DELETE /v1/pods/{id}/api-keys/{keyId}` — revocation is immediate.
 - If you believe your account-wide key has been compromised, contact support immediately for rotation.
 
 ## Invalid authentication

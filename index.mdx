@@ -17,7 +17,7 @@ OpenMail gives AI agents their own email addresses. Run `openmail setup` — the
 3. Agent sends email, receives replies via [WebSocket](/concepts/websockets) or [webhook](/guides/webhooks)
 4. Route inbound mail by `inbox_id` — use your inbox-to-agent mapping
 
-**Multi-tenant** - One account, many inboxes. Assign one inbox per agent and route inbound events by `inbox_id`.
+**Multi-tenant** - One account, many inboxes. Assign one inbox per agent and route inbound events by `inbox_id`. To isolate tenants with pods and pod-scoped API keys, see the [Multi-tenancy guide](/guides/multi-tenancy).
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
@@ -39,7 +39,7 @@ OpenMail gives AI agents their own email addresses. Run `openmail setup` — the
 The OpenMail API uses API keys to authenticate requests. Sign up at [console.openmail.sh](https://console.openmail.sh/login) to get your key. See [Quickstart](/quickstart) for the full setup flow.
 
 <Note>
-  All API requests must be made over **HTTPS**. Your API key carries full account access - keep it in environment variables, not in code.
+  All API requests must be made over **HTTPS**. Your account-wide API key carries full account access - keep it in environment variables, not in code. To limit a key to a single pod, see [pod-scoped keys](/api-reference/authentication#account-wide-vs-pod-scoped-keys).
 </Note>
 
 ```bash
