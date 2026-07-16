@@ -28,9 +28,11 @@ All errors return a consistent JSON structure:
 | 400 | `bad_request` (invalid `replyTo`) | The `replyTo` field is not a valid email address | Pass a syntactically valid email or omit the field |
 | 401 | `unauthorized` | Invalid or missing API key | Check `OPENMAIL_API_KEY` is set and starts with `om_` |
 | 403 | `feature_requires_paid_plan` (`external_reply_to`) | Free plan tried to set `replyTo` to an address that isn't one of their own OpenMail inboxes | Create the destination inbox and use its address, or upgrade to Pro or higher to use any external address |
+| 403 | `forbidden` | The API key is scoped to one pod or one inbox, and this request touched something outside it — or an action its scope forbids, like creating or deleting an inbox | The `message` names the boundary that was crossed. Use the key belonging to that pod or inbox, or an account-wide key if the action needs one |
 | 404 | `not_found` | Resource doesn't exist or doesn't belong to your account | Verify the inbox ID or thread ID is correct for this account |
 | 409 | `address_taken` | Mailbox name or address already in use | Choose a different `--mailbox-name` |
 | 422 | `recipient_suppressed` | Recipient is on the suppression list | The recipient previously unsubscribed or reported spam; do not contact them |
+| 422 | `api_key_limit_reached` | The pod or inbox already has 20 active API keys | Revoke an unused key to free a slot |
 | 429 | `rate_limit_exceeded` | Too many requests | Check `Retry-After` header and wait before retrying |
 | 429 | `cold_outreach_limit` | Cold send limit exceeded for new inbox | New inboxes have a warm-up period; see [email deliverability docs](/best-practices/email-deliverability) |
 

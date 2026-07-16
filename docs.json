@@ -153,7 +153,10 @@
               "GET /v1/inboxes",
               "POST /v1/inboxes",
               "GET /v1/inboxes/{id}",
-              "DELETE /v1/inboxes/{id}"
+              "DELETE /v1/inboxes/{id}",
+              "POST /v1/inboxes/{id}/api-keys",
+              "GET /v1/inboxes/{id}/api-keys",
+              "DELETE /v1/inboxes/{id}/api-keys/{keyId}"
             ]
           },
           {

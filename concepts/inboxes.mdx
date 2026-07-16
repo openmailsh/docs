@@ -39,13 +39,48 @@ Recipients will see **John Smith** instead of the raw email address. You can upd
 
 Route inbound events by `inbox_id`. Map each inbox ID to your user/agent/container in your app.
 
-**Multi-tenant** - One account, many inboxes. Create one inbox per agent and route by `inbox_id`. To isolate tenants with pods and pod-scoped API keys, see the [Multi-tenancy guide](/guides/multi-tenancy).
+**Multi-tenant** - One account, many inboxes. Create one inbox per agent and route by `inbox_id`. To confine an agent to the single inbox it owns, give it an [inbox-scoped API key](#inbox-scoped-api-keys). To isolate a tenant that owns several inboxes, see the [Multi-tenancy guide](/guides/multi-tenancy).
 
 **Multiple inboxes per user** - You can create multiple inboxes for the same user. Webhooks include `inbox_id` so you can identify which inbox received the message.
 
 <Tip>
   See [Email deliverability](/best-practices/email-deliverability) for warm-up schedules and content best practices.
 </Tip>
+
+## Inbox-scoped API keys
+
+Your account-wide key reaches every inbox. When one agent owns exactly one inbox, hand it an **inbox-scoped key** instead — the narrowest scope OpenMail offers:
+
+- It can **read and send** from that one inbox, including its threads, messages, and drafts. Every other inbox is invisible to it — even listing inboxes returns only the one it owns.
+- It is **read and send only**. It cannot create, modify, or delete inboxes, and cannot rotate a webhook secret.
+- It **cannot mint or revoke keys**, so a leaked key cannot widen its own reach.
+
+Anything outside that boundary is refused rather than silently ignored — see [`forbidden`](/api-reference/overview#common-error-codes) if you need to handle it.
+
+Minting requires an **account-wide** key — a pod- or inbox-scoped key cannot mint. The full `token` is returned once, at creation, and cannot be retrieved again. Listing returns only a masked `tokenPrefix` and `last4`.
+
+```bash
+# Mint a key confined to a single inbox
+curl -X POST https://api.openmail.sh/v1/inboxes/INBOX_ID/api-keys \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "support-agent"}'
+# 201 -> { "id": "...", "token": "om_...", "inboxId": "...", "podId": "...", "name": "...", "last4": "..." }
+
+# List the inbox's keys (masked — no token)
+curl "https://api.openmail.sh/v1/inboxes/INBOX_ID/api-keys" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+
+# Revoke a key by its ID
+curl -X DELETE https://api.openmail.sh/v1/inboxes/INBOX_ID/api-keys/KEY_ID \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+Each inbox allows up to 20 active keys; revoke an unused one to free a slot. Revoking takes effect immediately, on the key's very next request. Deleting an inbox also revokes every key scoped to it.
+
+On [WebSockets](/concepts/websockets), a connection authenticated with an inbox-scoped key streams only that inbox's events, so a subscribe-all needs no filtering on your side.
+
+Choosing between scopes? See [Key scopes](/api-reference/authentication#key-scopes) for the full comparison.
 
 ## Limits
 

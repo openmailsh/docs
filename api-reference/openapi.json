@@ -67,7 +67,12 @@
           },
           "podId": {
             "type": "string",
-            "description": "ID of the pod this key is scoped to. A key can only access resources in this pod.",
+            "description": "ID of the pod this key is scoped to, or null for an account-wide key. A pod-scoped key can only access resources in this pod.",
+            "nullable": true
+          },
+          "inboxId": {
+            "type": "string",
+            "description": "ID of the inbox this key is confined to, or null. When set, the key can only access this single inbox and its threads, messages, and drafts (its `podId` is the inbox's pod).",
             "nullable": true
           },
           "tokenPrefix": {
@@ -1189,6 +1194,21 @@
               }
             }
           },
+          "403": {
+            "description": "The authenticating key is inbox-scoped (read + send only) and cannot modify the inbox",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is inbox-scoped (read + send only) and cannot modify the inbox",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not found",
             "content": {
@@ -1241,6 +1261,21 @@
         "responses": {
           "204": {
             "description": "Inbox deleted"
+          },
+          "403": {
+            "description": "The authenticating key is inbox-scoped (read + send only) and cannot delete the inbox",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is inbox-scoped (read + send only) and cannot delete the inbox",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "404": {
             "description": "Not found",
@@ -1305,6 +1340,21 @@
               "application/json": {
                 "schema": {
                   "description": "No webhook URL is set on this inbox (`no_webhook_url`)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is inbox-scoped (read + send only) and cannot rotate webhook secrets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is inbox-scoped (read + send only) and cannot rotate webhook secrets",
                   "allOf": [
                     {
                       "$ref": "#/components/schemas/Error"
@@ -1407,6 +1457,259 @@
               "application/json": {
                 "schema": {
                   "description": "The webhook endpoint returned an error status, or the request to it failed (`webhook_failed`)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/inboxes/{id}/api-keys": {
+      "post": {
+        "operationId": "createInboxApiKey",
+        "summary": "Create inbox API key",
+        "tags": [
+          "inboxes"
+        ],
+        "description": "Mint an API key scoped to this inbox. The key can only read and send from this one inbox — its threads, messages, and drafts — and can never reach another inbox, manage pods, or mint keys. The full `token` is returned once, here — store it securely, it cannot be retrieved again. Requires an account-wide key (a scoped key cannot mint keys).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "Human-readable label to identify the key later.",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Inbox ID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "API key created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "API key created",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiKeyWithToken"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot mint keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot mint keys",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Inbox not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The inbox is not assigned to a pod, so an inbox-scoped key cannot be minted for it (`inbox_has_no_pod`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The inbox is not assigned to a pod, so an inbox-scoped key cannot be minted for it (`inbox_has_no_pod`)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The inbox already has the maximum number of active keys (`api_key_limit_reached`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The inbox already has the maximum number of active keys (`api_key_limit_reached`)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listInboxApiKeys",
+        "summary": "List inbox API keys",
+        "tags": [
+          "inboxes"
+        ],
+        "description": "List the (non-revoked) API keys scoped to this inbox. Only non-secret fields are returned — the token itself is never retrievable after creation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Inbox ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of API keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "List of API keys",
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiKey"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot manage keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot manage keys",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Inbox not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/inboxes/{id}/api-keys/{keyId}": {
+      "delete": {
+        "operationId": "deleteInboxApiKey",
+        "summary": "Revoke inbox API key",
+        "tags": [
+          "inboxes"
+        ],
+        "description": "Permanently revoke an inbox-scoped API key. Any integration using it immediately starts getting 401s. Requires an account-wide key.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Inbox ID"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "keyId",
+            "required": true,
+            "description": "The API key ID to revoke"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Key revoked"
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot manage keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot manage keys",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Key not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Key not found",
                   "allOf": [
                     {
                       "$ref": "#/components/schemas/Error"
