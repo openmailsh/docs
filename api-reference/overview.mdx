@@ -36,9 +36,11 @@ All errors return a consistent structure:
 | 400 | `missing_idempotency_key` | Send endpoint requires Idempotency-Key header |
 | 401 | `unauthorized` | Invalid or missing API key |
 | 403 | `feature_requires_paid_plan` | Paid-only feature used on free plan (e.g. external `replyTo`) |
+| 403 | `forbidden` | A [scoped key](/api-reference/authentication#key-scopes) reached outside its pod or inbox, or attempted an action its scope doesn't allow |
 | 404 | `not_found` | Resource doesn't exist or doesn't belong to your account |
 | 409 | `address_taken` | Mailbox name or address already in use |
 | 422 | `recipient_suppressed` | Recipient is on the suppression list |
+| 422 | `api_key_limit_reached` | Pod or inbox already has 20 active API keys |
 | 429 | `rate_limit_exceeded` | Too many requests - check `Retry-After` header |
 | 429 | `cold_outreach_limit` | Cold send limit exceeded for new inbox |
 

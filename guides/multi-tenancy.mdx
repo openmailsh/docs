@@ -4,7 +4,7 @@ description: "Onboard a tenant end-to-end: create a pod, provision inboxes, and 
 icon: building-2
 ---
 
-Running OpenMail for many customers — a multi-tenant SaaS, an agency, an AI agent platform? Give each tenant its own [pod](/concepts/pods) and a [pod-scoped API key](/concepts/pods#pod-scoped-api-keys). The pod keeps the tenant's inboxes separate. The scoped key locks their integration to that pod: it returns `403` on everything else and cannot manage pods or mint keys.
+Running OpenMail for many customers — a multi-tenant SaaS, an agency, an AI agent platform? Give each tenant its own [pod](/concepts/pods) and a [pod-scoped API key](/concepts/pods#pod-scoped-api-keys). The pod keeps the tenant's inboxes separate. The scoped key locks their integration to that pod: nothing outside it is reachable, and it cannot manage pods or mint keys.
 
 This guide walks the full onboarding flow — pod, domain (optional), inbox, scoped key — then inbound routing and offboarding.
 
@@ -121,6 +121,10 @@ Mint a key scoped to the tenant's pod. This is the key the tenant's integration 
 <Warning>
   The full `token` is returned **once**, in this response, and can never be retrieved again. Store it as that tenant's secret immediately. Minting requires your account-wide key.
 </Warning>
+
+<Tip>
+  A pod-scoped key fits a tenant that owns several inboxes and provisions more over time. If a tenant only ever has one inbox — the "one agent, one inbox" case — mint an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) against that inbox instead. It cannot create or delete inboxes, which makes it the safer key to hand out when the tenant never needs to.
+</Tip>
 
 <CodeGroup>
 
@@ -248,7 +252,7 @@ A pod must be empty and own no pod-scoped domains before it can be deleted. See 
     The full pods model: isolation, `clientId`, patterns, and lifecycle.
   </Card>
   <Card title="Authentication" icon="key" href="/api-reference/authentication">
-    Account-wide vs. pod-scoped keys and the token-once rule.
+    Account-wide, pod-scoped, and inbox-scoped keys, and the token-once rule.
   </Card>
   <Card title="Custom domains" icon="globe" href="/concepts/custom-domains">
     Scope a domain to one pod for white-label tenant addresses.

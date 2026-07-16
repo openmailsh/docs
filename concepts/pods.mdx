@@ -156,15 +156,15 @@ Manage scope from the dashboard (**Settings → Domains**, or a pod's **Domains*
 Pods give you **organizational** isolation — a clean way to group and scope inboxes per tenant. They are not a network boundary:
 
 - **Email is not walled off.** Inboxes in different pods are still ordinary email addresses; they can send to and receive from each other and the outside world.
-- **The account-wide key reaches everything.** The key you get at signup can read and write resources in *every* pod, so never hand it to an end user. Mint a [pod-scoped key](#pod-scoped-api-keys) instead — it can only reach its own pod.
+- **The account-wide key reaches everything.** The key you get at signup can read and write resources in *every* pod, so never hand it to an end user. Mint a [pod-scoped key](#pod-scoped-api-keys) instead — it can only reach its own pod. If the recipient owns just one inbox, an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) narrows it further still.
 
 ## Pod-scoped API keys
 
 Your account-wide key reaches every pod. To limit an integration — a tenant, an agent, an environment — to a single pod, mint a **pod-scoped key**:
 
-- It can **read and send** only from that pod's inboxes. Any cross-pod resource returns `403`.
+- It can **read and send** only from that pod's inboxes, and create inboxes in it. Everything in another pod is out of reach.
 - It **cannot manage pods** and cannot mint or revoke keys.
-- Revoking it is immediate — the key returns `401` on its next request.
+- Revoking it takes effect immediately, on the key's very next request.
 
 Minting requires an **account-wide** key. The full `token` is returned once, at creation, and cannot be retrieved again — store it securely. Listing returns only a masked `tokenPrefix` and `last4` so you can identify a key without exposing it.
 
@@ -185,7 +185,9 @@ curl -X DELETE https://api.openmail.sh/v1/pods/meridian/api-keys/KEY_ID \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 ```
 
-Each pod has a cap on active keys. Hitting it returns `api_key_limit_reached` (422) — revoke an unused key first. You can also mint and revoke keys from a pod's page in the console (account owners only).
+Each pod allows up to 20 active keys; revoke an unused one to free a slot. You can also mint and revoke keys from a pod's page in the console (account owners only).
+
+A pod-scoped key is the right scope for a tenant that owns several inboxes. For a single agent that owns exactly one, an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) confines it to that inbox alone. See [Key scopes](/api-reference/authentication#key-scopes) for the full comparison.
 
 See the [Multi-tenancy guide](/guides/multi-tenancy) for the full tenant onboarding flow: pod, inboxes, and scoped key end to end.
 
@@ -257,9 +259,20 @@ Pod-scoped API keys (mint requires an account-wide key):
 - GET    /v1/pods/{idOrClientId}/api-keys          list keys (masked: tokenPrefix + last4)
 - DELETE /v1/pods/{idOrClientId}/api-keys/{keyId}  revoke -> key gets 401 immediately
 
+Inbox-scoped API keys (mint requires an account-wide key):
+- POST   /v1/inboxes/{id}/api-keys           body: { name? } -> 201 { token, ... }
+    token returned once; confined to this one inbox (read/send only, 403 on any
+    other inbox, cannot create/modify/delete inboxes, no key mgmt)
+    422 api_key_limit_reached -> revoke an unused key first
+- GET    /v1/inboxes/{id}/api-keys           list keys (masked: tokenPrefix + last4)
+- DELETE /v1/inboxes/{id}/api-keys/{keyId}   revoke -> key gets 401 immediately
+- deleting the inbox revokes its keys too
+
 Notes:
 - Inboxes can't move between pods; choose the pod at creation time.
-- The account-wide key reaches every pod; a pod-scoped key reaches only its own pod.
+- Three key scopes: account-wide reaches everything, pod-scoped reaches one pod,
+  inbox-scoped reaches one inbox. Only an account-wide key can mint scoped keys.
+- Max 20 active keys per pod and per inbox.
 - Pods are organizational isolation, not network isolation.
 ```
 
@@ -279,7 +292,10 @@ Notes:
     There's no enforced limit on the number of pods. Note that inboxes are still subject to your plan's inbox limits across the whole account — see [Inboxes](/concepts/inboxes#limits).
   </Accordion>
   <Accordion title="Can I restrict an API key to a single pod?">
-    Yes. Mint a **pod-scoped key** with `POST /v1/pods/{id}/api-keys` or from the pod's page in the console. It can only read and send from that pod's inboxes; everything else returns `403`. The token is shown once at creation, and you can revoke the key at any time. See [Pod-scoped API keys](#pod-scoped-api-keys).
+    Yes. Mint a **pod-scoped key** with `POST /v1/pods/{id}/api-keys` or from the pod's page in the console. It can only read and send from that pod's inboxes; everything else is out of reach. The token is shown once at creation, and you can revoke the key at any time. See [Pod-scoped API keys](#pod-scoped-api-keys).
+  </Accordion>
+  <Accordion title="Can I restrict an API key to a single inbox?">
+    Yes. Mint an **inbox-scoped key** with `POST /v1/inboxes/{id}/api-keys` — the narrowest scope available. It can read and send from that one inbox and nothing else, and unlike a pod-scoped key it cannot create or delete inboxes at all. Useful when one agent owns exactly one inbox. See [Inbox-scoped API keys](/concepts/inboxes#inbox-scoped-api-keys).
   </Accordion>
   <Accordion title="Can each pod have its own custom domain?">
     Yes. Scope a domain to one pod and create inboxes on it only inside that pod — for example `support@meridian.io` in the Meridian Analytics pod and `hello@cedarworks.com` in the Cedar Works pod. You can also add account-wide domains that every pod shares.

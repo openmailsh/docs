@@ -20,23 +20,25 @@ API keys are prefixed with `om_` for production.
 
 See [Quickstart](/quickstart) for the full setup flow.
 
-## Account-wide vs. pod-scoped keys
+## Key scopes
 
-OpenMail has two kinds of API keys. Both authenticate the same way, as a Bearer token.
+OpenMail has three kinds of API keys. All three authenticate the same way, as a Bearer token — they differ only in how much of your account they reach.
 
 | Key | Access |
 |-----|--------|
-| **Account-wide** | Every [pod](/concepts/pods). Can manage pods and mint or revoke pod-scoped keys. This is the key you get at signup. |
-| **Pod-scoped** | One pod. Can read and send from that pod's inboxes only. Returns `403` on other pods and cannot manage pods or keys. |
+| **Account-wide** | Everything. Can manage pods and inboxes, and mint or revoke scoped keys. This is the key you get at signup. |
+| **Pod-scoped** | One [pod](/concepts/pods) — its inboxes, and creating more inboxes in it. Nothing in another pod, and no pod or key management. |
+| **Inbox-scoped** | One [inbox](/concepts/inboxes) — reading and sending, nothing else. No other inbox, and no creating, modifying, or deleting inboxes. |
 
-Use a pod-scoped key to give a tenant, agent, or environment access to its own inboxes and nothing else. Mint one with `POST /v1/pods/{id}/api-keys` or from the pod's page in the console. Minting requires an account-wide key. See [Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys).
+Pick the narrowest scope that fits. A pod-scoped key suits a tenant that owns several inboxes; an inbox-scoped key suits a single agent that owns exactly one. Mint them with `POST /v1/pods/{id}/api-keys` and `POST /v1/inboxes/{id}/api-keys` respectively — both require an account-wide key, so a scoped key can never widen its own reach, and each pod or inbox can hold up to 20 active keys. See [Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys) and [Inbox-scoped API keys](/concepts/inboxes#inbox-scoped-api-keys).
 
 The full token is returned once, at creation, and cannot be retrieved again — store it securely. Listing keys returns only a masked prefix and the last 4 characters.
 
 ## Security
 
 - Keep your API key secret. Do not expose it in client-side code.
-- Prefer a pod-scoped key when an integration only needs one pod's inboxes. Revoke it any time with `DELETE /v1/pods/{id}/api-keys/{keyId}` — revocation is immediate.
+- Prefer a scoped key when an integration only needs one pod's inboxes, or one inbox. Revoke either any time with `DELETE /v1/pods/{id}/api-keys/{keyId}` or `DELETE /v1/inboxes/{id}/api-keys/{keyId}` — revocation is immediate.
+- Deleting an inbox revokes its inbox-scoped keys along with it.
 - If you believe your account-wide key has been compromised, contact support immediately for rotation.
 
 ## Invalid authentication
