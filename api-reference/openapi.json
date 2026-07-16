@@ -636,7 +636,7 @@
         "tags": [
           "pods"
         ],
-        "description": "Mint an API key scoped to this pod. The key can only read and send from the pod's inboxes and can never manage pods or reach another pod's data. The full `token` is returned once, here — store it securely, it cannot be retrieved again. Requires an account-wide key (a pod-scoped key cannot mint keys).",
+        "description": "Mint an API key scoped to this pod. The key can read and send from the pod's inboxes and create new inboxes in this pod; it can never delete an inbox, change an inbox's webhook config, manage pods, mint keys, or reach another pod's data. The full `token` is returned once, here — store it securely, it cannot be retrieved again. Requires an account-wide key (a pod-scoped key cannot mint keys).",
         "requestBody": {
           "required": true,
           "content": {
