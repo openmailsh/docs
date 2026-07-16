@@ -163,6 +163,7 @@ Pods give you **organizational** isolation — a clean way to group and scope in
 Your account-wide key reaches every pod. To limit an integration — a tenant, an agent, an environment — to a single pod, mint a **pod-scoped key**:
 
 - It can **read and send** only from that pod's inboxes, and create inboxes in it. Everything in another pod is out of reach.
+- It **cannot delete an inbox**, change an inbox's webhook config, or rotate a webhook secret — those need an account-wide key, so a leaked pod key cannot destroy mail or redirect it elsewhere.
 - It **cannot manage pods** and cannot mint or revoke keys.
 - Revoking it takes effect immediately, on the key's very next request.
 
