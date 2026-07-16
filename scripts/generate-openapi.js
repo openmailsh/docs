@@ -809,7 +809,10 @@ const finalSpec = fs.existsSync(openmailSpecPath)
   ? JSON.parse(fs.readFileSync(openmailSpecPath, "utf8"))
   : spec;
 
-const json = JSON.stringify(finalSpec, null, 2);
+// Trailing newline matters: the API repo's own generator writes
+// `JSON.stringify(doc, null, 2) + "\n"`, so omitting it here made the write-back
+// below strip that newline and dirty openmail's spec on every run.
+const json = JSON.stringify(finalSpec, null, 2) + "\n";
 
 const docsPath = path.join(__dirname, "..", "api-reference", "openapi.json");
 fs.writeFileSync(docsPath, json);
