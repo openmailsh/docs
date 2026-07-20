@@ -251,11 +251,26 @@ OPENCLAW_HOOK_TOKEN=...
 
 | Variable | Description |
 |----------|-------------|
-| `OPENMAIL_API_KEY` | Your API key (starts with `om_`) |
+| `OPENMAIL_API_KEY` | The API key the agent authenticates with (starts with `om_`) |
 | `OPENMAIL_INBOX_ID` | Default inbox ID |
 | `OPENMAIL_ADDRESS` | The agent's email address |
 | `OPENMAIL_MODE` | `notify`, `channel`, or omitted for `tool` mode |
 | `OPENCLAW_HOOK_TOKEN` | Auth token for the local hook endpoint (only when bridge is active) |
+
+<Warning>
+  Setup stores the key you authenticated with, which is normally your **account-wide** key. That key reaches every inbox on your account, and it stays on the agent's machine for as long as the agent runs.
+
+  Once setup has created the inbox, narrow the stored key to that inbox alone. Mint an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) against the `OPENMAIL_INBOX_ID` setup wrote, then replace `OPENMAIL_API_KEY` with it:
+
+  ```bash
+  curl -X POST https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/api-keys \
+    -H "Authorization: Bearer $ACCOUNT_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"name": "openclaw-agent"}'
+  ```
+
+  The CLI works unchanged on an inbox-scoped key — it resolves and sends from that one inbox. Minting requires your account-wide key, so run this from your own shell, not the agent's.
+</Warning>
 
 ---
 

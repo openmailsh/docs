@@ -41,6 +41,17 @@ The full token is returned once, at creation, and cannot be retrieved again — 
 - Deleting an inbox revokes its inbox-scoped keys along with it.
 - If you believe your account-wide key has been compromised, contact support immediately for rotation.
 
+### Scoping limits what a compromised agent can reach
+
+An agent that reads email processes untrusted input. A message body can carry instructions aimed at the agent rather than at you — a prompt injection — and a convincing one can get the agent to make API calls you never intended.
+
+Scoping decides how far those calls reach. The key is the boundary, so it holds whatever the agent's reasoning does:
+
+- An **inbox-scoped** key confines the damage to the one inbox that received the message. Other inboxes, other tenants, and your account settings stay out of reach — the agent cannot read them, send from them, or delete them.
+- An **account-wide** key on the same agent turns one malicious email into account-wide reach.
+
+Give each agent an inbox-scoped key for the inbox it owns. Keep the account-wide key server-side, and use it only to provision and to mint the scoped keys.
+
 ## Invalid authentication
 
 ```json
