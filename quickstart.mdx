@@ -96,6 +96,23 @@ Get your AI agent its own email address in two commands.
   </Tab>
 </Tabs>
 
+## Narrow the agent's key
+
+Setup signs you in with your **account-wide** key and stores it for the agent to use. That key reaches every inbox on your account. Once setup has created the agent's inbox, swap it for an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) — the agent keeps working, but a compromised agent can no longer reach anything but its own inbox.
+
+```bash
+curl -X POST https://api.openmail.sh/v1/inboxes/<inbox-id>/api-keys \
+  -H "Authorization: Bearer <account-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-agent"}'
+```
+
+Replace `OPENMAIL_API_KEY` in the agent's env file with the returned `token`. It is shown once, at creation. Minting needs your account-wide key, so run this yourself rather than handing the account key to the agent.
+
+<Note>
+  Setup itself needs the account-wide key — creating an inbox is outside what an inbox-scoped key can do, and the inbox has to exist before a key can be scoped to it. Narrow the key after setup, not before.
+</Note>
+
 ## More commands
 
 ```bash
