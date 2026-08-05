@@ -181,8 +181,8 @@
     ]
   },
   "logo": {
-    "light": "/images/Group15.svg",
-    "dark": "/images/Group16.svg",
+    "light": "/images/Group16.svg",
+    "dark": "/images/Group15.svg",
     "href": "https://openmail.sh"
   },
   "navbar": {
