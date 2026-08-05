@@ -181,8 +181,8 @@
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg",
+    "light": "/images/Group15.svg",
+    "dark": "/images/Group16.svg",
     "href": "https://openmail.sh"
   },
   "navbar": {
@@ -228,5 +228,8 @@
   },
   "icons": {
     "library": "lucide"
+  },
+  "fonts": {
+    "family": "Geist"
   }
 }
