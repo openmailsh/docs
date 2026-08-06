@@ -4,13 +4,11 @@ description: "Control who your inboxes may receive from and who they may send to
 icon: shield-check
 ---
 
-Sender rules — the **correspondent policy** — control **who an inbox may receive from, and who it may send to**.
-
-Rules are evaluated on our side, before delivery and before a send leaves the building. An agent cannot opt out of them, cannot widen them, and cannot read them: the [scoped key](/api-reference/authentication#key-scopes) an agent runs with has no reach into policy at all. This is the difference between a guardrail in your prompt and a boundary in the infrastructure.
+Sender rules control who an inbox may receive from and who it may send to. OpenMail evaluates them server-side, before delivery and before a send goes out. An agent cannot bypass them: a [scoped key](/api-reference/authentication#key-scopes) cannot read or change policy at all.
 
 ## The model
 
-A policy has two halves — **inbound** (who may write to you) and **outbound** (who you may write to) — and each half is set independently.
+A policy has two halves — **inbound** (who may write to you) and **outbound** (who you may write to). Each half is set independently.
 
 Policy lives at three scopes:
 
@@ -22,69 +20,68 @@ Policy lives at three scopes:
 
 Each direction at each scope has a **mode**:
 
-| Mode | Meaning |
-|------|---------|
+| Mode | Behavior |
+|------|----------|
 | `none` | No filtering. Block rules still apply. |
 | `allowlist` | Only listed correspondents are permitted. |
 | `inherit` | Defer to the parent scope. Not valid at the account scope, which is the root. |
 
-### Inheritance: modes override, rules accumulate
+### Inheritance
 
-The two halves of a policy inherit differently, and the difference is the point.
+The two halves inherit differently:
 
-**Modes override.** Resolution walks inbox → pod → account and stops at the first scope setting a mode other than `inherit`. Nothing set anywhere means `none`.
-
-**Rules accumulate.** The effective rule set is the union of every rule at every scope in the chain. There is no override and no exception list.
+- **Modes override.** Resolution walks inbox → pod → account and stops at the first scope with a mode other than `inherit`. If nothing is set anywhere, the mode is `none`.
+- **Rules accumulate.** The effective rule set is the union of every rule at every scope in the chain. There is no override and no exception list.
 
 <Warning>
-  A pod-level block cannot be cancelled by an inbox-level allow. A tighter scope can always narrow what it inherits — it can never loosen it.
+  A pod-level block cannot be cancelled by an inbox-level allow. A tighter scope can narrow what it inherits, but never loosen it.
 </Warning>
 
 ## How a decision is made
 
 For each address being evaluated:
 
-1. **Block rules first, always** — at every scope in the chain, regardless of mode. A match denies. There is no mode in which a blocked address gets through.
-2. **Then, in `allowlist` mode**, the address must match an allow rule from *some* scope in the chain. No match denies.
-3. In `none` mode, anything not blocked is permitted.
+1. **Block rules apply first**, at every scope in the chain, regardless of mode. A match denies. No mode lets a blocked address through.
+2. **In `allowlist` mode**, the address must then match an allow rule from some scope in the chain. No match denies.
+3. **In `none` mode**, anything not blocked is permitted.
 
 An address matches a rule when the rule is:
 
 - an **exact email address** — `agent@partner.com` matches only that address; or
 - a **whole domain** — `partner.com` matches every address at `partner.com`.
 
-Matching is case-insensitive and values are stored lowercased. The domain is taken from the last `@` in the address, so a quoted local part cannot smuggle a different domain past a block.
+Matching is case-insensitive and values are stored lowercased. The domain is taken from the last `@` in the address, so a quoted local part cannot get a different domain past a block.
 
 ### Empty allowlists fail closed
 
-An `allowlist` with no allow rules denies everything. That is the safe default, and the behaviour you get from the API.
+An `allowlist` with no allow rules denies everything.
 
 <Note>
-  **One exception, for compatibility:** policies *created through the console* carry a legacy flag under which an empty **inbound** allowlist accepts all mail, and the console shows a warning instead of locking you out. Outbound is fail-closed in every case. Policies created through `PUT /v1/policy` are fail-closed in both directions.
+  One compatibility exception: policies created through the console carry a legacy flag under which an empty **inbound** allowlist accepts all mail, and the console shows a warning instead of locking you out. Outbound is fail-closed in every case. Policies created through `PUT /v1/policy` are fail-closed in both directions.
 </Note>
 
 ## What is enforced, and where
 
 ### Inbound
 
-Evaluated against the sender's `From` address when mail arrives. Denied mail is dropped before it is threaded or stored — it does not reach your inbox, does not fire a [webhook](/concepts/webhooks) or [WebSocket](/concepts/websockets) event, and does not count toward storage.
+Checked against the sender's `From` address when mail arrives. Denied mail is dropped before it is threaded or stored — it does not reach your inbox, does not fire a [webhook](/concepts/webhooks) or [WebSocket](/concepts/websockets) event, and does not count toward storage.
 
-Denied inbound mail is **dropped silently** from the sender's point of view: there is no bounce and no notification to them. You see it as an `inbound_rejected` row in the [audit trail](#audit-trail); there is no quarantine view today.
+The sender gets no bounce or notification. The drop is visible to you as an `inbound_rejected` row in the [audit trail](#audit-trail); there is no quarantine view.
 
 ### Outbound
 
-Enforced in the single send choke point every path funnels through, so one enforcement point covers **the REST API, the CLI, the SDK, the console compose box, replies, and forwards**. There is no send path that skips it.
+Checked in the send path that every surface goes through, so one enforcement point covers the REST API, the CLI, the SDK, the console compose box, replies, and forwards.
 
 Every address a send can reach is checked:
 
 | Field | Checked |
 |-------|---------|
 | `to` | Yes |
-| `cc` | Yes — **after** the auto-CC merge, so a thread reply cannot smuggle a recipient past the list |
-| `replyTo` | Yes — otherwise an agent could route the human's response outside the approved set |
-| `bcc` | **Not supported.** See below. |
+| `cc` | Yes — after the auto-CC merge, so a thread reply cannot add a recipient that skips the check |
+| `replyTo` | Yes — otherwise a reply could be routed to an address outside the approved set |
+| `bcc` | Not supported. See below. |
 
-**A single denied recipient rejects the whole send.** There is no partial delivery, and a rejected send costs no rate-limit budget.
+One denied recipient rejects the whole send. There is no partial delivery, and a rejected send does not count against your rate limits.
 
 ```json
 // 403 Forbidden
@@ -97,7 +94,7 @@ Every address a send can reach is checked:
 
 ### Bcc is not supported
 
-OpenMail has no Bcc. A send carrying a `bcc` field is **rejected**, not accepted with the field ignored:
+OpenMail has no Bcc. A send carrying a `bcc` field is rejected rather than accepted with the field ignored — otherwise the API would report success for a recipient that was never delivered to and never policy-checked.
 
 ```json
 // 400 Bad Request
@@ -108,18 +105,14 @@ OpenMail has no Bcc. A send carrying a `bcc` field is **rejected**, not accepted
 }
 ```
 
-Rejecting is deliberate. Silently dropping a blind recipient would tell you a copy went out when none did, and that address would never have been policy-checked either.
-
 ## Who can change policy
-
-Two surfaces, both closed to agents.
 
 | Surface | Credential | Who |
 |---------|-----------|-----|
-| Console — **Allow/Block List** | Session | **Account owner only.** Members get read-only access. |
+| Console — **Allow/Block List** | Session | Account owner only. Members get read-only access. |
 | `/v1/policy` | Account-wide API key | Any holder of an account-wide key |
 
-A pod- or inbox-scoped key — the kind an agent runs with — is rejected with `403` before touching any data. It cannot change policy, and it cannot *read* policy either, so an agent cannot inspect and reason about the boundary confining it.
+A pod- or inbox-scoped key — the kind an agent runs with — is rejected with `403` on every policy endpoint, reads included. An agent cannot change the boundary it operates inside, and cannot inspect it either.
 
 ```json
 // 403 Forbidden
@@ -129,11 +122,9 @@ A pod- or inbox-scoped key — the kind an agent runs with — is rejected with 
 }
 ```
 
-Because reads and writes are both closed to scoped keys, there is no sequence of calls an agent can make with its own credential that changes what it is allowed to correspond with.
-
 ## Audit trail
 
-Every policy change, and every send or delivery the policy refused, is recorded to an append-only trail. Rows are never updated or deleted, and no API can edit them.
+Every policy change, and every send or delivery the policy refused, is recorded to an append-only trail. Rows are never updated or deleted.
 
 | Action | Recorded when | `detail` contains |
 |--------|---------------|-------------------|
@@ -144,15 +135,14 @@ Every policy change, and every send or delivery the policy refused, is recorded 
 | `send_rejected` | Outbound policy refuses a send | `rejectedRecipient`, `reason`, `matchedScope` |
 | `inbound_rejected` | Inbound policy refuses delivery | `rejectedSender`, `reason`, `matchedScope` |
 
-Each event also carries its scope, the direction where one applies, and the console user who made the change. The two rejection actions have no actor — they are written by the enforcement path, not a person.
+Each event also carries its scope, the direction where one applies, and the console user who made the change. The two rejection actions have no actor — they are written by enforcement, not a person.
 
-`scope_deleted` exists because deleting a pod or inbox cascade-deletes its policy, which would otherwise make the cheapest way to remove a restriction the only untracked one.
+- `scope_deleted` records the modes and rules removed when a pod or inbox is deleted, since deleting a scope also deletes its policy.
+- `inbound_rejected` is often the only trace of a refused delivery: the sender gets no bounce and the recipient never sees the message.
 
-`inbound_rejected` matters most because a refused delivery has no other trace: policy-dropped mail is accepted at SMTP and discarded, so the recipient never sees it and the sender gets no bounce.
+Rejection events are deduplicated to one row per inbox and correspondent per hour, so a retry loop against a blocked address cannot flood the trail.
 
-Both rejection actions are deduplicated to **one row per inbox and correspondent per hour**, so an agent retrying a blocked recipient in a loop — or an outside sender doing the same — cannot flood the trail.
-
-Read it in the console under **Allow/Block List → History**, or over the API:
+Read the trail in the console under **Allow/Block List → History**, or over the API:
 
 ```bash
 curl -H "Authorization: Bearer $OPENMAIL_API_KEY" \
@@ -161,12 +151,12 @@ curl -H "Authorization: Bearer $OPENMAIL_API_KEY" \
 
 ## API reference
 
-All policy endpoints require an **account-wide** API key. Scope is selected with `?podId=` or `?inboxId=`; neither means the account scope.
+All policy endpoints require an **account-wide** API key. Select the scope with `?podId=` or `?inboxId=`; neither means the account scope.
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | `GET` | `/v1/policy` | Read a scope's modes, own rules, and inherited rules |
-| `PUT` | `/v1/policy` | Declaratively set modes and replace rules — for provisioning |
+| `PUT` | `/v1/policy` | Set modes and replace rules in one call — for provisioning |
 | `PUT` | `/v1/policy/mode` | Set one direction's mode |
 | `POST` | `/v1/policy/rules` | Add one allow/block rule |
 | `DELETE` | `/v1/policy/rules/:id` | Remove a rule |
@@ -174,9 +164,9 @@ All policy endpoints require an **account-wide** API key. Scope is selected with
 
 ### Provision a boundary in one call
 
-`PUT /v1/policy` is the endpoint to automate against. It sets modes and **replaces** the scope's own rules for any direction you include, so re-running it converges to the state you declared rather than accumulating rules. Omitted directions are left untouched; pass `[]` to clear a direction's rules.
+`PUT /v1/policy` sets modes and **replaces** the scope's own rules for any direction you include, so re-running it converges to the state you declared instead of accumulating rules. Omitted directions are left untouched; pass `[]` to clear a direction's rules.
 
-The whole body is validated before anything is applied, so a bad outbound section cannot leave an already-applied inbound section behind.
+The whole body is validated before anything is applied, so a bad outbound section cannot leave a half-applied inbound section behind.
 
 ```bash
 curl -X PUT "https://api.openmail.sh/v1/policy?inboxId=$INBOX_ID" \
@@ -193,9 +183,9 @@ curl -X PUT "https://api.openmail.sh/v1/policy?inboxId=$INBOX_ID" \
 
 Up to 500 rules per direction per call.
 
-### Read what is actually in force
+### Read what is in force
 
-`GET /v1/policy` returns the scope's own modes and rules **and** what it inherits, so you can see the effective boundary without walking the chain yourself:
+`GET /v1/policy` returns the scope's own modes and rules plus what it inherits, so you can see the effective boundary without walking the chain yourself:
 
 ```json
 {
@@ -209,21 +199,21 @@ Up to 500 rules per direction per call.
 }
 ```
 
-`rules` are set on this scope; `inheritedRules` come from the pod and account. An inherited rule can only be removed by addressing the scope that owns it — deleting one from a child scope returns `403 inherited_rule`.
+`rules` are set on this scope; `inheritedRules` come from the pod and account. An inherited rule can only be removed at the scope that owns it — deleting one from a child scope returns `403 inherited_rule`.
 
 ### Audit query parameters
 
 | Parameter | Notes |
 |-----------|-------|
-| `action` | Comma-separated: `rule_added`, `rule_removed`, `mode_changed`, `scope_deleted`, `send_rejected`, `inbound_rejected`. An unknown name is a `400`, not a silent no-op. |
+| `action` | Comma-separated: `rule_added`, `rule_removed`, `mode_changed`, `scope_deleted`, `send_rejected`, `inbound_rejected`. An unknown name returns `400`. |
 | `direction` | `inbound` or `outbound` |
-| `podId` / `inboxId` | Events recorded **at** that scope, matched exactly — an inbox filter does not sweep in the account changes it inherits |
-| `since` / `until` | ISO-8601. `since` inclusive, `until` exclusive. An unparseable value is a `400`. |
-| `limit` / `offset` | Page size 1–100, default 50. The response carries an unpaginated `total`. |
+| `podId` / `inboxId` | Events recorded at that scope, matched exactly — an inbox filter does not include the account-level changes it inherits |
+| `since` / `until` | ISO 8601. `since` inclusive, `until` exclusive. An unparseable value returns `400`. |
+| `limit` / `offset` | Page size 1–100, default 50. The response includes an unpaginated `total`. |
 
 ## Worked example
 
-One pod per customer tenant, one inbox per agent. The account sets a floor nobody can escape, the pod narrows it to that tenant, the inbox narrows it to one counterparty.
+One pod per customer tenant, one inbox per agent. The account sets a floor, the pod narrows it to the tenant, the inbox narrows it to one counterparty.
 
 ```bash
 # 1. Account floor: block a domain everywhere. No pod or inbox can undo this.
@@ -250,11 +240,11 @@ curl -X POST "https://api.openmail.sh/v1/inboxes/$INBOX_ID/api-keys" \
   -d '{ "name": "invoice-agent" }'
 ```
 
-The agent now holds a key that can send only from its inbox, only to `ap@tenant.com`, and never to `known-bad.example`. It cannot read the policy, cannot change it, and cannot mint a broader key. Every attempt to reach outside that set is refused synchronously and recorded.
+The agent's key can send only from its inbox, only to `ap@tenant.com`, and never to `known-bad.example`. It cannot read the policy, change it, or mint a broader key. Every attempt to reach outside that set is refused synchronously and recorded.
 
 ## Managing rules in the console
 
-Go to **Allow/Block List** in the [Dashboard](https://console.openmail.sh/login). From there the account owner can:
+Go to **Allow/Block List** in the [Dashboard](https://console.openmail.sh/login). The account owner can:
 
 - Add email addresses or domains to the allow or block list, per direction
 - Switch each direction's mode between `none`, `allowlist`, and `inherit`
@@ -263,13 +253,13 @@ Go to **Allow/Block List** in the [Dashboard](https://console.openmail.sh/login)
 
 Members see the same page read-only.
 
-## Limits and known behaviour
+## Limits
 
-- **Domain rules do not match subdomains.** `example.com` covers `bob@example.com` but not `bob@mail.example.com`. Add each domain you mean to cover.
+- **Domain rules do not match subdomains.** `example.com` covers `bob@example.com` but not `bob@mail.example.com`. Add each domain you want covered.
 - **No wildcards or regular expressions.** A rule is an exact address or an exact domain.
-- **Rules are address-based only.** There is no policy on subject, body content, or attachment type.
-- **Denied inbound mail is dropped silently** — no bounce, no notification, no quarantine view. It is recorded as an `inbound_rejected` audit event, so the drop is visible to you even though it is invisible to the sender.
-- **A value cannot be in both allow and block for the same direction at the same scope.** Block would always win, leaving the allow silently dead, so the API rejects it with `409`. Across *different* scopes it is permitted, and block still wins.
+- **Rules are address-based only.** There is no filtering on subject, body content, or attachment type.
+- **Denied inbound mail is dropped silently** — no bounce, no notification, no quarantine view. The drop is recorded as an `inbound_rejected` audit event.
+- **A value cannot be in both allow and block for the same direction at the same scope.** The API rejects this with `409`, since block always wins and the allow would be dead. Across different scopes it is permitted, and block still wins.
 - **No dedicated policy-admin role.** Roles are `owner` and `member`; policy changes are owner-only.
 - **No plan gating.** Sender rules are available on every plan.
 

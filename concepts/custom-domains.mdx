@@ -39,7 +39,7 @@ After adding your domain, OpenMail returns the DNS records to set at your regist
 
 **DKIM record** adds a cryptographic signature to outbound email, proving messages were sent by you. The value is unique to your account and provided after you add the domain.
 
-**DMARC record** tells receivers what to do with mail that fails SPF or DKIM. Google and Yahoo require bulk senders to publish one. We suggest `p=none;` — it satisfies the requirement and reports only, without affecting delivery. Tighten to `quarantine` or `reject` once you are confident in your alignment. If your domain already has a `_dmarc` record, keep it rather than replacing it. See [SPF, DKIM, DMARC](/pages/resources/security/email-protocols).
+**DMARC record** tells receivers what to do with mail that fails SPF or DKIM. Google and Yahoo require bulk senders to publish one. The default `p=none;` satisfies the requirement without affecting delivery; tighten to `quarantine` or `reject` once SPF and DKIM are aligned. If your domain already has a `_dmarc` record, keep it rather than replacing it. See [SPF, DKIM, DMARC](/pages/resources/security/email-protocols).
 
 DNS changes typically propagate within minutes but can take up to 48 hours.
 
@@ -48,7 +48,7 @@ DNS changes typically propagate within minutes but can take up to 48 hours.
 Once you've set your DNS records, click **Verify** in the dashboard. OpenMail checks your MX, SPF, and DKIM records and updates the domain status to `verified`.
 
 <Note>
-  DMARC is your own published policy, so it is not part of verification — a domain verifies without it. We still show the record because bulk-sender requirements expect one.
+  DMARC is your own published policy, so it is not checked during verification — a domain verifies without it. The record is shown because bulk-sender requirements expect one.
 </Note>
 
 If verification fails, double-check each record at your registrar and try again. Common issues:
