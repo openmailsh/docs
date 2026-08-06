@@ -54,6 +54,7 @@ Your account-wide key reaches every inbox. When one agent owns exactly one inbox
 - It can **read and send** from that one inbox, including its threads, messages, and drafts. Every other inbox is invisible to it — even listing inboxes returns only the one it owns.
 - It is **read and send only**. It cannot create, modify, or delete inboxes, and cannot rotate a webhook secret.
 - It **cannot mint or revoke keys**, so a leaked key cannot widen its own reach.
+- It **cannot read or change [sender rules](/concepts/sender-rules)**. Every `/v1/policy` call from a scoped key returns `403`, so who the inbox may correspond with is set by you, not the agent.
 
 Anything outside that boundary is refused rather than silently ignored — see [`forbidden`](/api-reference/overview#common-error-codes) if you need to handle it.
 

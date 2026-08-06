@@ -170,9 +170,26 @@
             ]
           },
           {
+            "group": "Sender rules",
+            "pages": [
+              "GET /v1/policy",
+              "PUT /v1/policy",
+              "PUT /v1/policy/mode",
+              "POST /v1/policy/rules",
+              "DELETE /v1/policy/rules/{id}",
+              "GET /v1/policy/audit"
+            ]
+          },
+          {
             "group": "Attachments",
             "pages": [
               "GET /v1/attachments/{messageId}/{filename}"
+            ]
+          },
+          {
+            "group": "Feedback",
+            "pages": [
+              "POST /v1/feedback"
             ]
           }
         ],

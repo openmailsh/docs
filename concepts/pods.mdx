@@ -165,6 +165,7 @@ Your account-wide key reaches every pod. To limit an integration — a tenant, a
 - It can **read and send** only from that pod's inboxes, and create inboxes in it. Everything in another pod is out of reach.
 - It **cannot delete an inbox**, change an inbox's webhook config, or rotate a webhook secret — those need an account-wide key, so a leaked pod key cannot destroy mail or redirect it elsewhere.
 - It **cannot manage pods** and cannot mint or revoke keys.
+- It **cannot read or change [sender rules](/concepts/sender-rules)** at any scope — every `/v1/policy` call returns `403`.
 - Revoking it takes effect immediately, on the key's very next request.
 
 Minting requires an **account-wide** key. The full `token` is returned once, at creation, and cannot be retrieved again — store it securely. Listing returns only a masked `tokenPrefix` and `last4` so you can identify a key without exposing it.
