@@ -30,6 +30,8 @@ OpenMail has three kinds of API keys. All three authenticate the same way, as a 
 | **Pod-scoped** | One [pod](/concepts/pods) — reading and sending from its inboxes, and creating more inboxes in it. Nothing in another pod. Cannot delete an inbox or change its webhook config, and no pod or key management. |
 | **Inbox-scoped** | One [inbox](/concepts/inboxes) — reading and sending, nothing else. No other inbox, and no creating, modifying, or deleting inboxes. |
 
+Neither scoped kind can touch [sender rules](/concepts/sender-rules): every `/v1/policy` call is rejected with `403`, reads included. An agent therefore cannot widen the correspondent boundary confining it, and cannot inspect it either.
+
 Pick the narrowest scope that fits. A pod-scoped key suits a tenant that owns several inboxes; an inbox-scoped key suits a single agent that owns exactly one. Mint them with `POST /v1/pods/{id}/api-keys` and `POST /v1/inboxes/{id}/api-keys` respectively — both require an account-wide key, so a scoped key can never widen its own reach, and each pod or inbox can hold up to 20 active keys. See [Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys) and [Inbox-scoped API keys](/concepts/inboxes#inbox-scoped-api-keys).
 
 The full token is returned once, at creation, and cannot be retrieved again — store it securely. Listing keys returns only a masked prefix and the last 4 characters.
@@ -47,7 +49,7 @@ An agent that reads email processes untrusted input. A message body can carry in
 
 Scoping decides how far those calls reach. The key is the boundary, so it holds whatever the agent's reasoning does:
 
-- An **inbox-scoped** key confines the damage to the one inbox that received the message. Other inboxes, other tenants, and your account settings stay out of reach — the agent cannot read them, send from them, or delete them.
+- An **inbox-scoped** key confines the damage to the one inbox that received the message. Other inboxes, other tenants, and your account settings stay out of reach — the agent cannot read them, send from them, or delete them. It also cannot read or change the inbox's [sender rules](/concepts/sender-rules), so who it may write to stays fixed no matter what the injected instructions say.
 - An **account-wide** key on the same agent turns one malicious email into account-wide reach.
 
 Give each agent an inbox-scoped key for the inbox it owns. Keep the account-wide key server-side, and use it only to provision and to mint the scoped keys.

@@ -41,9 +41,9 @@ Configure a webhook URL in the [Dashboard](https://console.openmail.sh/login). W
 
 The send endpoint requires it. Use a unique UUID per send so retries don't create duplicate emails. See [Idempotency](/best-practices/idempotency).
 
-## Can I block or filter inbound senders?
+## Can I control who my inboxes talk to?
 
-Yes. Use sender rules to block specific email addresses or entire domains. You can also switch to allowlist mode so only approved senders reach your inboxes. Manage rules from **Settings > Allow/Block List** in the [Dashboard](https://console.openmail.sh/login). See [Sender rules](/concepts/sender-rules).
+Yes, in both directions. Sender rules block specific addresses or entire domains, and allowlist mode limits an inbox to approved correspondents — inbound (who may write to you) and outbound (who you may send to) are set independently, at the account, pod, or inbox scope. Manage rules from **Allow/Block List** in the [Dashboard](https://console.openmail.sh/login); changes are owner-only, and every change and refusal lands in the **History** audit trail. See [Sender rules](/concepts/sender-rules).
 
 ## How do I handle attachments?
 

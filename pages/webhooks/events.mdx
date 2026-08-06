@@ -4,7 +4,7 @@ description: "OpenMail webhook event reference — event types, full payload str
 icon: bell
 ---
 
-OpenMail sends webhooks when inbound email is received, and when the reputation engine suspends or reactivates one of your inboxes or pods. Emails that are blocked by [sender rules](/concepts/sender-rules) or filtered out by allowlist mode do not trigger events.
+OpenMail sends webhooks when inbound email is received, and when the reputation engine suspends or reactivates one of your inboxes or pods. Emails dropped by [sender rules](/concepts/sender-rules) — a block rule, or allowlist mode with no match — do not trigger events; they are discarded before threading, and recorded in the policy audit trail instead.
 
 ## Events
 

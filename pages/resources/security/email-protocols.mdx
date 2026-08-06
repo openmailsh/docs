@@ -12,8 +12,10 @@ SPF (Sender Policy Framework) authorizes our servers to send on behalf of your d
 
 ## DKIM
 
-DKIM (DomainKeys Identified Mail) signs outgoing messages. Add the CNAME records we provide.
+DKIM (DomainKeys Identified Mail) signs outgoing messages. Add the TXT record we provide at the `openmail._domainkey` host.
 
 ## DMARC
 
-DMARC (Domain-based Message Authentication) tells receivers what to do with messages that fail SPF/DKIM. We recommend a policy record once SPF and DKIM are in place.
+DMARC (Domain-based Message Authentication) tells receivers what to do with messages that fail SPF/DKIM. The DNS panel includes a default record — `v=DMARC1; p=none;` at `_dmarc` — which satisfies Google and Yahoo's bulk sender requirements and has no effect on delivery.
+
+DMARC is your own published policy, so it is not part of domain verification: a domain verifies without it. Once SPF and DKIM are aligned and you have reviewed your reports, tighten the policy to `p=quarantine` or `p=reject`. If your domain already publishes a `_dmarc` record, keep it rather than replacing it.

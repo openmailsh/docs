@@ -1729,7 +1729,7 @@
         "tags": [
           "messages"
         ],
-        "description": "Send an email from an inbox. Requires Idempotency-Key header. Use threadId to reply to an existing thread. When replying on a thread where your inbox was CC'd (deliveryRole cc), the original sender is automatically CC'd.",
+        "description": "Send an email from an inbox. Requires Idempotency-Key header. Use threadId to reply to an existing thread. When replying on a thread where your inbox was CC'd (deliveryRole cc), the original sender is automatically CC'd.\n\nEvery recipient this call can reach — `to`, `cc` (including any address auto-CC'd on a thread reply), and `replyTo` — is checked against the inbox's outbound correspondent policy before anything is sent. A single denied recipient rejects the whole send with 403 `recipient_not_permitted`; there is no partial delivery.\n\nBcc is not supported. A request carrying a `bcc` field is rejected with 400 `unsupported_field` rather than accepted with the blind recipient dropped, so a recipient can never appear to have been addressed without being delivered to and policy-checked.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1834,7 +1834,7 @@
                       "type": "string",
                       "format": "email"
                     },
-                    "description": "Optional CC recipients."
+                    "description": "Optional CC recipients. Repeat the `cc` field once per address; a single field may also hold a comma-separated list or a JSON-encoded array of addresses."
                   },
                   "attachments": {
                     "type": "array",
@@ -1901,11 +1901,11 @@
             }
           },
           "400": {
-            "description": "Missing Idempotency-Key, missing request body, invalid 'to'/'replyTo'/'cc' address, or missing subject when required",
+            "description": "Missing Idempotency-Key, missing request body, invalid 'to'/'replyTo'/'cc' address, missing subject when required, or an unsupported field such as `bcc` (`unsupported_field`)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Missing Idempotency-Key, missing request body, invalid 'to'/'replyTo'/'cc' address, or missing subject when required",
+                  "description": "Missing Idempotency-Key, missing request body, invalid 'to'/'replyTo'/'cc' address, missing subject when required, or an unsupported field such as `bcc` (`unsupported_field`)",
                   "allOf": [
                     {
                       "$ref": "#/components/schemas/Error"
@@ -1931,11 +1931,11 @@
             }
           },
           "403": {
-            "description": "Feature requires a paid plan. Returned when a free-plan customer sets `replyTo` to an address that is not one of their own OpenMail inboxes (`feature_requires_paid_plan`), the account is banned (`account_banned`), or sending is suspended due to deliverability/abuse signals (`reputation_suspended`).",
+            "description": "A recipient is not permitted by the inbox's outbound correspondent policy (`recipient_not_permitted`, with the refused address in `recipient`). Also returned when a free-plan customer sets `replyTo` to an address that is not one of their own OpenMail inboxes (`feature_requires_paid_plan`), the account is banned (`account_banned`), or sending is suspended due to deliverability/abuse signals (`reputation_suspended`).",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Feature requires a paid plan. Returned when a free-plan customer sets `replyTo` to an address that is not one of their own OpenMail inboxes (`feature_requires_paid_plan`), the account is banned (`account_banned`), or sending is suspended due to deliverability/abuse signals (`reputation_suspended`).",
+                  "description": "A recipient is not permitted by the inbox's outbound correspondent policy (`recipient_not_permitted`, with the refused address in `recipient`). Also returned when a free-plan customer sets `replyTo` to an address that is not one of their own OpenMail inboxes (`feature_requires_paid_plan`), the account is banned (`account_banned`), or sending is suspended due to deliverability/abuse signals (`reputation_suspended`).",
                   "allOf": [
                     {
                       "$ref": "#/components/schemas/Error"
@@ -2489,6 +2489,839 @@
           }
         }
       }
+    },
+    "/v1/feedback": {
+      "post": {
+        "operationId": "createFeedback",
+        "summary": "Report feedback",
+        "tags": [
+          "feedback"
+        ],
+        "description": "Report a bug, a point of friction, or a feature request directly to the OpenMail team. If an API call fails unexpectedly, a response looks wrong, or you notice something that would make OpenMail work better for you, send it here — one call, no confirmation needed, and the team reads every report. Works even while an inbox or pod is suspended. Include what you were trying to do and what you observed; attach the endpoint, error code, and request id in `context` when the report concerns a specific failed call.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type",
+                  "message"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "bug",
+                      "friction",
+                      "feature_request"
+                    ],
+                    "description": "`bug` for something broken or a response that looks wrong, `friction` for something that works but was confusing or harder than it should be, `feature_request` for a capability OpenMail lacks."
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "What you were trying to do, what you expected, and what actually happened. Plain text."
+                  },
+                  "context": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "Optional details of the specific API call the report concerns.",
+                    "properties": {
+                      "endpoint": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "The API path involved, e.g. `/v1/inboxes/{id}/send`."
+                      },
+                      "errorCode": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "The `error` field of the response you received, if any."
+                      },
+                      "requestId": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "The request id from the response, if you have one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Feedback recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Feedback recorded",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Id of the recorded report"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "received"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Feedback rate limit reached for your account (`feedback_rate_limited`) — the daily cap resets at midnight UTC",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Feedback rate limit reached for your account (`feedback_rate_limited`) — the daily cap resets at midnight UTC",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/policy": {
+      "get": {
+        "operationId": "getPolicy",
+        "summary": "Get correspondent policy",
+        "tags": [
+          "policy"
+        ],
+        "description": "Read the correspondent policy for a scope (account by default, or a pod/inbox). Returns the mode this scope sets for each direction, the effective mode after inheritance, this scope's own rules, and the rules inherited from parent scopes. Requires an account-wide API key — pod- and inbox-scoped keys are rejected, so an agent holding its own operational key cannot read or reason about the boundary confining it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "podId",
+            "required": false,
+            "description": "Confine the operation to one pod's policy. Accepts the pod ID. Mutually exclusive with `inboxId`."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "inboxId",
+            "required": false,
+            "description": "Confine the operation to one inbox's policy. Mutually exclusive with `podId`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The resolved policy for the scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The resolved policy for the scope",
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot read policy (`forbidden`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot read policy (`forbidden`)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pod or inbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Pod or inbox not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "replacePolicy",
+        "summary": "Replace correspondent policy",
+        "tags": [
+          "policy"
+        ],
+        "description": "Declaratively set a scope's entire policy in one call — ideal for automated provisioning. Sets the inbound and/or outbound mode and REPLACES the scope's own rules for any direction you include. Rules created here are fail-closed (an empty allowlist denies all). Omitted directions are left untouched. Requires an account-wide API key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "inbound": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "Inbound (who may send to this scope) policy to set. Omit to leave inbound untouched.",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "allowlist",
+                          "inherit"
+                        ],
+                        "description": "`none` = no filtering; `allowlist` = only listed correspondents are permitted (empty allowlist denies all — fail closed); `inherit` = defer to the parent scope (pod, then account). Not valid at the account scope."
+                      },
+                      "rules": {
+                        "type": "array",
+                        "maxItems": 500,
+                        "description": "Replaces this scope's own inbound rules. Omit to leave rules untouched; pass [] to clear them.",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "type",
+                            "value"
+                          ],
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "block"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 3,
+                              "maxLength": 253,
+                              "description": "An email address (user@example.com) or a whole domain (example.com)."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "outbound": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "Outbound (who this scope may send to) policy to set. Omit to leave outbound untouched.",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "allowlist",
+                          "inherit"
+                        ],
+                        "description": "`none` = no filtering; `allowlist` = only listed correspondents are permitted (empty allowlist denies all — fail closed); `inherit` = defer to the parent scope (pod, then account). Not valid at the account scope."
+                      },
+                      "rules": {
+                        "type": "array",
+                        "maxItems": 500,
+                        "description": "Replaces this scope's own outbound rules. Omit to leave rules untouched; pass [] to clear them.",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "type",
+                            "value"
+                          ],
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "block"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 3,
+                              "maxLength": 253
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "podId",
+            "required": false,
+            "description": "Confine the operation to one pod's policy. Accepts the pod ID. Mutually exclusive with `inboxId`."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "inboxId",
+            "required": false,
+            "description": "Confine the operation to one inbox's policy. Mutually exclusive with `podId`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The resulting policy for the scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The resulting policy for the scope",
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot manage policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot manage policy",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pod or inbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Pod or inbox not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid mode for the scope, or an invalid rule value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Invalid mode for the scope, or an invalid rule value",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/policy/audit": {
+      "get": {
+        "operationId": "getPolicyAudit",
+        "summary": "List correspondent policy audit events",
+        "tags": [
+          "policy"
+        ],
+        "description": "Read the append-only audit trail for correspondent policy, newest first. Two kinds of event share one stream: `rule_added`, `rule_removed`, `mode_changed`, and `scope_deleted` record who moved the boundary and how (`scope_deleted` covers a pod or inbox being deleted, which cascade-deletes its policy — the row carries the modes and rules that were removed, so lifting a restriction by deleting its scope is not a silent operation). `send_rejected` and `inbound_rejected` record what the boundary refused: a send the outbound policy would not make, and inbound mail it would not accept. Both are deduped to one row per inbox + correspondent per hour, so neither a looping agent nor an outside sender can flood the trail. Rows are never updated or deleted. Requires an account-wide API key — pod- and inbox-scoped keys are rejected, so an agent cannot read, and therefore cannot reason about, the record of the boundary confining it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "podId",
+            "required": false,
+            "description": "Confine the operation to one pod's policy. Accepts the pod ID. Mutually exclusive with `inboxId`."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "inboxId",
+            "required": false,
+            "description": "Confine the operation to one inbox's policy. Mutually exclusive with `podId`."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "action",
+            "required": false,
+            "description": "Comma-separated actions to include: `rule_added`, `rule_removed`, `mode_changed`, `scope_deleted`, `send_rejected`, `inbound_rejected`. Omit for all."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inbound",
+                "outbound"
+              ]
+            },
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "description": "`inbound` governs who may send to the inbox; `outbound` governs who the inbox may send to (enforced across To, Cc, and Reply-To on every send path)."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "description": "ISO-8601 timestamp. Only events at or after this time (inclusive)."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "until",
+            "required": false,
+            "description": "ISO-8601 timestamp. Only events strictly before this time."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "description": "Page size, 1–100. Defaults to 50."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "description": "Rows to skip. Defaults to 0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of audit events plus the unpaginated `total`. Each event carries its scope (with the pod name / inbox address resolved at read time, or null if since deleted), the acting console user where there was one, and an action-specific `detail` object: `type`/`valueType`/`value` for rule events, `from`/`to` for mode changes, and `rejectedRecipient`/`reason`/`matchedScope` for rejected sends.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "A page of audit events plus the unpaginated `total`. Each event carries its scope (with the pod name / inbox address resolved at read time, or null if since deleted), the acting console user where there was one, and an action-specific `detail` object: `type`/`valueType`/`value` for rule events, `from`/`to` for mode changes, and `rejectedRecipient`/`reason`/`matchedScope` for rejected sends.",
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An unknown `action`, or a `since`/`until` that is not a valid timestamp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "An unknown `action`, or a `since`/`until` that is not a valid timestamp",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot read the audit trail (`forbidden`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot read the audit trail (`forbidden`)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pod or inbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Pod or inbox not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/policy/mode": {
+      "put": {
+        "operationId": "setPolicyMode",
+        "summary": "Set correspondent policy mode",
+        "tags": [
+          "policy"
+        ],
+        "description": "Set the filtering mode for one direction of a scope's policy, without touching rules. Requires an account-wide API key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "mode"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "allowlist",
+                      "inherit"
+                    ],
+                    "description": "`none` = no filtering; `allowlist` = only listed correspondents are permitted (empty allowlist denies all — fail closed); `inherit` = defer to the parent scope (pod, then account). Not valid at the account scope."
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "inbound",
+                      "outbound"
+                    ],
+                    "description": "`inbound` governs who may send to the inbox; `outbound` governs who the inbox may send to (enforced across To, Cc, and Reply-To on every send path)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "podId",
+            "required": false,
+            "description": "Confine the operation to one pod's policy. Accepts the pod ID. Mutually exclusive with `inboxId`."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "inboxId",
+            "required": false,
+            "description": "Confine the operation to one inbox's policy. Mutually exclusive with `podId`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The updated mode",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The updated mode",
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot manage policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot manage policy",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pod or inbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Pod or inbox not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid mode for the scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Invalid mode for the scope",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/policy/rules": {
+      "post": {
+        "operationId": "addPolicyRule",
+        "summary": "Add correspondent policy rule",
+        "tags": [
+          "policy"
+        ],
+        "description": "Add one allow/block rule for a direction of a scope's policy. Requires an account-wide API key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type",
+                  "value"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "allow",
+                      "block"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 253,
+                    "description": "An email address (user@example.com) or a whole domain (example.com)."
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "inbound",
+                      "outbound"
+                    ],
+                    "description": "`inbound` governs who may send to the inbox; `outbound` governs who the inbox may send to (enforced across To, Cc, and Reply-To on every send path)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "podId",
+            "required": false,
+            "description": "Confine the operation to one pod's policy. Accepts the pod ID. Mutually exclusive with `inboxId`."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "inboxId",
+            "required": false,
+            "description": "Confine the operation to one inbox's policy. Mutually exclusive with `podId`."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Rule created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rule created",
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot manage policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot manage policy",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pod or inbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Pod or inbox not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "An identical rule already exists (`rule_exists`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "An identical rule already exists (`rule_exists`)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The value is not a valid email or domain",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The value is not a valid email or domain",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/policy/rules/{id}": {
+      "delete": {
+        "operationId": "deletePolicyRule",
+        "summary": "Delete correspondent policy rule",
+        "tags": [
+          "policy"
+        ],
+        "description": "Remove a single policy rule by its ID. Requires an account-wide API key.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The rule ID to delete"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Rule deleted"
+          },
+          "403": {
+            "description": "The authenticating key is scoped and cannot manage policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The authenticating key is scoped and cannot manage policy",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rule not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rule not found",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "servers": [
@@ -2521,6 +3354,14 @@
     {
       "name": "attachments",
       "description": "Downloading and extracting text from attachments"
+    },
+    {
+      "name": "policy",
+      "description": "Correspondent policy — provider-enforced allow/block rules and allowlist mode, scoped per account, pod, or inbox. Account-wide key only."
+    },
+    {
+      "name": "feedback",
+      "description": "Reporting bugs, friction, and feature requests to the OpenMail team"
     }
   ]
 }

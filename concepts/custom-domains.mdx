@@ -21,7 +21,7 @@ Go to **Settings → Domains** in the dashboard and click **Add domain**. Enter 
   You can use a subdomain like `mail.acme.com` or an apex domain like `acme.com`. A subdomain is generally easier to configure without affecting other email on your domain.
 </Note>
 
-After adding your domain, OpenMail returns three DNS records to set at your registrar.
+After adding your domain, OpenMail returns the DNS records to set at your registrar.
 
 ## DNS records
 
@@ -31,6 +31,7 @@ After adding your domain, OpenMail returns three DNS records to set at your regi
 | MX | `@` (or your subdomain) | `mxb.mailgun.org` (priority 10) |
 | TXT | `@` (or your subdomain) | `v=spf1 include:spf.openmail.sh ~all` |
 | TXT | `openmail._domainkey` (+ your subdomain) | Provided by OpenMail |
+| TXT | `_dmarc` (+ your subdomain) | `v=DMARC1; p=none;` |
 
 **MX records** route inbound email to OpenMail.
 
@@ -38,11 +39,17 @@ After adding your domain, OpenMail returns three DNS records to set at your regi
 
 **DKIM record** adds a cryptographic signature to outbound email, proving messages were sent by you. The value is unique to your account and provided after you add the domain.
 
+**DMARC record** tells receivers what to do with mail that fails SPF or DKIM. Google and Yahoo require bulk senders to publish one. We suggest `p=none;` — it satisfies the requirement and reports only, without affecting delivery. Tighten to `quarantine` or `reject` once you are confident in your alignment. If your domain already has a `_dmarc` record, keep it rather than replacing it. See [SPF, DKIM, DMARC](/pages/resources/security/email-protocols).
+
 DNS changes typically propagate within minutes but can take up to 48 hours.
 
 ## Verifying your domain
 
-Once you've set your DNS records, click **Verify** in the dashboard. OpenMail checks all three record types and updates the domain status to `verified`.
+Once you've set your DNS records, click **Verify** in the dashboard. OpenMail checks your MX, SPF, and DKIM records and updates the domain status to `verified`.
+
+<Note>
+  DMARC is your own published policy, so it is not part of verification — a domain verifies without it. We still show the record because bulk-sender requirements expect one.
+</Note>
 
 If verification fails, double-check each record at your registrar and try again. Common issues:
 
