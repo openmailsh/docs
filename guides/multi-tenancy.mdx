@@ -246,7 +246,7 @@ A pod must be empty and own no pod-scoped domains before it can be deleted. See 
 | List a pod's keys (masked) | `GET /v1/pods/{id}/api-keys` | Account-wide |
 | Revoke a key | `DELETE /v1/pods/{id}/api-keys/{keyId}` | Account-wide |
 | Set the tenant's [sender rules](/concepts/sender-rules) | `PUT /v1/policy?podId={id}` | Account-wide |
-| Audit policy changes and refusals | `GET /v1/policy/audit` | Account-wide |
+| Review rule changes and refused sends | `GET /v1/policy/audit` | Account-wide |
 | Send / receive within a pod | `POST /v1/inboxes/{id}/send`, etc. | Pod-scoped or account-wide |
 
 <CardGroup cols={2}>
