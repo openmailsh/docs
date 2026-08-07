@@ -260,7 +260,6 @@ Members see the same page read-only.
 - **Rules are address-based only.** There is no filtering on subject, body content, or attachment type.
 - **Denied inbound mail is dropped silently** — no bounce, no notification, no quarantine view. The drop is recorded as an `inbound_rejected` event in History.
 - **A value cannot be in both allow and block for the same direction at the same scope.** The API rejects this with `409`, since block always wins and the allow would be dead. Across different scopes it is permitted, and block still wins.
-- **No dedicated policy-admin role.** Roles are `owner` and `member`; policy changes are owner-only.
 - **No plan gating.** Sender rules are available on every plan.
 
 <Tip>
