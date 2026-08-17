@@ -37,7 +37,7 @@ openmail send --to recipient@example.com --subject "Monthly report" \
 
 ## Receiving attachments
 
-When an inbound email includes attachments, OpenMail stores them, extracts readable text, and provides signed download URLs.
+When an inbound email includes attachments, OpenMail stores them, extracts readable text, and provides download URLs you fetch with your API key.
 
 ### How it works
 
@@ -87,11 +87,12 @@ Each attachment includes a `url` field in the message response:
 https://api.openmail.sh/v1/attachments/{messageId}/{filename}
 ```
 
-This endpoint requires authentication and returns a `302` redirect to a signed URL that expires in 15 minutes.
+This endpoint returns the attachment bytes directly. Authenticate with the same `Authorization: Bearer <API_KEY>` header you use for the rest of the API — it is not a redirect, so no separate signed URL or expiry to worry about.
 
 ```bash
-curl -L https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf \
-  -H "Authorization: Bearer om_..."
+curl https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf \
+  -H "Authorization: Bearer om_..." \
+  -o receipt.pdf
 ```
 
 ## On-demand text extraction
@@ -121,4 +122,3 @@ Returns:
 ## Size limits
 
 - Maximum attachment size is determined by the email provider (typically 25 MB per email)
-- Attachment download URLs expire after 15 minutes

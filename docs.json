@@ -124,7 +124,7 @@
       },
       {
         "tab": "API reference",
-        "openapi": "api-reference/openapi.json",
+        "openapi": "https://api.openmail.sh/openapi.json",
         "groups": [
           {
             "group": "Overview",
