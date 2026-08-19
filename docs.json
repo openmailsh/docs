@@ -161,6 +161,16 @@
             ]
           },
           {
+            "group": "Custom domains",
+            "pages": [
+              "GET /v1/domains",
+              "POST /v1/domains",
+              "GET /v1/domains/{id}",
+              "POST /v1/domains/{id}/verify",
+              "DELETE /v1/domains/{id}"
+            ]
+          },
+          {
             "group": "Messages",
             "pages": [
               "POST /v1/inboxes/{id}/send",

@@ -8,14 +8,14 @@ By default, inboxes use `@omail.sh` addresses. With a custom domain you can use 
 
 ## How it works
 
-1. Add your domain in the dashboard
+1. Add your domain in the dashboard or via the API
 2. OpenMail returns the DNS records you need to set
-3. Once DNS propagates, verify the domain
+3. Publish them. The domain verifies automatically once DNS is live
 4. Create inboxes on it by passing the domain when you create an inbox
 
 ## Adding a domain
 
-Go to **Settings → Domains** in the dashboard and click **Add domain**. Enter the domain you want to use (e.g. `mail.acme.com`).
+Go to **Settings → Domains** in the dashboard and click **Add domain**. Enter the domain you want to use (e.g. `mail.acme.com`). You can also add it with `POST /v1/domains`.
 
 <Note>
   You can use a subdomain like `mail.acme.com` or an apex domain like `acme.com`. A subdomain is generally easier to configure without affecting other email on your domain.
@@ -39,7 +39,7 @@ Always prefer the exact records shown in the dashboard or API after you add the 
 
 **DKIM records** are three CNAMEs under `_domainkey` (hosts like `omail._domainkey`). They add a cryptographic signature to outbound email, proving messages were sent by you. The hosts and targets are unique per domain and provided after you add it.
 
-**MAIL FROM records** (`bounce` MX + TXT) set the envelope sender on your domain so SPF can align. Publish both on the `bounce` host exactly as shown — do not put the SPF include on your apex unless the dashboard tells you to.
+**MAIL FROM records** (`bounce` MX + TXT) set the envelope sender on your domain so SPF can align. Publish both on the `bounce` host exactly as shown — do not put the SPF include on your apex unless the records tell you to. Merge the SPF include into any `v=spf1` record you already have; two SPF records on the same host are invalid.
 
 **DMARC record** tells receivers what to do with mail that fails SPF or DKIM. Google and Yahoo require bulk senders to publish one. The default `p=none;` satisfies the requirement without affecting delivery; tighten to `quarantine` or `reject` once SPF and DKIM are aligned. If your domain already has a `_dmarc` record, keep it rather than replacing it. See [SPF, DKIM, DMARC](/pages/resources/security/email-protocols).
 
@@ -47,7 +47,7 @@ DNS changes typically propagate within minutes but can take up to 48 hours.
 
 ## Verifying your domain
 
-Once you've set your DNS records, click **Verify** in the dashboard. OpenMail checks your inbound MX, MAIL FROM (SPF), and DKIM records and updates the domain status to `verified`.
+You don't need to click **Verify**. Once the records are published, OpenMail checks them in the background and the domain becomes **Verified** within a couple of minutes. Click **Verify** only if you want to check sooner.
 
 <Note>
   DMARC is your own published policy, so it is not checked during verification — a domain verifies without it. The record is shown because bulk-sender requirements expect one.
@@ -101,7 +101,7 @@ Custom domains can be shared across your account or limited to a single [pod](/c
 | **All pods** | Account-wide. Any pod can create inboxes on this domain. **New domains default here** — unlike inboxes, they are not placed in the default pod unless you explicitly scope them. |
 | **One pod** | Only inboxes in that pod may use the domain. The domain lives under that pod in your account hierarchy. |
 
-When adding a domain in the dashboard, pick **All pods** or a specific pod. On a pod's detail page, the **Domains** tab lists domains scoped to that pod; account-wide domains still appear when creating inboxes inside the pod.
+When adding a domain, pick **All pods** or a specific pod. On a pod's detail page, the **Domains** tab lists domains scoped to that pod; account-wide domains still appear when creating inboxes inside the pod.
 
 To move a scoped domain to another pod (or make it account-wide), reassign it in the dashboard. Narrowing scope is blocked while inboxes on that domain live outside the target pod.
 
@@ -117,6 +117,6 @@ Custom domains are available on the Pro plan and above.
 
 ## Removing a domain
 
-You can delete a custom domain from the dashboard as long as it has no inboxes. Delete the inboxes on that domain first, then remove the domain.
+You can delete a custom domain from the dashboard or API as long as it has no inboxes. Delete the inboxes on that domain first, then remove the domain.
 
 Deleting a domain removes it from OpenMail but does not delete your DNS records — you can remove those from your registrar separately.
