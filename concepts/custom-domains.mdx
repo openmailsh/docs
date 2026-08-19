@@ -28,7 +28,7 @@ After adding your domain, OpenMail returns the DNS records to set at your regist
 | Type | Host | Value |
 |------|------|-------|
 | MX | `@` (or your subdomain) | `inbound-smtp.eu-north-1.amazonaws.com` (priority 10) |
-| CNAME | `<token>._domainkey` (+ your subdomain) | Provided by OpenMail (three records) |
+| CNAME | `omail._domainkey` (+ your subdomain) | Provided by OpenMail (three records) |
 | MX | `bounce` (+ your subdomain) | `feedback-smtp.eu-north-1.amazonses.com` (priority 10) |
 | TXT | `bounce` (+ your subdomain) | `v=spf1 include:amazonses.com ~all` |
 | TXT | `_dmarc` (+ your subdomain) | `v=DMARC1; p=none;` |
@@ -37,7 +37,7 @@ Always prefer the exact records shown in the dashboard or API after you add the 
 
 **MX record** on your domain routes inbound email to OpenMail.
 
-**DKIM records** are three CNAMEs under `_domainkey`. They add a cryptographic signature to outbound email, proving messages were sent by you. The hosts and targets are unique per domain and provided after you add it.
+**DKIM records** are three CNAMEs under `_domainkey` (hosts like `omail._domainkey`). They add a cryptographic signature to outbound email, proving messages were sent by you. The hosts and targets are unique per domain and provided after you add it.
 
 **MAIL FROM records** (`bounce` MX + TXT) set the envelope sender on your domain so SPF can align. Publish both on the `bounce` host exactly as shown — do not put the SPF include on your apex unless the dashboard tells you to.
 
