@@ -49,8 +49,8 @@
           {
             "group": "Get started",
             "pages": [
-              "pages/welcome",
               "index",
+              "pages/introduction",
               "quickstart"
             ]
           },
@@ -229,7 +229,7 @@
       "view",
       "chatgpt",
       "claude",
-      "perplexity"
+      "assistant"
     ]
   },
   "footer": {
@@ -248,5 +248,25 @@
   },
   "fonts": {
     "family": "Geist"
+  },
+  "thumbnails": {
+    "fonts": {
+      "family": "Geist"
+    }
+  },
+  "interaction": {
+    "drilldown": true
+  },
+  "markdown": {
+    "schema": true
+  },
+  "api": {
+    "playground": {
+      "display": "auth"
+    },
+    "examples": {
+      "defaults": "all"
+    },
+    "url": "full"
   }
 }
