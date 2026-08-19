@@ -52,7 +52,7 @@ async function createAgentInbox(userId, containerEnvPath) {
 
   const inbox = await response.json();
   // inbox.id      → "inb_8f3a1b2c"
-  // inbox.address → "jane@openmail.sh"
+  // inbox.address → "jane@omail.sh"
 
   await fs.appendFile(
     containerEnvPath,
@@ -81,7 +81,7 @@ def create_agent_inbox(user_id: str, container_env_path: str) -> dict:
     response.raise_for_status()
     inbox = response.json()
     # inbox["id"]      → "inb_8f3a1b2c"
-    # inbox["address"] → "jane@openmail.sh"
+    # inbox["address"] → "jane@omail.sh"
 
     with open(container_env_path, "a") as f:
         f.write(f"OPENMAIL_API_KEY={OPENMAIL_API_KEY}\n")
@@ -100,7 +100,7 @@ Three variables per container. The API key is shared across all agents; the inbo
 ```bash
 OPENMAIL_API_KEY=om_...
 OPENMAIL_INBOX_ID=inb_8f3a1b2c
-OPENMAIL_ADDRESS=jane@openmail.sh
+OPENMAIL_ADDRESS=jane@omail.sh
 ```
 
 For OpenClaw, set these in `~/.openclaw/.env` or in `~/.openclaw/openclaw.json` under `skills.entries.openmail.env`. For other frameworks, inject them into your agent's environment (e.g. LangChain tool config, n8n node credentials).
@@ -221,7 +221,7 @@ The event payload is identical for both methods:
   "message": {
     "id": "msg_4c8d5e6f",
     "from": "customer@example.com",
-    "to": "jane@openmail.sh",
+    "to": "jane@omail.sh",
     "subject": "Re: Your order",
     "body_text": "Thanks for following up...",
     "attachments": [
