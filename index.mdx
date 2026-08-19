@@ -13,7 +13,7 @@ AI agents need their own email addresses. Doing it yourself means MX records, DN
 OpenMail gives AI agents their own email addresses. Run `openmail setup` — the agent can send, receive, and reply in threads immediately. We handle MX, DNS, deliverability, and inbound parsing. You handle zero email infrastructure.
 
 1. `openmail setup` — creates inbox, writes skill file, saves credentials
-2. Agent gets `agent@openmail.sh` (or `agent@yourdomain.com` with a custom domain)
+2. Agent gets `agent@omail.sh` (or `agent@yourdomain.com` with a custom domain)
 3. Agent sends email, receives replies via [WebSocket](/concepts/websockets) or [webhook](/guides/webhooks)
 4. Route inbound mail by `inbox_id` — use your inbox-to-agent mapping
 
