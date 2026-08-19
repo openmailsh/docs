@@ -27,19 +27,19 @@ After adding your domain, OpenMail returns the DNS records to set at your regist
 
 | Type | Host | Value |
 |------|------|-------|
-| MX | `@` (or your subdomain) | `mxa.mailgun.org` (priority 10) |
-| MX | `@` (or your subdomain) | `mxb.mailgun.org` (priority 10) |
-| TXT | `@` (or your subdomain) | `v=spf1 include:mailgun.org ~all` |
-| TXT | `openmail._domainkey` (+ your subdomain) | Provided by OpenMail |
+| MX | `@` (or your subdomain) | `inbound-smtp.eu-north-1.amazonaws.com` (priority 10) |
+| CNAME | `<token>._domainkey` (+ your subdomain) | Provided by OpenMail (three records) |
+| MX | `bounce` (+ your subdomain) | `feedback-smtp.eu-north-1.amazonses.com` (priority 10) |
+| TXT | `bounce` (+ your subdomain) | `v=spf1 include:amazonses.com ~all` |
 | TXT | `_dmarc` (+ your subdomain) | `v=DMARC1; p=none;` |
 
 Always prefer the exact records shown in the dashboard or API after you add the domain — those values are authoritative.
 
-**MX records** route inbound email to OpenMail.
+**MX record** on your domain routes inbound email to OpenMail.
 
-**SPF record** authorises OpenMail to send on your domain's behalf. If you already have an SPF record, add the `include:` mechanism from the dashboard value to the existing record rather than creating a new one.
+**DKIM records** are three CNAMEs under `_domainkey`. They add a cryptographic signature to outbound email, proving messages were sent by you. The hosts and targets are unique per domain and provided after you add it.
 
-**DKIM record** adds a cryptographic signature to outbound email, proving messages were sent by you. The value is unique to your account and provided after you add the domain.
+**MAIL FROM records** (`bounce` MX + TXT) set the envelope sender on your domain so SPF can align. Publish both on the `bounce` host exactly as shown — do not put the SPF include on your apex unless the dashboard tells you to.
 
 **DMARC record** tells receivers what to do with mail that fails SPF or DKIM. Google and Yahoo require bulk senders to publish one. The default `p=none;` satisfies the requirement without affecting delivery; tighten to `quarantine` or `reject` once SPF and DKIM are aligned. If your domain already has a `_dmarc` record, keep it rather than replacing it. See [SPF, DKIM, DMARC](/pages/resources/security/email-protocols).
 
@@ -47,7 +47,7 @@ DNS changes typically propagate within minutes but can take up to 48 hours.
 
 ## Verifying your domain
 
-Once you've set your DNS records, click **Verify** in the dashboard. OpenMail checks your MX, SPF, and DKIM records and updates the domain status to `verified`.
+Once you've set your DNS records, click **Verify** in the dashboard. OpenMail checks your inbound MX, MAIL FROM (SPF), and DKIM records and updates the domain status to `verified`.
 
 <Note>
   DMARC is your own published policy, so it is not checked during verification — a domain verifies without it. The record is shown because bulk-sender requirements expect one.
@@ -55,9 +55,10 @@ Once you've set your DNS records, click **Verify** in the dashboard. OpenMail ch
 
 If verification fails, double-check each record at your registrar and try again. Common issues:
 
-- Existing MX records that weren't replaced
-- SPF record merged incorrectly (only one `v=spf1` per domain is allowed)
-- DKIM host copied without the subdomain suffix
+- Existing MX records on the domain that weren't replaced
+- MAIL FROM MX or SPF published on the apex instead of `bounce`
+- Only one of the three DKIM CNAMEs published, or a host copied without the subdomain suffix
+- Two `v=spf1` TXT records on the same host (only one is allowed — merge includes into a single record)
 
 ## Using your domain
 

@@ -8,11 +8,11 @@ OpenMail handles SPF and DKIM for your sending domain. Configure your domain in 
 
 ## SPF
 
-SPF (Sender Policy Framework) authorizes our servers to send on behalf of your domain. Add the TXT record we provide.
+SPF (Sender Policy Framework) authorizes our servers to send on behalf of your domain. Add the TXT record we provide on the `bounce` host (your custom MAIL FROM subdomain).
 
 ## DKIM
 
-DKIM (DomainKeys Identified Mail) signs outgoing messages. Add the TXT record we provide at the `openmail._domainkey` host.
+DKIM (DomainKeys Identified Mail) signs outgoing messages. Publish the three CNAME records we provide under `_domainkey`.
 
 ## DMARC
 
