@@ -36,7 +36,7 @@ All errors return a consistent structure:
 | 400 | `missing_idempotency_key` | Send endpoint requires Idempotency-Key header |
 | 400 | `unsupported_field` | The request carried a field OpenMail does not support — notably `bcc`, which is rejected rather than silently dropped. See [Sender rules](/concepts/sender-rules#bcc-is-not-supported). |
 | 401 | `unauthorized` | Invalid or missing API key |
-| 402 | `spend_cap_paused` | Pro plan: domain creation is paused because the account's monthly spend limit was reached |
+| 402 | `spend_cap_paused` | Monthly spend limit reached; domain creation is paused |
 | 403 | `feature_requires_paid_plan` | Paid-only feature used on free plan (e.g. external `replyTo`) |
 | 403 | `plan_limit` | Custom domains require Pro or above |
 | 403 | `forbidden` | A [scoped key](/api-reference/authentication#key-scopes) reached outside its pod or inbox, or attempted an action its scope doesn't allow — including any `/v1/policy` call, or deleting / re-checking a domain |
