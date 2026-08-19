@@ -76,7 +76,17 @@ def create_tenant_pod(tenant_id: str, company_name: str) -> dict:
 
 ## Step 2: Add a tenant domain (optional)
 
-For white-label setups, scope a [custom domain](/concepts/custom-domains) to the pod so the tenant's inboxes live on their own domain (e.g. `support@meridian.io`). Add and verify the domain in the dashboard under **Settings → Domains**, then scope it to the pod — or use the pod's **Domains** tab. A pod-scoped domain can only be used by inboxes in that same pod.
+For white-label setups, scope a [custom domain](/concepts/custom-domains) to the pod so the tenant's inboxes live on their own domain (e.g. `support@meridian.io`). Pass `podId` (the pod ID or your `clientId`) when you add the domain. A pod-scoped domain can only be used by inboxes in that same pod.
+
+```bash
+curl -X POST https://api.openmail.sh/v1/domains \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"domain": "meridian.io", "podId": "meridian"}'
+# 201 -> { "id", "domain", "podId", "status": "pending", "records": [...] }
+```
+
+Publish the returned DNS records. The domain verifies automatically within a couple of minutes — poll `GET /v1/domains/{id}` until `status` is `verified` before creating inboxes on it. You can also add and reassign domains in the dashboard under **Settings → Domains** or the pod's **Domains** tab.
 
 Skip this step to put the tenant's inboxes on your account default domain, or on an account-wide domain every pod shares.
 
@@ -241,6 +251,7 @@ A pod must be empty and own no pod-scoped domains before it can be deleted. See 
 | What | Endpoint | Key required |
 |------|----------|--------------|
 | Create a tenant's pod | `POST /v1/pods` | Account-wide |
+| Add a tenant domain (optional) | `POST /v1/domains` (with `podId`) | Account-wide or pod-scoped |
 | Create inboxes in the pod | `POST /v1/inboxes` (with `podId`) | Account-wide |
 | Mint the tenant's scoped key | `POST /v1/pods/{id}/api-keys` | Account-wide |
 | List a pod's keys (masked) | `GET /v1/pods/{id}/api-keys` | Account-wide |
