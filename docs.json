@@ -263,7 +263,9 @@
   "thumbnails": {
     "fonts": {
       "family": "Geist"
-    }
+    },
+    "appearance": "dark",
+    "background": "/images/Screenshot2026-08-19at18.56.05.png"
   },
   "interaction": {
     "drilldown": true
