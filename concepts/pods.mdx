@@ -149,7 +149,7 @@ An inbox always belongs to exactly one pod. Inboxes cannot be moved between pods
 
 When you create an inbox, `domain` and `podId` must agree: pod-scoped domains require the inbox in that same pod; account-wide domains work in any pod. You cannot scope a domain to several pods but not all — it is either one pod or every pod.
 
-Scope a domain at creation with `POST /v1/domains` (`podId` set or omitted). To move a scoped domain later, reassign it in the dashboard (**Settings → Domains**, or a pod's **Domains** tab). See [Pod scoping](/concepts/custom-domains#pod-scoping) for DNS, verification, and reassignment rules.
+Scope a domain when you add it — pick **All pods** or a specific pod in the dashboard, or pass the pod when you create it via the API. To move a scoped domain later, reassign it in the dashboard (**Settings → Domains**, or a pod's **Domains** tab). See [Pod scoping](/concepts/custom-domains#pod-scoping).
 
 ## What pods do and don't isolate
 
@@ -162,8 +162,7 @@ Pods give you **organizational** isolation — a clean way to group and scope in
 
 Your account-wide key reaches every pod. To limit an integration — a tenant, an agent, an environment — to a single pod, mint a **pod-scoped key**:
 
-- It can **read and send** only from that pod's inboxes, and create inboxes in it. Everything in another pod is out of reach.
-- It can **add a [custom domain](/concepts/custom-domains) scoped to its own pod**, and list that pod's domains plus account-wide ones. It cannot delete a domain or force a re-check.
+- It can **read and send** only from that pod's inboxes, create inboxes in it, and add a [custom domain](/concepts/custom-domains) scoped to that pod. Everything in another pod is out of reach.
 - It **cannot delete an inbox**, change an inbox's webhook config, or rotate a webhook secret — those need an account-wide key, so a leaked pod key cannot destroy mail or redirect it elsewhere.
 - It **cannot manage pods** and cannot mint or revoke keys.
 - It **cannot read or change [sender rules](/concepts/sender-rules)** at any scope — every `/v1/policy` call returns `403`.
@@ -213,8 +212,8 @@ curl "https://api.openmail.sh/v1/inboxes?podId=meridian" \
 curl -X DELETE https://api.openmail.sh/v1/inboxes/INBOX_ID \
   -H "Authorization: Bearer $OPENMAIL_API_KEY"
 
-# 3. Reassign pod-scoped domains in the dashboard, or delete them with
-#    DELETE /v1/domains/{id} once they have no inboxes
+# 3. Reassign or delete any pod-scoped domains (dashboard, or delete the
+#    domain once it has no inboxes)
 
 # 4. Now the pod is empty and can be deleted
 curl -X DELETE https://api.openmail.sh/v1/pods/meridian \
@@ -255,16 +254,8 @@ Inboxes (scoped to a pod):
 - GET  /v1/inboxes?podId=<idOrClientId>   list only that pod's inboxes
 - every inbox object includes its podId
 
-Custom domains:
-- POST /v1/domains        body: { domain, podId? } -> 201 domain + DNS records
-    omit podId for account-wide; pass it to scope to one pod
-    a pod-scoped key creates the domain scoped to its own pod
-    verifies automatically once DNS is published; poll GET /v1/domains/{id}
-- GET  /v1/domains        list (pod-scoped key: its pod + account-wide)
-- GET  /v1/domains/{id}   includes status and records
-- POST /v1/domains/{id}/verify   optional immediate re-check (account-wide key)
-- DELETE /v1/domains/{id}        must have no inboxes (account-wide key)
-    422 domain_has_inboxes -> delete inboxes on it first
+Custom domains: POST /v1/domains { domain, podId? }. Omit podId for account-wide.
+    Verifies automatically after you publish DNS. Delete once it has no inboxes.
 
 Pod-scoped API keys (mint requires an account-wide key):
 - POST   /v1/pods/{idOrClientId}/api-keys          body: { name? } -> 201 { token, ... }
@@ -284,9 +275,8 @@ Inbox-scoped API keys (mint requires an account-wide key):
 
 Notes:
 - Inboxes can't move between pods; choose the pod at creation time.
-- Three key scopes: account-wide reaches everything, pod-scoped reaches one pod
-  (including adding a domain scoped to it), inbox-scoped reaches one inbox.
-  Only an account-wide key can mint scoped keys, delete domains, or force a re-check.
+- Three key scopes: account-wide reaches everything, pod-scoped reaches one pod,
+  inbox-scoped reaches one inbox. Only an account-wide key can mint scoped keys.
 - Max 20 active keys per pod and per inbox.
 - Pods are organizational isolation, not network isolation.
 ```
@@ -313,7 +303,7 @@ Notes:
     Yes. Mint an **inbox-scoped key** with `POST /v1/inboxes/{id}/api-keys` — the narrowest scope available. It can read and send from that one inbox and nothing else, and unlike a pod-scoped key it cannot create or delete inboxes at all. Useful when one agent owns exactly one inbox. See [Inbox-scoped API keys](/concepts/inboxes#inbox-scoped-api-keys).
   </Accordion>
   <Accordion title="Can each pod have its own custom domain?">
-    Yes. Pass `podId` on `POST /v1/domains` (or pick the pod in the dashboard) and create inboxes on that domain only inside that pod — for example `support@meridian.io` in the Meridian Analytics pod and `hello@cedarworks.com` in the Cedar Works pod. You can also add account-wide domains that every pod shares. See [Custom domains](/concepts/custom-domains).
+    Yes. Scope a domain to one pod when you add it and create inboxes on it only inside that pod — for example `support@meridian.io` in the Meridian Analytics pod and `hello@cedarworks.com` in the Cedar Works pod. You can also add account-wide domains that every pod shares. See [Custom domains](/concepts/custom-domains).
   </Accordion>
 </AccordionGroup>
 
@@ -331,5 +321,3 @@ See the [API reference](/api-reference/introduction) for full request and respon
 | Mint pod-scoped API key | `POST /v1/pods/{id}/api-keys` |
 | List pod-scoped API keys | `GET /v1/pods/{id}/api-keys` |
 | Revoke pod-scoped API key | `DELETE /v1/pods/{id}/api-keys/{keyId}` |
-
-Custom domain endpoints (scope with `podId` on create) are on [Custom domains](/concepts/custom-domains#api-reference).

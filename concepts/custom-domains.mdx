@@ -8,37 +8,20 @@ By default, inboxes use `@omail.sh` addresses. With a custom domain you can use 
 
 ## How it works
 
-1. Add your domain via the API or dashboard
+1. Add your domain in the dashboard or via the API
 2. OpenMail returns the DNS records you need to set
-3. Publish them. The domain verifies automatically within a couple of minutes
+3. Publish them. The domain verifies automatically once DNS is live
 4. Create inboxes on it by passing the domain when you create an inbox
 
 ## Adding a domain
 
-<CodeGroup>
-
-```bash API
-curl -X POST https://api.openmail.sh/v1/domains \
-  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"domain": "mail.acme.com"}'
-```
-
-```text Dashboard
-Settings → Domains → Add domain
-```
-
-</CodeGroup>
-
-Pass `podId` to scope the domain to one [pod](/concepts/pods). Omit it for an account-wide domain that any pod can use.
+Go to **Settings → Domains** in the dashboard and click **Add domain**. Enter the domain you want to use (e.g. `mail.acme.com`). You can also add it with `POST /v1/domains`.
 
 <Note>
   You can use a subdomain like `mail.acme.com` or an apex domain like `acme.com`. A subdomain is generally easier to configure without affecting other email on your domain.
 </Note>
 
-The `201` response includes the DNS records to publish (`records`). Copy those values — they are authoritative.
-
-A `202` response means the domain is `under_review`. DNS setup is blocked until it is approved. The response includes a `message` explaining why.
+After adding your domain, OpenMail returns the DNS records to set at your registrar.
 
 ## DNS records
 
@@ -50,7 +33,7 @@ A `202` response means the domain is `under_review`. DNS setup is blocked until 
 | TXT | `bounce` (+ your subdomain) | `v=spf1 include:amazonses.com ~all` |
 | TXT | `_dmarc` (+ your subdomain) | `v=DMARC1; p=none;` |
 
-Always prefer the exact records in the `records` array after you add the domain — those values are authoritative. Each record includes a `purpose` (`mx`, `dkim`, `spf`, `return-path`, `dmarc`) and a per-record `status` (`missing`, `invalid`, `valid`).
+Always prefer the exact records shown in the dashboard or API after you add the domain — those values are authoritative.
 
 **MX record** on your domain routes inbound email to OpenMail.
 
@@ -64,30 +47,13 @@ DNS changes typically propagate within minutes but can take up to 48 hours.
 
 ## Verifying your domain
 
-You do not need to click **Verify**. Once the records are published, OpenMail checks them in the background and the domain flips to `verified` within a couple of minutes.
-
-Poll `GET /v1/domains/{id}` until `status` is `verified`, then create inboxes on it.
-
-```bash
-curl https://api.openmail.sh/v1/domains/$DOMAIN_ID \
-  -H "Authorization: Bearer $OPENMAIL_API_KEY"
-```
-
-To force an immediate re-check instead of waiting for the next background pass, call `POST /v1/domains/{id}/verify` with an account-wide key. In the dashboard, **Verify** does the same thing.
-
-| Status | Meaning |
-|--------|---------|
-| `pending` | Added; records not yet published |
-| `verifying` | Being checked |
-| `verified` | Sending and receiving enabled |
-| `failed` | Records missing or wrong — publish the outstanding ones and wait, or call verify again |
-| `under_review` | Flagged as suspicious; DNS setup is blocked until approved |
+You don't need to click **Verify**. Once the records are published, OpenMail checks them in the background and the domain becomes **Verified** within a couple of minutes. Click **Verify** only if you want to check sooner.
 
 <Note>
   DMARC is your own published policy, so it is not checked during verification — a domain verifies without it. The record is shown because bulk-sender requirements expect one.
 </Note>
 
-If verification fails, check each record's `status` and fix the ones that are `missing` or `invalid`. Common issues:
+If verification fails, double-check each record at your registrar and try again. Common issues:
 
 - Existing MX records on the domain that weren't replaced
 - MAIL FROM MX or SPF published on the apex instead of `bounce`
@@ -135,19 +101,9 @@ Custom domains can be shared across your account or limited to a single [pod](/c
 | **All pods** | Account-wide. Any pod can create inboxes on this domain. **New domains default here** — unlike inboxes, they are not placed in the default pod unless you explicitly scope them. |
 | **One pod** | Only inboxes in that pod may use the domain. The domain lives under that pod in your account hierarchy. |
 
-When adding a domain, omit `podId` (or pick **All pods** in the dashboard) for account-wide, or pass `podId` (or pick a specific pod) to scope it. A pod-scoped API key creates the domain scoped to its own pod. On a pod's detail page, the **Domains** tab lists domains scoped to that pod; account-wide domains still appear when creating inboxes inside the pod.
+When adding a domain, pick **All pods** or a specific pod. On a pod's detail page, the **Domains** tab lists domains scoped to that pod; account-wide domains still appear when creating inboxes inside the pod.
 
 To move a scoped domain to another pod (or make it account-wide), reassign it in the dashboard. Narrowing scope is blocked while inboxes on that domain live outside the target pod.
-
-## API keys
-
-| Key | What it can do with domains |
-|-----|-----------------------------|
-| **Account-wide** | Create, list, get, re-check, and delete |
-| **Pod-scoped** | Create a domain scoped to its own pod; list and get its pod's domains plus account-wide ones |
-| **Inbox-scoped** | Nothing — inbox keys cannot manage domains |
-
-`DELETE` and `POST .../verify` require an account-wide key.
 
 ## Limits
 
@@ -159,27 +115,8 @@ Custom domains are available on the Pro plan and above.
 | Pro | Unlimited |
 | Enterprise | Unlimited |
 
-On Free, adding a domain returns `403 plan_limit`. On Pro, it returns `402 spend_cap_paused` if the account's monthly spend limit is reached.
-
 ## Removing a domain
 
-You can delete a custom domain from the API or dashboard as long as it has no inboxes. Delete the inboxes on that domain first, then remove the domain.
+You can delete a custom domain from the dashboard or API as long as it has no inboxes. Delete the inboxes on that domain first, then remove the domain.
 
-```bash
-curl -X DELETE https://api.openmail.sh/v1/domains/$DOMAIN_ID \
-  -H "Authorization: Bearer $OPENMAIL_API_KEY"
-```
-
-A domain that still has inboxes returns `422 domain_has_inboxes`. Deleting a domain removes it from OpenMail but does not delete your DNS records — you can remove those from your registrar separately.
-
-## API reference
-
-| Operation | Endpoint |
-|-----------|----------|
-| List domains | `GET /v1/domains` |
-| Add domain | `POST /v1/domains` |
-| Get domain | `GET /v1/domains/{id}` |
-| Re-check domain | `POST /v1/domains/{id}/verify` |
-| Delete domain | `DELETE /v1/domains/{id}` |
-
-See the [API reference](/api-reference/introduction) for request and response details.
+Deleting a domain removes it from OpenMail but does not delete your DNS records — you can remove those from your registrar separately.

@@ -27,8 +27,8 @@ OpenMail has three kinds of API keys. All three authenticate the same way, as a 
 | Key | Access |
 |-----|--------|
 | **Account-wide** | Everything. Can manage pods, inboxes, and [custom domains](/concepts/custom-domains), and mint or revoke scoped keys. This is the key you get at signup. |
-| **Pod-scoped** | One [pod](/concepts/pods) — reading and sending from its inboxes, creating more inboxes in it, and adding a custom domain scoped to it. Nothing in another pod. Cannot delete an inbox or domain, change webhook config, or force a domain re-check, and no pod or key management. |
-| **Inbox-scoped** | One [inbox](/concepts/inboxes) — reading and sending, nothing else. No other inbox, and no creating, modifying, or deleting inboxes or domains. |
+| **Pod-scoped** | One [pod](/concepts/pods) — reading and sending from its inboxes, creating more inboxes in it, and adding a custom domain scoped to it. Nothing in another pod. Cannot delete an inbox or change its webhook config, and no pod or key management. |
+| **Inbox-scoped** | One [inbox](/concepts/inboxes) — reading and sending, nothing else. No other inbox, and no creating, modifying, or deleting inboxes. |
 
 Neither scoped kind can touch [sender rules](/concepts/sender-rules): every `/v1/policy` call from a scoped key returns `403`, reads included. An agent cannot read or change the policy that applies to it.
 
