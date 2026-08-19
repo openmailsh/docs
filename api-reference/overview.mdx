@@ -44,17 +44,17 @@ All errors return a consistent structure:
 | 403 | `inherited_rule` | Attempted to delete a sender rule owned by a parent scope. Remove it at the scope that owns it. |
 | 404 | `not_found` | Resource doesn't exist or doesn't belong to your account |
 | 409 | `address_taken` | Mailbox name or address already in use |
-| 409 | `domain_exists` | You already added this custom domain |
-| 409 | `domain_taken` | This custom domain belongs to another account |
-| 409 | `identity_exists` | This custom domain needs manual reconnection |
+| 409 | `domain_exists` | Domain already added on this account |
+| 409 | `domain_taken` | Domain belongs to another account |
+| 409 | `identity_exists` | Domain needs manual reconnection |
 | 422 | `invalid_domain` | Domain is malformed, not verified, not yours, or scoped to a different pod |
-| 422 | `domain_blocked` | Domain was flagged as unsafe |
-| 422 | `domain_has_inboxes` | Delete the inboxes on this domain before deleting the domain |
+| 422 | `domain_blocked` | Domain flagged as unsafe |
+| 422 | `domain_has_inboxes` | Domain still has inboxes |
 | 422 | `recipient_suppressed` | Recipient is on the suppression list |
 | 422 | `api_key_limit_reached` | Pod or inbox already has 20 active API keys |
 | 429 | `rate_limit_exceeded` | Too many requests - check `Retry-After` header |
 | 429 | `cold_outreach_limit` | Cold send limit exceeded for new inbox |
-| 502 | `provider_error` | The mail provider could not set up or check the domain |
+| 502 | `provider_error` | Mail provider failed to set up or check the domain |
 
 ## Idempotency
 
