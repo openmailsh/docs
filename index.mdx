@@ -1,47 +1,60 @@
 ---
-title: "Introduction"
-description: "OpenMail is email infrastructure purpose-built for AI agents — dedicated inboxes, real-time delivery, two-way threading, and attachment parsing."
-icon: book
+title: "Welcome"
+description: "Welcome to OpenMail — email infrastructure for AI agents. Start with the quickstart, explore core concepts, or jump straight into the API reference."
+keywords: ["openmail", "welcome", "getting started", "ai agents", "email"]
+icon: hand
 ---
 
-## The problem
+Give your AI agent its own email address. Install the CLI, run setup, and your agent can send, receive, and reply in threads immediately.
 
-AI agents need their own email addresses. Doing it yourself means MX records, DNS, deliverability tuning, and parsing inbound mail. That's a lot of infra for something that should be one command.
+<Frame>
+  <img src="/images/dither-hero.webp" alt="A hand launching a paper plane, rendered in high-contrast vertical scanlines." noZoom />
+</Frame>
 
-## The solution
+## Get started
 
-OpenMail gives AI agents their own email addresses. Run `openmail setup` — the agent can send, receive, and reply in threads immediately. We handle MX, DNS, deliverability, and inbound parsing. You handle zero email infrastructure.
-
-1. `openmail setup` — creates inbox, writes skill file, saves credentials
-2. Agent gets `agent@omail.sh` (or `agent@yourdomain.com` with a custom domain)
-3. Agent sends email, receives replies via [WebSocket](/concepts/websockets) or [webhook](/guides/webhooks)
-4. Route inbound mail by `inbox_id` — use your inbox-to-agent mapping
-
-**Multi-tenant** - One account, many inboxes. Assign one inbox per agent and route inbound events by `inbox_id`. Confine an agent to its own inbox with an [inbox-scoped API key](/concepts/inboxes#inbox-scoped-api-keys), or isolate a whole tenant with pods and pod-scoped keys — see the [Multi-tenancy guide](/guides/multi-tenancy).
-
-<CardGroup cols={2}>
+<Columns cols={2}>
+  <Card title="Introduction" icon="book" href="/pages/introduction">
+    What OpenMail is and how agents get their own inbox.
+  </Card>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
     Get your agent its own email address in two commands.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Full API with interactive examples.
+  </Card>
+  <Card title="API integration" icon="square-terminal" href="/guides/api-integration">
+    Create inboxes and send mail programmatically.
+  </Card>
+</Columns>
+
+## Explore
+
+<Columns cols={2}>
+  <Card title="Inboxes" icon="inbox" href="/concepts/inboxes">
+    Dedicated addresses, scoped keys, and inbound routing.
   </Card>
   <Card title="WebSockets" icon="bolt" href="/concepts/websockets">
     Real-time event streaming. No public URL needed.
   </Card>
-  <Card title="API reference" icon="code" href="/api-reference/introduction">
-    Full endpoint documentation with request/response schemas.
-  </Card>
   <Card title="Webhooks" icon="bell" href="/guides/webhooks">
-    Traditional server-to-server event delivery with retries.
+    Server-to-server event delivery with retries.
   </Card>
-</CardGroup>
+  <Card title="Integrations" icon="blocks" href="/integrations/openclaw">
+    OpenClaw, Claude Code, and agent frameworks.
+  </Card>
+</Columns>
 
-## Authentication
+## Need help
 
-The OpenMail API uses API keys to authenticate requests. Sign up at [console.openmail.sh](https://console.openmail.sh/login) to get your key. See [Quickstart](/quickstart) for the full setup flow.
-
-<Note>
-  All API requests must be made over **HTTPS**. Your account-wide API key carries full account access - keep it in environment variables, not in code. To limit a key to a single pod or a single inbox, see [key scopes](/api-reference/authentication#key-scopes).
-</Note>
-
-```bash
-Authorization: Bearer om_YOUR_API_KEY
-```
+<Columns cols={2}>
+  <Card title="Discord" icon="messages-square" href="https://discord.com/invite/eFfQFMZbsK">
+    Ask in the OpenMail community.
+  </Card>
+  <Card title="Email support" icon="mail" href="mailto:support@openmail.to">
+    Write to support@openmail.to.
+  </Card>
+  <Card title="FAQ" icon="circle-question-mark" href="/pages/resources/faq">
+    Pricing, domains, limits, and common setup questions.
+  </Card>
+</Columns>
