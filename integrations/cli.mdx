@@ -1,0 +1,202 @@
+---
+title: "CLI"
+description: "Every openmail command with a runnable example, for agents that work from a shell."
+icon: terminal
+---
+
+[`@openmail/cli`](https://github.com/openmailsh/cli) is how agents that live in a shell talk to OpenMail: Claude Code, Cursor, Codex, or a cron job. On OpenClaw the [plugin](/integrations/openclaw) bundles it, so nothing on this page needs installing there.
+
+## Install
+
+Needs Node 20 or newer.
+
+<CodeGroup>
+```bash npm
+npm install -g @openmail/cli
+```
+```bash pnpm
+pnpm add -g @openmail/cli
+```
+```bash bun
+bun add -g @openmail/cli
+```
+</CodeGroup>
+
+```bash
+openmail init
+```
+
+`init` creates an inbox, stores it as the default, and saves the key you gave it to `~/.openmail-cli/state.json` (mode 600). Every command that takes `--inbox-id` falls back to that default.
+
+## Authentication
+
+Key resolution, first match wins: `--api-key`, `OPENMAIL_API_KEY` (environment or a `.env` in the working directory), then the key `init` saved.
+
+In CI or anywhere commands get logged, use the environment variable. `--api-key` shows up in process lists and shell history.
+
+Key scope decides what works:
+
+| Scope | Can | Can't |
+| --- | --- | --- |
+| Inbox | Read, send, and handle attachments and threads for that one inbox | Create inboxes, mint keys, read or change policy |
+| Pod | Everything inside its pod, including new inboxes | Anything outside the pod; set policy to `none` |
+| Account | Everything | |
+
+## Commands
+
+`openmail help <command>` prints the full flag list for any group. What follows is one working example per thing you'd do.
+
+### Send
+
+```bash
+openmail send --to marc@example.com --subject "Thursday" --body "Thursday works."     # new thread
+openmail send --to marc@example.com --cc jonas@example.com --subject "Hi" --body "<p>Hi</p>"  # cc, HTML body
+openmail send --to marc@example.com --thread-id thr_xxx --body "Confirmed." --no-quote   # reply, no quoted history
+openmail send --to marc@example.com --subject "Report" --body "Attached." --attach report.pdf --attach data.csv
+```
+
+One `--to`, on purpose: the CLI refuses a second so an agent can't spray. Repeat `--cc` for the others. HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe.
+
+### Read
+
+```bash
+openmail threads list --is-read false --json          # unread threads: the polling loop
+openmail threads get --thread-id thr_xxx --json      # full thread with message ids and attachments
+openmail threads read --thread-id thr_xxx            # mark read (unread puts it back)
+openmail messages list --direction inbound --limit 20 --json
+```
+
+Run `threads list --is-read false`, handle what comes back, mark each thread read.
+
+### Attachments
+
+```bash
+openmail attachments text --message-id msg_xxx --filename report.pdf                     # extracted text
+openmail attachments get --message-id msg_xxx --filename report.pdf --out /tmp/report.pdf # raw file
+```
+
+`text` returns extracted text for PDF, DOCX, XLSX, PPTX, and images (OCR), so the agent reads the document without parsing it. `get` downloads the raw file. Ids and filenames come from `threads get`.
+
+### Inboxes
+
+```bash
+openmail inbox create --mailbox-name sales --display-name "Sales bot" --json   # sales@omail.sh
+openmail inbox create --mailbox-name hello --domain mail.example.com          # on a verified domain
+openmail inbox list --json
+openmail inbox update --inbox-id inb_xxx --display-name "Sales"
+openmail inbox delete --inbox-id inb_xxx
+```
+
+`--domain` needs a verified custom domain. A pod-scoped key always creates in its own pod; account keys pass `--pod-id`.
+
+Inbox keys and webhooks live here too:
+
+```bash
+openmail inbox keys create --inbox-id inb_xxx --name research --json
+openmail inbox keys list --inbox-id inb_xxx
+openmail inbox keys revoke --inbox-id inb_xxx --key-id key_xxx
+
+openmail inbox webhook set --inbox-id inb_xxx --url https://example.com/hooks/openmail
+openmail inbox webhook test --inbox-id inb_xxx
+openmail inbox webhook rotate-secret --inbox-id inb_xxx
+openmail inbox webhook clear --inbox-id inb_xxx
+```
+
+Key tokens print once. Minting needs an account or pod key. Webhooks need an account key; if you only want to notice new mail, `threads list --is-read false` does it without one.
+
+### Pods
+
+```bash
+openmail pod create --name research --client-id agent-7 --json   # your id works wherever pod_id does
+openmail pod keys create --pod-id pod_xxx --name research --json # token prints once
+openmail pod list
+openmail pod update --pod-id pod_xxx --name "Research (EU)"
+openmail pod keys revoke --pod-id pod_xxx --key-id key_xxx
+openmail pod delete --pod-id pod_xxx
+```
+
+One pod per agent or per tenant, each with its own pod-scoped key, is the usual shape. `--client-id` is your own id for the pod and works anywhere a `pod_id` does. Pod management needs an account key. See [Pods](/concepts/pods).
+
+### Domains
+
+```bash
+openmail domain add --domain mail.example.com      # returns DNS records to publish
+openmail domain verify --domain-id dom_xxx         # re-checks them
+openmail domain list
+openmail domain get --domain-id dom_xxx
+openmail domain delete --domain-id dom_xxx
+```
+
+`--pod-id` on `add` ties the domain to one pod; leave it off for account-wide.
+
+### Policy
+
+```bash
+openmail policy get --inbox-id inb_xxx
+openmail policy mode --inbox-id inb_xxx --direction inbound --mode allowlist      # empty allowlist denies all
+openmail policy allow --inbox-id inb_xxx --direction inbound --value marc@example.com
+openmail policy block --direction outbound --value "*.competitor.com"             # account-wide
+openmail policy rules remove --rule-id rule_xxx --inbox-id inb_xxx
+openmail policy audit --direction inbound --since 2026-09-01T00:00:00Z
+```
+
+Who may email an inbox (inbound) and who it may email (outbound, checked on To, Cc, and Reply-To). Scope defaults to the account; `--pod-id` or `--inbox-id` narrows it. Modes are `none`, `allowlist`, and `inherit`; an empty allowlist denies everyone. Inbox keys can't touch policy. See [Sender rules](/concepts/sender-rules).
+
+### Feedback
+
+```bash
+openmail feedback --type bug --message "send returned 500 for plain text" --endpoint /v1/inboxes/{id}/send --error-code internal_error
+openmail feedback --type feature_request --message "search messages by subject"
+```
+
+Goes to the OpenMail team. Types: `bug`, `friction`, `feature_request`.
+
+## Global flags
+
+| Flag | Effect |
+| --- | --- |
+| `--json` | JSON output and logs. Use it whenever an agent parses the result. |
+| `--verbose` | Request-level logging. |
+| `--api-key <key>` | Overrides `OPENMAIL_API_KEY` and the saved key. |
+| `--base-url <url>` | Overrides `OPENMAIL_BASE_URL`. Default `https://api.openmail.sh`. |
+| `--state-path <p>` | Overrides `OPENMAIL_STATE_PATH`. Default `~/.openmail-cli/state.json`. |
+| `--version` | Print the installed version. |
+| `--help` | Help for any command: `openmail help send`. |
+
+## Environment variables
+
+| Variable | Default |
+| --- | --- |
+| `OPENMAIL_API_KEY` | none; falls back to the key `init` saved |
+| `OPENMAIL_BASE_URL` | `https://api.openmail.sh` |
+| `OPENMAIL_STATE_PATH` | `~/.openmail-cli/state.json` |
+
+Read from the environment first, then a `.env` in the working directory. The matching flag wins over both.
+
+## Exit codes
+
+`0` on success, `1` on anything else: bad flags, missing key, API errors. With `--json` the error is a JSON object on stderr, so scripts can branch on the code and parse the reason.
+
+## Updating
+
+```bash
+openmail update
+openmail --version
+```
+
+The CLI checks npm at most once a day and prints a one-line notice after any command when a newer version exists. `update` runs `npm install -g` for you; `upgrade` is an alias.
+
+## Limits
+
+- **One page per list call.** `--limit` and `--offset` only. Nothing auto-paginates.
+- **No confirmation on delete or revoke.** `inbox delete` and `keys revoke` run as soon as you press enter, which is what an agent wants and what a typo doesn't.
+
+## Source and support
+
+The CLI is open source at [openmailsh/cli](https://github.com/openmailsh/cli); bugs and feature requests go in its [issues](https://github.com/openmailsh/cli/issues), or straight from the terminal with `openmail feedback`.
+
+## Related
+
+- [OpenClaw](/integrations/openclaw): the plugin that bundles this CLI
+- [Claude Code](/integrations/claude-code): the skill that teaches it these commands
+- [API reference](/api-reference/introduction): what each command calls

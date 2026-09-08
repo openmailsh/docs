@@ -6,6 +6,8 @@ icon: bot
 
 [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) is a native OpenClaw channel plugin. Mail to the agent's address reaches it as a conversation with the sender, and what it writes back goes out in the same thread. The gateway holds the connection; there is no separate process to run.
 
+Needs OpenClaw 2026.9.2 or newer and an OpenMail API key from the [console](https://console.openmail.sh/api-keys). The CLI is bundled, so nothing else to install.
+
 ## Install
 
 <Steps>
@@ -28,21 +30,34 @@ icon: bot
     openclaw gateway restart
     openclaw channels status
     ```
-    The status line reads `OpenMail: enabled, configured, running, connected`.
+    The status line reads `OpenMail: enabled, configured, running, connected`. If it doesn't, `openclaw plugins inspect openmail --runtime` shows what the plugin loaded with, and `openclaw logs | grep openmail` shows why it stopped.
   </Step>
 </Steps>
 
+Then try it. Email the agent's address from your own account and watch it answer in the thread, or ask it on your usual chat:
+
+- "What's in the inbox since this morning?"
+- "Reply to Marc that Thursday works, and cc Jonas."
+- "Sign up for the Linear newsletter with your address and give me the confirmation code."
+- "Create an inbox called billing and give me its address."
+
 ## Add the channel
 
-What `channels add` does depends on the key you pass.
+### Which key
 
-| You pass | Result |
+| Key scope | What `channels add` does with it |
 | --- | --- |
-| An inbox-scoped key | Stored as-is. That inbox is the channel. |
-| An account or pod key | Picks your inbox, or creates one if you have none. Mints an inbox-scoped key for it and stores only that. The broad key never touches `openclaw.json`. |
+| Inbox | Stores it as-is. That inbox is the channel. |
+| Account or pod | Picks your inbox, or creates one if you have none, then mints an inbox-scoped key for it and stores only that. The broad key never touches `openclaw.json`. |
+| Account or pod, with `--pod` | Stores a pod-scoped key. The channel covers every inbox in the pod. See [Several inboxes](#several-inboxes). |
+
+### Flags
+
+| Flag | Effect |
+| --- | --- |
 | `--mailbox-name sales` | Creates `sales@omail.sh`. `--display-name "Sales bot"` sets the sender name. |
 | `--inbox-id <id>` | Uses that inbox. Needed when the key can see several. |
-| `--pod <id\|name>` | One account for a whole pod. Needs a pod-scoped or account key. See [Several inboxes](#several-inboxes). |
+| `--pod <id\|name>` | One account for a whole pod. Needs a pod-scoped or account key. |
 | `--account <name>` | Names the account. Use it to run more than one. |
 | `--mode notify` / `--mode tool` | How inbound mail reaches the agent. See [Modes](#modes). |
 
@@ -75,6 +90,18 @@ openmail policy block --direction outbound --value "*.competitor.com"
 ```
 
 See [Sender rules](/concepts/sender-rules) for scopes and audit history.
+
+### What stops the agent doing something stupid
+
+Email is the easiest way to feed an agent text it didn't ask for, so the checks live where a forged message can't reach them.
+
+- A reply goes to the sender OpenMail's API recorded, not the one the websocket frame claimed; the plugin re-fetches the message before every turn. A spoofed `Reply-To` changes nothing.
+- Only mail classified `personal` gets a reply turn (see above). The agent can't be talked into a conversation by a bounce or a newsletter, because it never gets one as a conversation.
+- Spam and malicious mail never reaches the agent in any mode.
+- The bundled CLI takes its credentials from the channel config. `--api-key` and `--base-url` on the command line are rejected, so a prompt injection can't point the agent at another account or another server.
+- Who can write to the inbox is your policy, enforced by OpenMail before delivery. Set an allowlist and everything else is refused at the door.
+
+The plugin does not stop the agent starting new threads. If you want that, make the inbox's outbound policy an allowlist.
 
 ## Several inboxes
 
@@ -121,6 +148,8 @@ openclaw openmail --account outreach -- inbox create --mailbox-name outreach-3
 ```
 
 `--api-key`, `--base-url`, and `--state-path` are rejected; credentials come from the channel config only. You do not need a separate CLI install.
+
+If the agent runs in a sandbox, the CLI runs on the gateway host, not inside the sandbox, so it works without mounting `openmail` into the container.
 
 New threads also work through OpenClaw's own send: `openclaw message send --channel openmail --to a@b.com "…"`. The first line becomes the subject.
 
@@ -183,8 +212,14 @@ Before `@openmail/cli` 0.7.0, `openmail setup` wrote a skill file and env into `
   </Step>
 </Steps>
 
+## Plugin or skill?
+
+A skill is a markdown file that tells the agent how to use tools it already has; the [`openmail` skill](https://github.com/openmailsh/skills) does that for Claude Code, Cursor, and any agent with a shell. It can send mail. It can't receive any, because nothing is listening.
+
+A plugin is code the gateway loads. This one holds the connection to OpenMail, turns inbound mail into agent turns, and registers `openclaw openmail` so the CLI runs with the channel's credentials. It bundles the skill too, so on OpenClaw you install the plugin and nothing else. Installing the standalone skill alongside it only gives the agent two copies of the same instructions.
+
 ## Related
 
-- [Sender rules](/concepts/sender-rules) — who can email the agent
-- [Pods](/concepts/pods) — grouping inboxes under one key
-- [Attachments](/concepts/attachments) — server-side text extraction
+- [Sender rules](/concepts/sender-rules): who can email the agent
+- [Pods](/concepts/pods): grouping inboxes under one key
+- [Attachments](/concepts/attachments): server-side text extraction

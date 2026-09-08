@@ -97,6 +97,7 @@
             "pages": [
               "integrations/openclaw",
               "integrations/claude-code",
+              "integrations/cli",
               "integrations/agent-frameworks"
             ]
           },

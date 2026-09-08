@@ -4,7 +4,7 @@ description: "Give your Claude Code agent a real email address. Install the Open
 icon: terminal
 ---
 
-Claude Code uses the OpenMail CLI directly. The `openmail` skill in the [CLI repo](https://github.com/openmailsh/cli/blob/main/skills/openmail/SKILL.md) teaches it the commands. The same setup works for Cursor and Codex.
+Claude Code uses the OpenMail CLI directly. The `openmail` skill in the [skills repo](https://github.com/openmailsh/skills/blob/main/skills/openmail/SKILL.md) teaches it the commands. The same setup works for Cursor and Codex.
 
 ## Get started
 
@@ -24,9 +24,9 @@ Claude Code uses the OpenMail CLI directly. The `openmail` skill in the [CLI rep
   </Step>
   <Step title="Install the skill">
     ```bash
-    npx skills add openmailsh/cli
+    npx skills add openmailsh/skills
     ```
-    Or copy `skills/openmail/SKILL.md` from the CLI repo into `~/.claude/skills/openmail/`. For Cursor or Codex, use that agent's skills directory.
+    Or copy `skills/openmail/SKILL.md` from the [skills repo](https://github.com/openmailsh/skills) into `~/.claude/skills/openmail/`. For Cursor or Codex, use that agent's skills directory.
   </Step>
   <Step title="Verify">
     Ask Claude Code to send a test email. It runs `openmail send` and returns the `threadId`.
@@ -55,6 +55,6 @@ Inbound mail does not wake Claude Code on its own. The skill polls with `threads
 
 ## Related
 
-- [Quickstart](/quickstart) — Claude Code tab with copy-paste steps
-- [OpenClaw](/integrations/openclaw) — native channel plugin with inbound delivery
-- [API integration](/guides/api-integration) — multi-tenant or non-CLI setups
+- [Quickstart](/quickstart): Claude Code tab with copy-paste steps
+- [OpenClaw](/integrations/openclaw): native channel plugin with inbound delivery
+- [API integration](/guides/api-integration): multi-tenant or non-CLI setups
