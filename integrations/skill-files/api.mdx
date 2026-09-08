@@ -159,13 +159,17 @@ Inbox object:
 }
 ```
 
-### Status & diagnostics
+### Attachments
 
 ```bash
-openmail status
+# Extract text (PDF, DOCX, XLSX, PPTX, images via OCR)
+openmail attachments text --message-id "msg_..." --filename "report.pdf"
+
+# Download the raw file
+openmail attachments get --message-id "msg_..." --filename "report.pdf" --out ./report.pdf
 ```
 
-Shows API connection, default inbox, and bridge status.
+Inside OpenClaw, prefix every command with `openclaw openmail --` to run it with the channel's credentials.
 
 ---
 

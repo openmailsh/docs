@@ -1,16 +1,14 @@
 ---
 title: "SKILL.md"
-description: "The openmail skill file is installed by openmail setup. It teaches your AI agent how to create inboxes, send email, and handle inbound replies via API."
+description: "The openmail skill file teaches your AI agent how to send email, read threads, and handle attachments through the OpenMail CLI. Ships with the CLI and the OpenClaw plugin."
 icon: file-code
 ---
 
-The full rendered contents of `SKILL.md` — including frontmatter, CLI commands, hook modes, and security rules — live on the [OpenClaw integration page](/integrations/openclaw#1-skillsopenmailskillmd).
+The skill lives in the CLI repo at [`skills/openmail/SKILL.md`](https://github.com/openmailsh/cli/blob/main/skills/openmail/SKILL.md). It covers sending, replying in-thread, checking for new mail, attachments, policy, and pods.
 
-Source: [`buildSkillMarkdown()`](https://github.com/openmailsh/cli/blob/main/src/commands/openclaw.ts) in [`@openmail/cli`](https://github.com/openmailsh/cli).
+**OpenClaw** — the [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) plugin bundles its own copy, adapted to run commands as `openclaw openmail -- <command>`. Nothing to install separately. See [OpenClaw](/integrations/openclaw).
 
-<Card title="View SKILL.md contents" icon="arrow-right" href="/integrations/openclaw#1-skillsopenmailskillmd">
-  Full markdown on the OpenClaw integration page.
-</Card>
+**Claude Code, Cursor, Codex** — install with `npx skills add openmailsh/cli`, or copy the file into `~/.claude/skills/openmail/` (or your agent's skills directory). See [Claude Code](/integrations/claude-code).
 
 ## Supplementary references
 

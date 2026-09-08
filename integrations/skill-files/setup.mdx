@@ -11,25 +11,24 @@ Source: [skills/openmail/references/setup.md](https://github.com/openmailsh/skil
 ## OpenClaw
 
 ```bash
-openmail setup
+openclaw plugins install clawhub:@openmail/openclaw
+openclaw channels add --channel openmail --api-key <key>
+openclaw gateway restart
 ```
 
-Writes credentials to `~/.openclaw/openmail.env` and the skill to `~/.openclaw/skills/openmail/SKILL.md`. See [OpenClaw](/integrations/openclaw) for the full integration overview.
+The plugin bundles the CLI and the skill. See [OpenClaw](/integrations/openclaw) for modes, pod accounts, and configuration.
 
-## Claude Code (one command)
+## Claude Code, Cursor, Codex
 
 ```bash
-npx @openmail/cli setup --agent claude-code
+npm install -g @openmail/cli
+export OPENMAIL_API_KEY=om_...
+openmail init --mailbox-name my-agent --display-name "My agent"
+npx skills add openmailsh/cli
 ```
 
-This handles everything:
-- Opens your browser to sign in (or prompts for your API key)
-- Asks for a mailbox name and display name
-- Creates your inbox
-- Writes credentials to `~/.claude/openmail.env`
-- Writes the skill file to `~/.claude/skills/openmail/SKILL.md`
-
-No global install required — `npx` fetches the CLI automatically.
+- `init` creates your inbox and saves it as the default
+- `npx skills add` installs the skill; or copy `skills/openmail/SKILL.md` from the [CLI repo](https://github.com/openmailsh/cli) into `~/.claude/skills/openmail/`
 
 ## Requirements
 
@@ -39,19 +38,17 @@ No global install required — `npx` fetches the CLI automatically.
 ## Verify
 
 ```bash
-npx @openmail/cli status
+openmail inbox list
 ```
 
 ## Multiple inboxes
 
-To create additional inboxes after setup:
+To create additional inboxes:
 
 ```bash
-npx @openmail/cli inbox create --mailbox-name "support" --display-name "Support"
+openmail inbox create --mailbox-name "support" --display-name "Support"
 ```
 
 ## Remove
 
-```bash
-npx @openmail/cli setup --agent claude-code --reset
-```
+Delete `~/.openmail-cli/state.json` and the skill directory. For OpenClaw, remove the `channels.openmail` block from `openclaw.json` and uninstall the plugin.
