@@ -12,7 +12,7 @@ AI agents need their own email addresses. Doing it yourself means MX records, DN
 
 OpenMail gives AI agents their own email addresses. Install the [OpenClaw plugin](/integrations/openclaw) or create an inbox with the CLI — the agent can send, receive, and reply in threads immediately. We handle MX, DNS, deliverability, and inbound parsing. You handle zero email infrastructure.
 
-1. `openclaw channels add --channel openmail --api-key <key>` or `openmail init` — creates the inbox and stores its key
+1. `openclaw channels add --channel openmail --api-key <key>` or `openmail init` — creates the inbox and sets it as the default
 2. Agent gets `agent@omail.sh` (or `agent@yourdomain.com` with a custom domain)
 3. Agent sends email, receives replies via [WebSocket](/concepts/websockets) or [webhook](/guides/webhooks)
 4. Route inbound mail by `inbox_id` — use your inbox-to-agent mapping
