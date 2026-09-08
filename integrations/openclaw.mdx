@@ -43,15 +43,21 @@ Then try it. Email the agent's address from your own account and watch it answer
 
 ## Add the channel
 
-What `channels add` does depends on the key you pass.
+### Which key
 
-| You pass | Result |
+| Key scope | What `channels add` does with it |
 | --- | --- |
-| An inbox-scoped key | Stored as-is. That inbox is the channel. |
-| An account or pod key | Picks your inbox, or creates one if you have none. Mints an inbox-scoped key for it and stores only that. The broad key never touches `openclaw.json`. |
+| Inbox | Stores it as-is. That inbox is the channel. |
+| Account or pod | Picks your inbox, or creates one if you have none, then mints an inbox-scoped key for it and stores only that. The broad key never touches `openclaw.json`. |
+| Account or pod, with `--pod` | Stores a pod-scoped key. The channel covers every inbox in the pod. See [Several inboxes](#several-inboxes). |
+
+### Flags
+
+| Flag | Effect |
+| --- | --- |
 | `--mailbox-name sales` | Creates `sales@omail.sh`. `--display-name "Sales bot"` sets the sender name. |
 | `--inbox-id <id>` | Uses that inbox. Needed when the key can see several. |
-| `--pod <id\|name>` | One account for a whole pod. Needs a pod-scoped or account key. See [Several inboxes](#several-inboxes). |
+| `--pod <id\|name>` | One account for a whole pod. Needs a pod-scoped or account key. |
 | `--account <name>` | Names the account. Use it to run more than one. |
 | `--mode notify` / `--mode tool` | How inbound mail reaches the agent. See [Modes](#modes). |
 
