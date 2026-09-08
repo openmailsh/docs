@@ -1,10 +1,10 @@
 ---
 title: "CLI"
-description: "Every openmail command with a runnable example. The same CLI runs standalone for Claude Code and Cursor, or inside OpenClaw as openclaw openmail --."
+description: "Every openmail command with a runnable example, for agents that work from a shell."
 icon: terminal
 ---
 
-[`@openmail/cli`](https://github.com/openmailsh/cli) is how agents that live in a shell talk to OpenMail. Claude Code, Cursor, and Codex call `openmail` directly; OpenClaw ships it inside the [plugin](/integrations/openclaw) as `openclaw openmail -- <command>`. Same commands either way.
+[`@openmail/cli`](https://github.com/openmailsh/cli) is how agents that live in a shell talk to OpenMail: Claude Code, Cursor, Codex, or a cron job. On OpenClaw the [plugin](/integrations/openclaw) bundles it, so nothing on this page needs installing there.
 
 ## Install
 
@@ -32,7 +32,7 @@ openmail init
 
 Key resolution, first match wins: `--api-key`, `OPENMAIL_API_KEY` (environment or a `.env` in the working directory), then the key `init` saved.
 
-In CI or anywhere commands get logged, use the environment variable. `--api-key` shows up in process lists and shell history. Inside OpenClaw, `--api-key`, `--base-url`, and `--state-path` are rejected outright; credentials come from the channel.
+In CI or anywhere commands get logged, use the environment variable. `--api-key` shows up in process lists and shell history.
 
 Key scope decides what works:
 
@@ -175,7 +175,7 @@ Read from the environment first, then a `.env` in the working directory. The mat
 
 ## Exit codes
 
-`0` on success, `1` on anything else: bad flags, API errors, a deprecated command. With `--json` the error is a JSON object on stderr, so scripts can branch on the code and parse the reason.
+`0` on success, `1` on anything else: bad flags, missing key, API errors. With `--json` the error is a JSON object on stderr, so scripts can branch on the code and parse the reason.
 
 ## Updating
 
@@ -190,19 +190,6 @@ The CLI checks npm at most once a day and prints a one-line notice after any com
 
 - **One page per list call.** `--limit` and `--offset` only. Nothing auto-paginates.
 - **No confirmation on delete or revoke.** `inbox delete` and `keys revoke` run as soon as you press enter, which is what an agent wants and what a typo doesn't.
-
-## Upgrading from 0.6
-
-0.7.0 removed the OpenClaw bridge. Each old command prints the replacement and exits 1.
-
-| 0.6 | 0.7 |
-| --- | --- |
-| `openmail setup` | `openmail init` for the inbox; `openclaw plugins install clawhub:@openmail/openclaw` for OpenClaw |
-| `openmail openclaw` (the bridge) | The plugin's gateway connection. See [Upgrading from the CLI bridge](/integrations/openclaw#upgrading-from-the-cli-bridge) |
-| `openmail status`, `openmail doctor` | `openclaw channels status`, `openclaw plugins inspect openmail --runtime` |
-| Skill file `setup` wrote into `~/.openclaw` | Bundled in the plugin. For other agents: `npx skills add openmailsh/skills` |
-
-Everything else is unchanged.
 
 ## Source and support
 
