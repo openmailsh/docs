@@ -1,0 +1,158 @@
+---
+title: "CLI"
+description: "Every openmail command and flag. The same CLI runs standalone for Claude Code and Cursor, or inside OpenClaw as openclaw openmail --."
+icon: terminal
+---
+
+[`@openmail/cli`](https://github.com/openmailsh/cli) is how agents that live in a shell talk to OpenMail. Claude Code, Cursor, and Codex call `openmail` directly; OpenClaw ships it inside the [plugin](/integrations/openclaw) as `openclaw openmail -- <command>`. Same commands either way.
+
+```bash
+npm install -g @openmail/cli
+openmail init
+```
+
+`init` creates an inbox, stores it as the default, and saves the key you gave it to `~/.openmail-cli/state.json` (mode 600). After that every command that takes `--inbox-id` falls back to that default.
+
+## Authentication
+
+Key resolution, first match wins: `--api-key`, `OPENMAIL_API_KEY` (environment or a `.env` in the working directory), then the key `init` saved. Key scope decides what works:
+
+| Scope | Can | Can't |
+| --- | --- | --- |
+| Inbox | Read, send, manage attachments and threads for that one inbox | Create inboxes, mint keys, read or change policy |
+| Pod | Everything inside its pod, including new inboxes | Anything outside the pod; set policy to `none` |
+| Account | Everything | |
+
+Inside OpenClaw, `--api-key`, `--base-url`, and `--state-path` are rejected; credentials come from the channel.
+
+## Commands
+
+### `init`
+
+```
+openmail init [--mailbox-name <name>] [--display-name <sender name>]
+```
+
+Prompts for both when run without flags.
+
+### `inbox`
+
+```
+openmail inbox create [--mailbox-name <name>] [--display-name <name>] [--domain <domain>] [--pod-id <id>]
+openmail inbox list [--pod-id <id>] [--limit <n>] [--offset <n>]
+openmail inbox get --inbox-id <id>
+openmail inbox update --inbox-id <id> --display-name <name>
+openmail inbox delete --inbox-id <id>
+
+openmail inbox keys create --inbox-id <id> [--name <name>]
+openmail inbox keys list --inbox-id <id>
+openmail inbox keys revoke --inbox-id <id> --key-id <key_id>
+
+openmail inbox webhook set --inbox-id <id> --url <url>
+openmail inbox webhook clear --inbox-id <id>
+openmail inbox webhook rotate-secret --inbox-id <id>
+openmail inbox webhook test --inbox-id <id>
+```
+
+`--domain` picks a verified custom domain for the address. A pod-scoped key always creates in its own pod, so `--pod-id` is for account keys. Key tokens print once, at creation. Webhooks need an account key; if you only want to notice new mail, `threads list --is-read false` is enough.
+
+### `pod`
+
+```
+openmail pod create [--name <label>] [--client-id <your id>]
+openmail pod list [--limit <n>] [--offset <n>]
+openmail pod get --pod-id <id>
+openmail pod update --pod-id <id> [--name <label>] [--client-id <your id>]
+openmail pod delete --pod-id <id>
+
+openmail pod keys create --pod-id <id> [--name <name>]
+openmail pod keys list --pod-id <id>
+openmail pod keys revoke --pod-id <id> --key-id <key_id>
+```
+
+One pod per agent or per tenant, with a pod-scoped key, is the usual shape. `--client-id` is your own stable id for the pod and works anywhere a `pod_id` does. Needs an account key.
+
+### `domain`
+
+```
+openmail domain add --domain <mail.example.com> [--pod-id <id>]
+openmail domain list [--limit <n>] [--offset <n>]
+openmail domain get --domain-id <id>
+openmail domain verify --domain-id <id>
+openmail domain delete --domain-id <id>
+```
+
+`add` returns the DNS records to publish and `verify` re-checks them. `--pod-id` ties the domain to one pod; leave it off for an account-wide domain.
+
+### `policy`
+
+```
+openmail policy get [--pod-id <id> | --inbox-id <id>]
+openmail policy mode --direction inbound|outbound --mode none|allowlist|inherit [--pod-id | --inbox-id]
+openmail policy allow --value <addr|domain|*.domain> --direction inbound|outbound [--pod-id | --inbox-id]
+openmail policy block --value <addr|domain|*.domain> --direction inbound|outbound [--pod-id | --inbox-id]
+openmail policy rules remove --rule-id <id> [--pod-id | --inbox-id]
+openmail policy audit [--action <a>] [--direction inbound|outbound] [--since <iso>] [--until <iso>] [--limit <n>] [--offset <n>]
+```
+
+Who may email an inbox (inbound) and who it may email (outbound, checked on To, Cc, and Reply-To). Scope defaults to the account; `--pod-id` or `--inbox-id` narrows it. `inherit` defers to the parent scope. An empty allowlist denies everyone. See [Sender rules](/concepts/sender-rules).
+
+### `send`
+
+```
+openmail send --to <email> --subject <text> --body <text> [--inbox-id <id>]
+              [--cc <email>]... [--thread-id <id>] [--no-quote]
+              [--reply-to <email>] [--attach <file>]... [--idempotency-key <key>]
+```
+
+One `--to`; repeat `--cc` for more people. `--body` takes plain text or HTML, detected automatically. With `--thread-id` the subject is optional and the previous message is quoted unless you pass `--no-quote`. `--reply-to` on the free plan has to be an inbox you own.
+
+### `messages`, `threads`
+
+```
+openmail messages list [--inbox-id <id>] [--direction inbound|outbound] [--limit <n>] [--offset <n>]
+
+openmail threads list [--inbox-id <id>] [--is-read true|false] [--limit <n>] [--offset <n>]
+openmail threads get --thread-id <id>
+openmail threads read --thread-id <id>
+openmail threads unread --thread-id <id>
+```
+
+### `attachments`
+
+```
+openmail attachments text --message-id <id> --filename <name>
+openmail attachments get --message-id <id> --filename <name> [--out <path>]
+```
+
+`text` returns extracted text for PDF, DOCX, XLSX, PPTX, and images (OCR); `get` downloads the raw file. Message ids and filenames come from `threads get` or `messages list`.
+
+### `feedback`, `update`
+
+```
+openmail feedback --type bug|friction|feature_request --message <text> [--endpoint <path>] [--error-code <code>] [--request-id <id>]
+openmail update
+```
+
+`feedback` goes straight to the OpenMail team. `update` reinstalls the latest version globally; the CLI checks npm once a day and prints a one-line notice when it's behind.
+
+## Global flags
+
+| Flag | Effect |
+| --- | --- |
+| `--json` | JSON output and logs. Use it whenever an agent parses the result. |
+| `--verbose` | Request-level logging. |
+| `--api-key <key>` | Overrides `OPENMAIL_API_KEY` and the saved key. |
+| `--base-url <url>` | Overrides `OPENMAIL_BASE_URL`. Default `https://api.openmail.sh`. |
+| `--state-path <p>` | Overrides `OPENMAIL_STATE_PATH`. Default `~/.openmail-cli/state.json`. |
+| `--help` | Help for any command: `openmail help send`. |
+
+## Deprecated
+
+`openmail setup`, `openclaw`, `status`, and `doctor` left in 0.7.0. Each prints the plugin install steps and exits 1. See [Upgrading from the CLI bridge](/integrations/openclaw#upgrading-from-the-cli-bridge).
+
+## Related
+
+- [OpenClaw](/integrations/openclaw): the plugin that bundles this CLI
+- [Claude Code](/integrations/claude-code): the skill that teaches it these commands
+- [API reference](/api-reference): what each command calls
