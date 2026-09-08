@@ -49,9 +49,9 @@ Key scope decides what works:
 ### Send
 
 ```bash
-openmail send --to marc@example.com --subject "Thursday" --body "Thursday works."
-openmail send --to marc@example.com --cc jonas@example.com --subject "Thursday" --body "<p>Works for both.</p>"
-openmail send --to marc@example.com --thread-id thr_xxx --body "Confirmed." --no-quote
+openmail send --to marc@example.com --subject "Thursday" --body "Thursday works."     # new thread
+openmail send --to marc@example.com --cc jonas@example.com --subject "Hi" --body "<p>Hi</p>"  # cc, HTML body
+openmail send --to marc@example.com --thread-id thr_xxx --body "Confirmed." --no-quote   # reply, no quoted history
 openmail send --to marc@example.com --subject "Report" --body "Attached." --attach report.pdf --attach data.csv
 ```
 
@@ -60,19 +60,19 @@ One `--to`, on purpose: the CLI refuses a second so an agent can't spray. Repeat
 ### Read
 
 ```bash
-openmail threads list --is-read false --json
-openmail threads get --thread-id thr_xxx --json
-openmail threads read --thread-id thr_xxx
+openmail threads list --is-read false --json          # unread threads: the polling loop
+openmail threads get --thread-id thr_xxx --json      # full thread with message ids and attachments
+openmail threads read --thread-id thr_xxx            # mark read (unread puts it back)
 openmail messages list --direction inbound --limit 20 --json
 ```
 
-`threads list --is-read false` is the polling loop: run it, handle what comes back, mark each thread read. `threads unread` puts one back.
+Run `threads list --is-read false`, handle what comes back, mark each thread read.
 
 ### Attachments
 
 ```bash
-openmail attachments text --message-id msg_xxx --filename report.pdf
-openmail attachments get --message-id msg_xxx --filename report.pdf --out /tmp/report.pdf
+openmail attachments text --message-id msg_xxx --filename report.pdf                     # extracted text
+openmail attachments get --message-id msg_xxx --filename report.pdf --out /tmp/report.pdf # raw file
 ```
 
 `text` returns extracted text for PDF, DOCX, XLSX, PPTX, and images (OCR), so the agent reads the document without parsing it. `get` downloads the raw file. Ids and filenames come from `threads get`.
@@ -80,8 +80,8 @@ openmail attachments get --message-id msg_xxx --filename report.pdf --out /tmp/r
 ### Inboxes
 
 ```bash
-openmail inbox create --mailbox-name sales --display-name "Sales bot" --json
-openmail inbox create --mailbox-name hello --domain mail.example.com
+openmail inbox create --mailbox-name sales --display-name "Sales bot" --json   # sales@omail.sh
+openmail inbox create --mailbox-name hello --domain mail.example.com          # on a verified domain
 openmail inbox list --json
 openmail inbox update --inbox-id inb_xxx --display-name "Sales"
 openmail inbox delete --inbox-id inb_xxx
@@ -107,8 +107,8 @@ Key tokens print once. Minting needs an account or pod key. Webhooks need an acc
 ### Pods
 
 ```bash
-openmail pod create --name research --client-id agent-7 --json
-openmail pod keys create --pod-id pod_xxx --name research --json
+openmail pod create --name research --client-id agent-7 --json   # your id works wherever pod_id does
+openmail pod keys create --pod-id pod_xxx --name research --json # token prints once
 openmail pod list
 openmail pod update --pod-id pod_xxx --name "Research (EU)"
 openmail pod keys revoke --pod-id pod_xxx --key-id key_xxx
@@ -120,22 +120,22 @@ One pod per agent or per tenant, each with its own pod-scoped key, is the usual 
 ### Domains
 
 ```bash
-openmail domain add --domain mail.example.com
-openmail domain verify --domain-id dom_xxx
+openmail domain add --domain mail.example.com      # returns DNS records to publish
+openmail domain verify --domain-id dom_xxx         # re-checks them
 openmail domain list
 openmail domain get --domain-id dom_xxx
 openmail domain delete --domain-id dom_xxx
 ```
 
-`add` returns the DNS records to publish and `verify` re-checks them. `--pod-id` on `add` ties the domain to one pod.
+`--pod-id` on `add` ties the domain to one pod; leave it off for account-wide.
 
 ### Policy
 
 ```bash
 openmail policy get --inbox-id inb_xxx
-openmail policy mode --inbox-id inb_xxx --direction inbound --mode allowlist
+openmail policy mode --inbox-id inb_xxx --direction inbound --mode allowlist      # empty allowlist denies all
 openmail policy allow --inbox-id inb_xxx --direction inbound --value marc@example.com
-openmail policy block --direction outbound --value "*.competitor.com"
+openmail policy block --direction outbound --value "*.competitor.com"             # account-wide
 openmail policy rules remove --rule-id rule_xxx --inbox-id inb_xxx
 openmail policy audit --direction inbound --since 2026-09-01T00:00:00Z
 ```
@@ -163,6 +163,20 @@ Goes to the OpenMail team. Types: `bug`, `friction`, `feature_request`.
 | `--version` | Print the installed version. |
 | `--help` | Help for any command: `openmail help send`. |
 
+## Environment variables
+
+| Variable | Default |
+| --- | --- |
+| `OPENMAIL_API_KEY` | none; falls back to the key `init` saved |
+| `OPENMAIL_BASE_URL` | `https://api.openmail.sh` |
+| `OPENMAIL_STATE_PATH` | `~/.openmail-cli/state.json` |
+
+Read from the environment first, then a `.env` in the working directory. The matching flag wins over both.
+
+## Exit codes
+
+`0` on success, `1` on anything else: bad flags, API errors, a deprecated command. With `--json` the error is a JSON object on stderr, so scripts can branch on the code and parse the reason.
+
 ## Updating
 
 ```bash
@@ -189,6 +203,10 @@ The CLI checks npm at most once a day and prints a one-line notice after any com
 | Skill file `setup` wrote into `~/.openclaw` | Bundled in the plugin. For other agents: `npx skills add openmailsh/skills` |
 
 Everything else is unchanged.
+
+## Source and support
+
+The CLI is open source at [openmailsh/cli](https://github.com/openmailsh/cli); bugs and feature requests go in its [issues](https://github.com/openmailsh/cli/issues), or straight from the terminal with `openmail feedback`.
 
 ## Related
 
