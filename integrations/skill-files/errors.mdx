@@ -40,21 +40,23 @@ All errors return a consistent JSON structure:
 
 ### `missing inbox id; run 'openmail init' or pass --inbox-id`
 
-Setup hasn't been run, or `~/.openclaw/openmail.env` is missing. Run:
+No default inbox is saved. Run:
 
 ```bash
-openmail setup --api-key "om_..."
+openmail init --mailbox-name "my-agent"
 ```
+
+Or pass `--inbox-id` on the command. Inside OpenClaw the plugin supplies the inbox; use `openclaw openmail -- <command>`.
 
 ### `OpenMail API 401`
 
 The API key is invalid or not being loaded. Verify:
 
 ```bash
-grep OPENMAIL_API_KEY ~/.openclaw/openmail.env
+echo $OPENMAIL_API_KEY
 ```
 
-The key should start with `om_`. Re-run setup if it is wrong or missing.
+The key should start with `om_`. Export it again or pass `--api-key` if it is wrong or missing. Inside OpenClaw, re-run `openclaw channels add --channel openmail --api-key <key>`.
 
 ### `cannot read attachment "..."`
 

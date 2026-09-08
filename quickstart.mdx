@@ -1,95 +1,65 @@
 ---
 title: "Quickstart"
-description: "Get your AI agent its own email address in two commands. Install the CLI, run openmail setup, and start sending and receiving email in minutes."
+description: "Get your AI agent its own email address. Install the OpenClaw plugin or the OpenMail CLI, create an inbox, and start sending and receiving email in minutes."
 icon: rocket
 ---
 
-Get your AI agent its own email address in two commands.
+Get your AI agent its own email address.
 
 ## Prerequisites
 
-- Node.js 20+
 - [OpenMail account](https://console.openmail.sh/login) (free, no credit card)
+- An API key from the [console](https://console.openmail.sh/api-keys)
+- Node.js 20+ for the CLI path
 
 <Tabs>
+  <Tab title="OpenClaw">
+    <Steps>
+      <Step title="Install the plugin">
+        ```bash
+        openclaw plugins install clawhub:@openmail/openclaw
+        ```
+      </Step>
+      <Step title="Add the channel">
+        ```bash
+        openclaw channels add --channel openmail --api-key <key> --mailbox-name my-agent
+        openclaw gateway restart
+        ```
+        With an account key, `channels add` creates the inbox, mints an inbox-scoped key for it, and stores only that. Omit `--mailbox-name` to use an inbox you already have.
+      </Step>
+      <Step title="Check it">
+        ```bash
+        openclaw channels status
+        ```
+        Mail to `my-agent@omail.sh` now wakes the agent, and its reply goes out in the same thread.
+      </Step>
+    </Steps>
+
+    Modes, pod accounts, and the configuration reference are in the [OpenClaw integration](/integrations/openclaw) guide.
+  </Tab>
   <Tab title="Claude Code">
     <Steps>
-      <Step title="Install the skill">
-        Inside Claude Code, run:
-        ```
-        /plugin marketplace add openmailsh/skills
-        /plugin install openmail@openmailsh-skills
-        ```
-        Claude Code now knows how to use OpenMail.
-      </Step>
-      <Step title="Run setup">
-        In your terminal:
-        ```bash
-        npx @openmail/cli setup --agent claude-code
-        ```
-        This opens your browser to sign in, prompts for a mailbox name, creates your inbox, and writes credentials to `~/.claude/openmail.env`.
-      </Step>
-      <Step title="Verify">
-        ```bash
-        npx @openmail/cli status
-        ```
-        Your agent can now send and receive email. Ask Claude Code to send a test email to confirm.
-      </Step>
-    </Steps>
-  </Tab>
-  <Tab title="OpenClaw">
-    <CardGroup cols={2}>
-      <Card title="OpenClaw integration" icon="book-open" href="/integrations/openclaw">
-        Paths, WebSocket bridge, and links to the packaged skill files.
-      </Card>
-      <Card title="Skill files (SKILL.md)" icon="files" href="/integrations/skill-files/openmail">
-        `SKILL.md` matches [`@openmail/cli`](https://github.com/openmailsh/cli); reference pages come from [openmailsh/skills](https://github.com/openmailsh/skills).
-      </Card>
-    </CardGroup>
-
-    <div className="openmail-prompt-card">
-    <Prompt
-      description="Use this pre-built prompt to get started faster."
-      icon="wand-sparkles"
-      actions={["copy", "cursor"]}
-    >
-    Read https://docs.openmail.sh/quickstart then add OpenMail to our OpenClaw agent:
-
-    1. `npm install -g @openmail/cli`
-    2. Ask the user for their API key (from https://console.openmail.sh/settings/api), inbox name, and display name, then run `openmail setup --api-key "<key>" --mailbox-name "<name>" --display-name "<display name>" --mode notify`
-    </Prompt>
-    </div>
-
-    <Steps>
-      <Step title="Install">
+      <Step title="Install the CLI">
         ```bash
         npm install -g @openmail/cli
+        export OPENMAIL_API_KEY=om_...
         ```
       </Step>
-      <Step title="Setup">
+      <Step title="Create an inbox">
         ```bash
-        openmail setup
+        openmail init --mailbox-name my-agent --display-name "My agent"
         ```
-        Creates your inbox, writes the skill file to `~/.openclaw/skills/openmail/SKILL.md`, and saves credentials to `~/.openclaw/openmail.env`. Pass `--api-key om_...` to skip the auth prompt.
-
-        When setup completes, confirm everything is working:
-        ```bash
-        openmail status
-        ```
-        <Note>
-          **WebSocket bridge** — Setup starts the bridge automatically via systemd (Linux) or launchd (macOS). On Windows, setup prints the command to run manually.
-        </Note>
+        Creates the inbox and saves it as the default, so later commands need no `--inbox-id`.
       </Step>
-      <Step title="Send an email">
+      <Step title="Install the skill">
         ```bash
-        openmail send --to hello@example.com --subject "Hello from OpenMail" --body "I have my own inbox!"
+        npx skills add openmailsh/cli
         ```
-        Add files with `--attach` (repeatable):
-        ```bash
-        openmail send --to hello@example.com --subject "Report" --body "See attached" --attach report.pdf
-        ```
+        Or copy [`skills/openmail/SKILL.md`](https://github.com/openmailsh/cli/blob/main/skills/openmail/SKILL.md) into `~/.claude/skills/openmail/`. The same file works for Cursor and Codex; use your agent's skills directory.
       </Step>
     </Steps>
+
+    Ask Claude Code to send a test email to confirm. Details in the [Claude Code integration](/integrations/claude-code) guide.
   </Tab>
   <Tab title="API / SDK">
     See the [API integration guide](/guides/api-integration) for creating inboxes and sending email programmatically with any language or framework.
@@ -98,32 +68,28 @@ Get your AI agent its own email address in two commands.
 
 ## Narrow the agent's key
 
-Setup signs you in with your **account-wide** key and stores it for the agent to use. That key reaches every inbox on your account. Once setup has created the agent's inbox, swap it for an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) — the agent keeps working, but a compromised agent can no longer reach anything but its own inbox.
+An account-wide key reaches every inbox on your account. Give the agent an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) instead, so a compromised agent can reach nothing but its own inbox.
+
+The OpenClaw plugin does this for you: `channels add` mints an inbox-scoped key and never stores the account key. For the CLI path, mint one yourself and put it in `OPENMAIL_API_KEY`:
 
 ```bash
-curl -X POST https://api.openmail.sh/v1/inboxes/<inbox-id>/api-keys \
-  -H "Authorization: Bearer <account-key>" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "my-agent"}'
+openmail inbox keys create --inbox-id <inbox-id> --name my-agent --json
 ```
 
-Replace `OPENMAIL_API_KEY` in the agent's env file with the returned `token`. It is shown once, at creation. Minting needs your account-wide key, so run this yourself rather than handing the account key to the agent.
-
-<Note>
-  Setup itself needs the account-wide key — creating an inbox is outside what an inbox-scoped key can do, and the inbox has to exist before a key can be scoped to it. Narrow the key after setup, not before.
-</Note>
+The token is shown once. Minting needs your account-wide key, so run this from your own shell, not the agent's.
 
 ## More commands
 
 ```bash
-openmail messages list --direction inbound
-openmail threads list
+openmail send --to hello@example.com --subject "Hello" --body "I have my own inbox!"
+openmail send --to hello@example.com --subject "Report" --body "See attached" --attach report.pdf
+openmail threads list --is-read false
 openmail threads get --thread-id <thread-id>
 ```
 
 ## Next steps
 
-- **OpenClaw** - See the [OpenClaw integration](/integrations/openclaw) guide and the **Skill files** tab for [SKILL.md](/integrations/skill-files/openmail) and [reference files](/integrations/skill-files/setup).
+- **OpenClaw** - Modes, pod accounts, and upgrading from the CLI bridge in the [OpenClaw integration](/integrations/openclaw) guide.
 - **Handle inbound email** - Route replies to your agent via [WebSocket](/concepts/websockets) or [webhooks](/guides/webhooks).
 - **Improve deliverability** - Follow [warm-up schedules](/best-practices/email-deliverability) to stay out of spam.
 - **Explore the API** - Full [API reference](/api-reference/introduction) for programmatic workflows.

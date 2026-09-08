@@ -4,12 +4,12 @@ description: "Create and manage inboxes programmatically via the OpenMail REST A
 icon: code
 ---
 
-For developers building AI agents with [OpenClaw](https://openclaw.ai), [n8n](https://n8n.io), [Make](https://make.com), or any agent framework. This guide covers the multi-tenant pattern: create inbox, inject env vars, route inbound by `inbox_id`. For LangChain or Vercel AI SDK, see [Agent frameworks](/integrations/agent-frameworks) for ready-made tool definitions.
+For developers building AI agents with [n8n](https://n8n.io), [Make](https://make.com), or any agent framework. This guide covers the multi-tenant pattern: create inbox, inject env vars, route inbound by `inbox_id`. For LangChain or Vercel AI SDK, see [Agent frameworks](/integrations/agent-frameworks) for ready-made tool definitions. For OpenClaw, use the [channel plugin](/integrations/openclaw) instead; a pod account covers every inbox you create.
 
 ## Prerequisites
 
 - [OpenMail account](https://console.openmail.sh/login) with API key
-- An AI agent or agent framework (e.g. [OpenClaw](https://openclaw.ai), [LangChain](https://langchain.com), [n8n](https://n8n.io))
+- An AI agent or agent framework (e.g. [LangChain](https://langchain.com), [n8n](https://n8n.io))
 
 <div className="openmail-prompt-card">
 <Prompt
@@ -17,10 +17,10 @@ For developers building AI agents with [OpenClaw](https://openclaw.ai), [n8n](ht
   icon="wand-sparkles"
   actions={["copy", "cursor"]}
 >
-Read https://docs.openmail.sh/quickstart/api then implement the OpenMail integration for our OpenClaw agent:
+Read https://docs.openmail.sh/guides/api-integration then implement the OpenMail integration for our agent:
 
 1. Create inbox - call POST /v1/inboxes, write OPENMAIL_API_KEY, OPENMAIL_INBOX_ID, and OPENMAIL_ADDRESS into the agent container's env
-2. SKILL.md file - place at ~/.openclaw/skills/openmail/SKILL.md, teaches the agent to send/receive/reply via curl
+2. SKILL.md file - place it in the agent's skills directory, teaches the agent to send/receive/reply via curl
 3. Webhook handler at POST /webhooks/openmail - verifies X-Signature (HMAC-SHA256), routes inbound email to the correct container using inbox_id from the payload
 
 Use our existing patterns for env var injection and container routing.
@@ -103,13 +103,13 @@ OPENMAIL_INBOX_ID=inb_8f3a1b2c
 OPENMAIL_ADDRESS=jane@omail.sh
 ```
 
-For OpenClaw, set these in `~/.openclaw/.env` or in `~/.openclaw/openclaw.json` under `skills.entries.openmail.env`. For other frameworks, inject them into your agent's environment (e.g. LangChain tool config, n8n node credentials).
+Inject them into your agent's environment (e.g. LangChain tool config, n8n node credentials, a Docker `--env-file`).
 
 ## Step 3: Add the skill file
 
-This file teaches the agent how to send and receive email. OpenClaw loads it into the LLM's system prompt; other frameworks use similar patterns (system prompts, tool descriptions). The agent calls the API via `curl`—no CLI binary needed.
+This file teaches the agent how to send and receive email. Most frameworks load it into the system prompt or expose it as a tool description. The agent calls the API via `curl`—no CLI binary needed.
 
-For OpenClaw, place at `~/.openclaw/skills/openmail/SKILL.md` or pre-bake into your Docker image. For other frameworks, adapt the path—the skill content is the same.
+Place it in your agent's skills directory (for Claude Code, `~/.claude/skills/openmail/SKILL.md`) or pre-bake it into your Docker image. The content is the same for every framework.
 
 ````markdown SKILL.md
 ---
@@ -203,7 +203,7 @@ Multiple files: repeat the `-F "attachments=@..."` flag. Max 25 MB total per ema
 ````
 
 <Tip>
-  **Pre-bake into Docker** - the skill file is identical for every agent. Only the env vars differ per container. For OpenClaw: `COPY skills/openmail/SKILL.md /root/.openclaw/skills/openmail/SKILL.md`
+  **Pre-bake into Docker** - the skill file is identical for every agent. Only the env vars differ per container: `COPY skills/openmail/SKILL.md /root/.claude/skills/openmail/SKILL.md`
 </Tip>
 
 ## Step 4: Handle inbound email
