@@ -55,7 +55,7 @@ openmail send --to marc@example.com --thread-id thr_xxx --body "Confirmed." --no
 openmail send --to marc@example.com --subject "Report" --body "Attached." --attach report.pdf --attach data.csv
 ```
 
-One `--to`; repeat `--cc`. HTML in `--body` is detected. With `--thread-id` the subject is optional and the previous message is quoted unless you pass `--no-quote`. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe.
+One `--to`, on purpose: the CLI refuses a second so an agent can't spray. Repeat `--cc` for the others. HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe.
 
 ### Read
 
@@ -176,7 +176,6 @@ The CLI checks npm at most once a day and prints a one-line notice after any com
 
 - **One page per list call.** `--limit` and `--offset` only. Nothing auto-paginates.
 - **No confirmation on delete or revoke.** `inbox delete` and `keys revoke` run as soon as you press enter, which is what an agent wants and what a typo doesn't.
-- **`send` takes one `--to`.** More recipients go in `--cc`.
 
 ## Upgrading from 0.6
 
