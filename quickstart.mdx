@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Get your AI agent its own email address. Install the OpenClaw or Hermes plugin or the OpenMail CLI, create an inbox, and start sending and receiving email in minutes."
+description: "Get your AI agent its own email address. Pick your agent framework and follow its setup guide to create an inbox and start sending and receiving email in minutes."
 icon: rocket
 ---
 
@@ -10,116 +10,38 @@ Get your AI agent its own email address.
 
 - [OpenMail account](https://console.openmail.sh/login) (free, no credit card)
 - An API key from the [console](https://console.openmail.sh/api-keys)
-- Node.js 20+ for the CLI path
 
-<Tabs>
-  <Tab title="OpenClaw">
-    <Steps>
-      <Step title="Install the plugin">
-        ```bash
-        openclaw plugins install clawhub:@openmail/openclaw
-        ```
-      </Step>
-      <Step title="Add the channel">
-        ```bash
-        openclaw channels add --channel openmail --api-key <key> --mailbox-name my-agent
-        openclaw gateway restart
-        ```
-        With an account key, `channels add` creates the inbox, mints an inbox-scoped key for it, and stores only that. Omit `--mailbox-name` to use an inbox you already have.
-      </Step>
-      <Step title="Check it">
-        ```bash
-        openclaw channels status
-        ```
-        Mail to `my-agent@omail.sh` now wakes the agent, and its reply goes out in the same thread.
-      </Step>
-    </Steps>
+## Pick your agent
 
-    Modes, pod accounts, and the configuration reference are in the [OpenClaw integration](/integrations/openclaw) guide.
-  </Tab>
-  <Tab title="Hermes">
-    <Steps>
-      <Step title="Install the plugin">
-        ```bash
-        hermes plugins install openmailsh/hermes-plugin --enable
-        ```
-      </Step>
-      <Step title="Run setup">
-        ```bash
-        hermes openmail setup
-        ```
-        Asks for an API key (any scope), picks or creates the inbox and writes `~/.hermes/.env`.
-      </Step>
-      <Step title="Start the gateway">
-        ```bash
-        hermes gateway run
-        ```
-        Mail to the inbox wakes the agent, and its reply goes out in the same thread.
-      </Step>
-    </Steps>
+Each guide installs the integration, creates an inbox, and sends a first email.
 
-    Details in the [Hermes integration](/integrations/hermes) guide.
-  </Tab>
-  <Tab title="Claude Code">
-    <Steps>
-      <Step title="Install the CLI">
-        ```bash
-        npm install -g @openmail/cli
-        export OPENMAIL_API_KEY=om_...
-        ```
-      </Step>
-      <Step title="Create an inbox">
-        ```bash
-        openmail init --mailbox-name my-agent --display-name "My agent"
-        ```
-        Creates the inbox and saves it as the default, so later commands need no `--inbox-id`.
-      </Step>
-      <Step title="Install the skill">
-        ```bash
-        npx skills add openmailsh/skills
-        ```
-        Or copy [`skills/openmail/SKILL.md`](https://github.com/openmailsh/skills/blob/main/skills/openmail/SKILL.md) into `~/.claude/skills/openmail/`. The same file works for Cursor and Codex; use your agent's skills directory.
-      </Step>
-    </Steps>
-
-    Ask Claude Code to send a test email to confirm. Details in the [Claude Code integration](/integrations/claude-code) guide.
-  </Tab>
-  <Tab title="API / SDK">
-    See the [API integration guide](/guides/api-integration) for creating inboxes and sending email programmatically with any language or framework.
-  </Tab>
-</Tabs>
+<CardGroup cols={2}>
+  <Card title="OpenClaw" img="/images/quickstart/openclaw.png" href="/integrations/openclaw">
+    Install the plugin and enable your agent to send and read emails.
+  </Card>
+  <Card title="Hermes Agent" img="/images/quickstart/hermes.png" href="/integrations/hermes">
+    Plugin with guided setup. Three command lines and OpenMail is live.
+  </Card>
+  <Card title="Claude Code" img="/images/quickstart/claude-code.png" href="/integrations/claude-code">
+    Install the CLI and the `openmail` skill. Also works for Cursor and Codex.
+  </Card>
+  <Card title="CLI" img="/images/quickstart/cli.png" href="/integrations/cli">
+    Every `openmail` command, for agents and scripts that work from a shell.
+  </Card>
+  <Card title="API / SDK" img="/images/quickstart/api.png" href="/guides/api-integration">
+    Create inboxes and send email programmatically in any language.
+  </Card>
+</CardGroup>
 
 ## Narrow the agent's key
 
-An account-wide key reaches every inbox on your account. Give the agent an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) instead, so a compromised agent can reach nothing but its own inbox.
-
-The OpenClaw plugin does this for you: `channels add` mints an inbox-scoped key and never stores the account key. For the CLI path, mint one yourself and put it in `OPENMAIL_API_KEY`:
-
-```bash
-openmail inbox keys create --inbox-id <inbox-id> --name my-agent --json
-```
-
-The token is shown once. Minting needs your account-wide key, so run this from your own shell, not the agent's.
-
-## More commands
-
-```bash
-openmail send --to hello@example.com --subject "Hello" --body "I have my own inbox!"
-openmail send --to hello@example.com --subject "Report" --body "See attached" --attach report.pdf
-openmail threads list --is-read false
-openmail threads get --thread-id <thread-id>
-```
+An account-wide key reaches every inbox. Give the agent a scoped key instead, so a compromised agent can reach nothing beyond its own inbox or pod. The OpenClaw and Hermes plugins narrow the key during setup; for the CLI and API paths, mint one yourself. See [Agent keys](/best-practices/api-key-scopes).
 
 ## Next steps
 
-- **OpenClaw** - Modes, pod accounts, and upgrading from the CLI bridge in the [OpenClaw integration](/integrations/openclaw) guide.
-- **Handle inbound email** - Route replies to your agent via [WebSocket](/concepts/websockets) or [webhooks](/guides/webhooks).
-- **Improve deliverability** - Follow [warm-up schedules](/best-practices/email-deliverability) to stay out of spam.
-- **Explore the API** - Full [API reference](/api-reference/introduction) for programmatic workflows.
-
 <CardGroup cols={2}>
-  <Card title="WebSockets" icon="bolt" href="/concepts/websockets">
-    Real-time event streaming. No public URL needed.
+  <Card title="Handle inbound email" icon="bolt" href="/concepts/websockets">
+    Route replies to your agent over WebSockets or [webhooks](/guides/webhooks).
   </Card>
   <Card title="Email deliverability" icon="mail-check" href="/best-practices/email-deliverability">
     Warm-up schedules and content best practices.
@@ -127,7 +49,7 @@ openmail threads get --thread-id <thread-id>
   <Card title="Threading" icon="messages-square" href="/concepts/threading">
     How threads work across inbound and outbound.
   </Card>
-  <Card title="API integration" icon="code" href="/guides/api-integration">
-    Create inboxes programmatically for multi-tenant apps.
+  <Card title="API reference" icon="book" href="/api-reference/introduction">
+    Every endpoint, for programmatic workflows.
   </Card>
 </CardGroup>

@@ -58,7 +58,7 @@ Your account-wide key reaches every inbox. When one agent owns exactly one inbox
 
 Anything outside that boundary is refused rather than silently ignored — see [`forbidden`](/api-reference/overview#common-error-codes) if you need to handle it.
 
-Minting requires an **account-wide** key — a pod- or inbox-scoped key cannot mint. The full `token` is returned once, at creation, and cannot be retrieved again. Listing returns only a masked `tokenPrefix` and `last4`.
+Minting requires an **account-wide** key, or a pod-scoped key for the inbox's pod — an inbox-scoped key cannot mint. The full `token` is returned once, at creation, and cannot be retrieved again. Listing returns only a masked `tokenPrefix` and `last4`.
 
 ```bash
 # Mint a key confined to a single inbox

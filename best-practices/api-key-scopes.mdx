@@ -1,0 +1,62 @@
+---
+title: "Agent keys"
+description: "Give each agent an inbox-scoped API key so a compromised or prompt-injected agent can reach nothing but its own inbox. Keep the account-wide key on your side."
+icon: key-round
+---
+
+The key you get at signup reaches every inbox on your account. An agent runs untrusted input all day, so never hand it that key. Give it the narrowest scope that fits and keep the account-wide key on your side.
+
+## Pick the scope
+
+| Agent owns | Use | Mint with |
+|---|---|---|
+| One inbox | [Inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) | `POST /v1/inboxes/{id}/api-keys` |
+| Several inboxes (a tenant) | [Pod-scoped key](/concepts/pods#pod-scoped-api-keys) | `POST /v1/pods/{id}/api-keys` |
+| Everything | Account-wide key | [Console](https://console.openmail.sh/api-keys) only. Keep it server-side. |
+
+An inbox-scoped key can read and send from its one inbox and nothing else. It cannot see other inboxes, create or delete inboxes, mint keys, or read the [sender rules](/concepts/sender-rules) that apply to it. If an email tricks the agent, the damage stops at that inbox.
+
+## Mint one
+
+Minting needs an account-wide key, or a pod key for the inbox's pod. Run it from your own shell or backend, never from the agent's. The token is shown once.
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    openmail inbox keys create --inbox-id <inbox-id> --name my-agent --json
+    ```
+    Put the returned `token` in the agent's `OPENMAIL_API_KEY`.
+  </Tab>
+  <Tab title="API">
+    ```bash
+    curl -X POST https://api.openmail.sh/v1/inboxes/<inbox-id>/api-keys \
+      -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"name": "my-agent"}'
+    ```
+    Write the returned `token` into the agent's environment as `OPENMAIL_API_KEY`. The [API integration guide](/guides/api-integration#step-1-create-an-inbox-and-its-key) does this right after creating the inbox.
+  </Tab>
+</Tabs>
+
+## Plugins do this for you
+
+Both plugins swap an account key for a **pod-scoped** key during setup and store only that. The account key never touches disk. A pod key still lets the agent create inboxes in its pod, which is what lets one account grow into several inboxes later without a new key from the console.
+
+- **OpenClaw**: `channels add`
+- **Hermes Agent**: `hermes openmail setup`
+
+Pass an inbox-scoped key instead if you want the agent confined to one inbox; both plugins store it as-is.
+
+## Rotate and revoke
+
+Each inbox and pod holds up to 20 active keys. To rotate, mint a new key, switch the agent over, then revoke the old one; it gets `401` immediately. Deleting an inbox revokes its keys with it.
+
+```bash
+openmail inbox keys list --inbox-id <inbox-id>
+openmail inbox keys revoke --inbox-id <inbox-id> --key-id <key-id>
+```
+
+## Related
+
+- [Key scopes](/api-reference/authentication#key-scopes): the full comparison.
+- [Sender rules](/concepts/sender-rules): limit who an inbox can email, out of the agent's reach.

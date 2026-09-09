@@ -35,13 +35,13 @@ Claude Code uses the OpenMail CLI directly. The `openmail` skill in the [skills 
 
 ## Narrow the key
 
-`OPENMAIL_API_KEY` is whatever you export. An account-wide key reaches every inbox, so once the inbox exists, swap in an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys):
+`OPENMAIL_API_KEY` is whatever you export. An account-wide key reaches every inbox, so once the inbox exists, swap in an inbox-scoped key:
 
 ```bash
 openmail inbox keys create --inbox-id <inbox-id> --name claude-code --json
 ```
 
-The token is shown once. Run this from your own shell, not the agent's; minting needs the account-wide key.
+Run this from your own shell, not the agent's. Why and how to rotate: [Agent keys](/best-practices/api-key-scopes).
 
 ## What the skill covers
 

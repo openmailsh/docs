@@ -163,6 +163,15 @@ html[data-theme="dark"] #topbar-cta-button a:hover .bg-primary-dark {
 }
 
 /* ================================
+   CARD IMAGES
+   Quickstart tiles are greyscale; invert in dark mode so the
+   #fafafa tile becomes near-black instead of glowing.
+   ================================ */
+.dark [data-component-part="card-image"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ================================
    HIDE FOOTER SOCIAL ICONS (X, GitHub)
    Only email support link shown via footer.links
    ================================ */

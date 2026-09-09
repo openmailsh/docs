@@ -32,7 +32,7 @@ OpenMail has three kinds of API keys. All three authenticate the same way, as a 
 
 Neither scoped kind can touch [sender rules](/concepts/sender-rules): every `/v1/policy` call from a scoped key returns `403`, reads included. An agent cannot read or change the policy that applies to it.
 
-Pick the narrowest scope that fits. A pod-scoped key suits a tenant that owns several inboxes; an inbox-scoped key suits a single agent that owns exactly one. Mint them with `POST /v1/pods/{id}/api-keys` and `POST /v1/inboxes/{id}/api-keys` respectively — both require an account-wide key, so a scoped key can never widen its own reach, and each pod or inbox can hold up to 20 active keys. See [Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys) and [Inbox-scoped API keys](/concepts/inboxes#inbox-scoped-api-keys).
+Pick the narrowest scope that fits. A pod-scoped key suits a tenant that owns several inboxes; an inbox-scoped key suits a single agent that owns exactly one. Mint them with `POST /v1/pods/{id}/api-keys` and `POST /v1/inboxes/{id}/api-keys` respectively. Pod keys require an account-wide key; inbox keys accept an account-wide key or a pod key for that inbox's pod. A scoped key can never widen its own reach, and each pod or inbox can hold up to 20 active keys. See [Pod-scoped API keys](/concepts/pods#pod-scoped-api-keys) and [Inbox-scoped API keys](/concepts/inboxes#inbox-scoped-api-keys).
 
 The full token is returned once, at creation, and cannot be retrieved again — store it securely. Listing keys returns only a masked prefix and the last 4 characters.
 
