@@ -18,6 +18,16 @@ openclaw gateway restart
 
 The plugin bundles the CLI and the skill. See [OpenClaw](/integrations/openclaw) for modes, pod accounts, and configuration.
 
+## Hermes
+
+```bash
+hermes plugins install openmailsh/hermes-plugin --enable
+hermes openmail setup
+hermes gateway run
+```
+
+The plugin bundles the skill. `hermes openmail setup` asks for an API key (any scope), picks or creates the inbox and writes `~/.hermes/.env`. See [Hermes](/integrations/hermes).
+
 ## Claude Code, Cursor, Codex
 
 ```bash
@@ -51,4 +61,4 @@ openmail inbox create --mailbox-name "support" --display-name "Support"
 
 ## Remove
 
-Delete `~/.openmail-cli/state.json` and the skill directory. For OpenClaw, remove the `channels.openmail` block from `openclaw.json` and uninstall the plugin.
+Delete `~/.openmail-cli/state.json` and the skill directory. For OpenClaw, remove the `channels.openmail` block from `openclaw.json` and uninstall the plugin. For Hermes, remove the `OPENMAIL_*` lines from `~/.hermes/.env` and uninstall the plugin.
