@@ -19,7 +19,7 @@ For developers building AI agents with [n8n](https://n8n.io), [Make](https://mak
 >
 Read https://docs.openmail.sh/guides/api-integration then implement the OpenMail integration for our agent:
 
-1. Create inbox - call POST /v1/inboxes, write OPENMAIL_API_KEY, OPENMAIL_INBOX_ID, and OPENMAIL_ADDRESS into the agent container's env
+1. Create inbox - call POST /v1/inboxes, then POST /v1/inboxes/{id}/api-keys to mint an inbox-scoped key; write that key as OPENMAIL_API_KEY plus OPENMAIL_INBOX_ID and OPENMAIL_ADDRESS into the agent container's env
 2. SKILL.md file - place it in the agent's skills directory, teaches the agent to send/receive/reply via curl
 3. Webhook handler at POST /webhooks/openmail - verifies X-Signature (HMAC-SHA256), routes inbound email to the correct container using inbox_id from the payload
 
@@ -27,37 +27,42 @@ Use our existing patterns for env var injection and container routing.
 </Prompt>
 </div>
 
-## Step 1: Create an inbox
+## Step 1: Create an inbox and its key
 
-One API call. Create an inbox and map `inbox_id` to your user/container in your app for routing.
+Two API calls. Create the inbox, then mint an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) for it. The agent gets only that key, so a compromised container can reach nothing but its own inbox. Map `inbox_id` to your user/container in your app for routing.
 
 <CodeGroup>
 
 ```javascript Node.js
 const fs = require("fs/promises");
 
-const OPENMAIL_API_KEY = process.env.OPENMAIL_API_KEY;
+const OPENMAIL_API_KEY = process.env.OPENMAIL_API_KEY; // account or pod key, stays on your backend
 
-async function createAgentInbox(userId, containerEnvPath) {
-  const response = await fetch("https://api.openmail.sh/v1/inboxes", {
+async function api(path, body) {
+  const response = await fetch(`https://api.openmail.sh${path}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${OPENMAIL_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ mailboxName: userId }),
+    body: JSON.stringify(body),
   });
-
   if (!response.ok) throw new Error(`OpenMail: ${response.status}`);
+  return response.json();
+}
 
-  const inbox = await response.json();
+async function createAgentInbox(userId, containerEnvPath) {
+  const inbox = await api("/v1/inboxes", { mailboxName: userId });
   // inbox.id      → "inb_8f3a1b2c"
   // inbox.address → "jane@omail.sh"
+
+  const key = await api(`/v1/inboxes/${inbox.id}/api-keys`, { name: userId });
+  // key.token → "om_..." (shown once; never retrievable again)
 
   await fs.appendFile(
     containerEnvPath,
     [
-      `OPENMAIL_API_KEY=${OPENMAIL_API_KEY}`,
+      `OPENMAIL_API_KEY=${key.token}`,
       `OPENMAIL_INBOX_ID=${inbox.id}`,
       `OPENMAIL_ADDRESS=${inbox.address}`,
     ].join("\n") + "\n"
@@ -70,21 +75,27 @@ async function createAgentInbox(userId, containerEnvPath) {
 ```python Python
 import os, requests
 
-OPENMAIL_API_KEY = os.environ["OPENMAIL_API_KEY"]
+OPENMAIL_API_KEY = os.environ["OPENMAIL_API_KEY"]  # account or pod key, stays on your backend
 
-def create_agent_inbox(user_id: str, container_env_path: str) -> dict:
+def api(path: str, body: dict) -> dict:
     response = requests.post(
-        "https://api.openmail.sh/v1/inboxes",
+        f"https://api.openmail.sh{path}",
         headers={"Authorization": f"Bearer {OPENMAIL_API_KEY}"},
-        json={"mailboxName": user_id},
+        json=body,
     )
     response.raise_for_status()
-    inbox = response.json()
+    return response.json()
+
+def create_agent_inbox(user_id: str, container_env_path: str) -> dict:
+    inbox = api("/v1/inboxes", {"mailboxName": user_id})
     # inbox["id"]      → "inb_8f3a1b2c"
     # inbox["address"] → "jane@omail.sh"
 
+    key = api(f"/v1/inboxes/{inbox['id']}/api-keys", {"name": user_id})
+    # key["token"] → "om_..." (shown once; never retrievable again)
+
     with open(container_env_path, "a") as f:
-        f.write(f"OPENMAIL_API_KEY={OPENMAIL_API_KEY}\n")
+        f.write(f"OPENMAIL_API_KEY={key['token']}\n")
         f.write(f"OPENMAIL_INBOX_ID={inbox['id']}\n")
         f.write(f"OPENMAIL_ADDRESS={inbox['address']}\n")
 
@@ -93,9 +104,11 @@ def create_agent_inbox(user_id: str, container_env_path: str) -> dict:
 
 </CodeGroup>
 
+Minting needs an account-wide key, or a pod key for the inbox's pod. An inbox-scoped key cannot mint.
+
 ## Step 2: Write env vars into the container
 
-Three variables per container. The API key is shared across all agents; the inbox ID and address are unique.
+Three variables per container, all unique to it. Your account or pod key never enters the container.
 
 ```bash
 OPENMAIL_API_KEY=om_...
@@ -241,7 +254,7 @@ The event payload is identical for both methods:
 
 <Tabs>
   <Tab title="WebSocket (recommended)">
-    Connect to `wss://api.openmail.sh/v1/ws` with your API key. No public URL, no signature verification needed - the connection itself is authenticated.
+    Connect to `wss://api.openmail.sh/v1/ws` from your backend with your account or pod key, so one connection covers every inbox. No public URL, no signature verification needed - the connection itself is authenticated.
 
     <CodeGroup>
 
@@ -376,7 +389,7 @@ The event payload is identical for both methods:
 | What | Where | When |
 |------|-------|------|
 | Skill file (SKILL.md) | Agent's skills/config dir | Pre-baked in Docker or mounted at runtime |
-| `OPENMAIL_API_KEY` | Agent env | Set once from your secrets |
+| `OPENMAIL_API_KEY` | Agent env | Inbox-scoped key, minted when you create the inbox |
 | `OPENMAIL_INBOX_ID` | Agent env | Written when you create the inbox |
 | `OPENMAIL_ADDRESS` | Agent env | Written when you create the inbox |
 | WebSocket client **or** Webhook handler | Your backend | Connect to `wss://api.openmail.sh/v1/ws` or configure webhook URL in dashboard |
