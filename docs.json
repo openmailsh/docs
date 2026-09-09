@@ -96,6 +96,7 @@
             "group": "Integrations",
             "pages": [
               "integrations/openclaw",
+              "integrations/hermes",
               "integrations/claude-code",
               "integrations/cli",
               "integrations/agent-frameworks"

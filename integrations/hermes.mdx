@@ -1,0 +1,140 @@
+---
+title: "Hermes Agent"
+description: "Give your Hermes agent an email address."
+icon: sticker
+---
+
+Install [`openmailsh/hermes-plugin`](https://github.com/openmailsh/hermes-plugin) and mail to the agent's address wakes it. Replies go out in the same thread.
+
+## Before you start
+
+- Hermes Agent, installed and working.
+- An OpenMail API key from the [console](https://console.openmail.sh/api-keys). Any scope works.
+
+## Install
+
+<Steps>
+  <Step title="Install the plugin">
+    ```bash
+    hermes plugins install openmailsh/hermes-plugin --enable
+    ```
+  </Step>
+  <Step title="Run setup">
+    ```bash
+    hermes openmail setup
+    ```
+    Paste the key. Setup picks your inbox, or creates one.
+  </Step>
+  <Step title="Start the gateway">
+    ```bash
+    hermes gateway run
+    ```
+    Already running? `hermes gateway restart`. Look for `[OpenMail] Connected as <address>` in the log.
+  </Step>
+</Steps>
+
+Email the agent and it answers in the thread. Or ask it on your usual chat:
+
+- "What's in the inbox since this morning?"
+- "Reply to Marc that Thursday works, and cc Jonas."
+- "Sign up for the Linear newsletter and give me the confirmation code."
+
+Something off? `hermes openmail doctor`.
+
+## Modes
+
+| Mode | When mail arrives | Good for |
+| --- | --- | --- |
+| `channel` | The agent replies in the thread. | An inbox that *is* the agent: `support@` |
+| `notify` | The agent summarises it to your home channel and does nothing else. | Your own inbox |
+| `tool` | Nothing. The agent reads the inbox when you ask. | "Sign up for X and tell me the code" |
+
+Setup picks `channel`. Change it with `OPENMAIL_MODE` in `~/.hermes/.env`, or [per inbox](#several-inboxes). `notify` needs a home channel: `hermes gateway setup`.
+
+Only mail from a person gets a reply. Notifications and verification codes reach the agent as information, so it never answers `noreply@`. Spam never reaches it.
+
+## Who can email the agent
+
+Anyone, by default. Restrict it under **Allow/Block List** in the [console](https://console.openmail.sh/sender-rules) or with the CLI:
+
+```bash
+openmail policy mode --direction inbound --mode allowlist --inbox-id <id>
+openmail policy allow --direction inbound --value marc@example.com --inbox-id <id>
+```
+
+Blocked mail is dropped on the server; the agent never sees it. Hermes's own `GATEWAY_ALLOWED_USERS` applies too.
+
+### Prompt injection
+
+Replies go to the sender OpenMail recorded, not one the message claims. The model never sees the API key. Inbound mail can't issue gateway commands. The agent can still start new threads; to stop that, make the inbox's outbound policy an allowlist.
+
+## What the agent can do
+
+| Tool | Does |
+| --- | --- |
+| `openmail_whoami` | Its inboxes and default |
+| `openmail_send` | Start a thread, with cc and attachments |
+| `openmail_reply` | Reply in a thread |
+| `openmail_list_threads` | Threads, newest first |
+| `openmail_read_thread` | Every message in a thread |
+| `openmail_list_messages` | Messages, inbound or outbound |
+| `openmail_attachment_text` | Text from PDF, DOCX, XLSX, images |
+| `openmail_list_inboxes` | Inboxes the key can see |
+| `openmail_create_inbox` | New inbox (pod or account key) |
+| `openmail_create_inbox_key` | Key for a subagent |
+
+Tools default to the agent's own inbox. The bundled [`openmail` skill](/integrations/skill-files/openmail) teaches it the [CLI](/integrations/cli) for everything else; install the CLI separately.
+
+## Several inboxes
+
+Say yes when setup offers the whole [pod](/concepts/pods), and the agent runs every inbox in it, including ones it creates later. Each sender gets a conversation per inbox; replies leave from the inbox that received the mail.
+
+Set modes per inbox in `~/.hermes/config.yaml`:
+
+```yaml
+platforms:
+  openmail:
+    inboxes:
+      sales@omail.sh: { mode: channel }
+      alerts@omail.sh: { mode: notify }
+```
+
+## Subagents and Bots
+
+With a pod key, the agent can create an inbox, mint a key for it, and hand it to a child. `delegate_task` children inherit the parent's setup and can do this themselves. Give each [Bot](https://hermes-agent.nousresearch.com/docs/user-guide/bot-mode) its own inbox key and it runs as its own address.
+
+## Attachments
+
+Text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) reaches the agent inline, up to 8k characters per file and 24k total. Files without text arrive as files, so a vision model sees the picture. Outbound, the agent attaches local files by path.
+
+## Scheduled jobs
+
+`--deliver openmail` on a cron job emails its output to you; `--deliver openmail:alice@x.com` to anyone. Works with the gateway stopped.
+
+## Reliability
+
+A restart replays missed mail and keeps replies in-thread. A rejected key stops the plugin instead of retrying; `hermes openmail doctor` says why.
+
+## Configuration reference
+
+Setup writes `~/.hermes/.env`. If you gave it an account key, it stores a narrower pod key instead. Each variable also works under `platforms.openmail` in `config.yaml`, lower-cased without the prefix.
+
+| Variable | Meaning |
+| --- | --- |
+| `OPENMAIL_API_KEY` | Inbox, pod, or account key |
+| `OPENMAIL_INBOX_ID` | Inbox to run as. Only needed when the key spans several pods |
+| `OPENMAIL_POD_ID` | Run every inbox in this pod |
+| `OPENMAIL_MODE` | `channel` (default), `notify`, or `tool` |
+| `OPENMAIL_ALLOWED_USERS` | Comma-separated senders Hermes lets through |
+| `OPENMAIL_ALLOW_ALL_USERS` | `true` to leave filtering to OpenMail. Setup writes this |
+| `OPENMAIL_HOME_ADDRESS` | Where `--deliver openmail` sends |
+| `OPENMAIL_BASE_URL` | API host. Default `https://api.openmail.sh` |
+
+Skipping setup? `OPENMAIL_API_KEY` and `OPENMAIL_ALLOW_ALL_USERS=true` are enough. Scripted: `hermes openmail setup --api-key <key> -y`, or `--api-key-stdin`.
+
+## Related
+
+- [OpenClaw](/integrations/openclaw): the same design as a channel plugin
+- [Sender rules](/concepts/sender-rules): who can email the agent
+- [Pods](/concepts/pods): grouping inboxes under one key
+- [Attachments](/concepts/attachments): server-side text extraction

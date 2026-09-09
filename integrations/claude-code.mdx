@@ -1,7 +1,7 @@
 ---
 title: "Claude Code"
 description: "Give your Claude Code agent a real email address. Install the OpenMail CLI, create an inbox, and add the openmail skill so Claude Code can send, read, and reply."
-icon: terminal
+icon: asterisk
 ---
 
 Claude Code uses the OpenMail CLI directly. The `openmail` skill in the [skills repo](https://github.com/openmailsh/skills/blob/main/skills/openmail/SKILL.md) teaches it the commands. The same setup works for Cursor and Codex.
@@ -56,5 +56,5 @@ Inbound mail does not wake Claude Code on its own. The skill polls with `threads
 ## Related
 
 - [Quickstart](/quickstart): Claude Code tab with copy-paste steps
-- [OpenClaw](/integrations/openclaw): native channel plugin with inbound delivery
+- [OpenClaw](/integrations/openclaw) and [Hermes Agent](/integrations/hermes): native plugins with inbound delivery
 - [API integration](/guides/api-integration): multi-tenant or non-CLI setups
