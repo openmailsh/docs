@@ -1,5 +1,5 @@
 ---
-title: "Scope the agent's key"
+title: "Agent keys"
 description: "Give each agent an inbox-scoped API key so a compromised or prompt-injected agent can reach nothing but its own inbox. Keep the account-wide key on your side."
 icon: key-round
 ---
@@ -12,7 +12,7 @@ The key you get at signup reaches every inbox on your account. An agent runs unt
 |---|---|---|
 | One inbox | [Inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) | `POST /v1/inboxes/{id}/api-keys` |
 | Several inboxes (a tenant) | [Pod-scoped key](/concepts/pods#pod-scoped-api-keys) | `POST /v1/pods/{id}/api-keys` |
-| Everything | Account-wide key | Console only. Keep it server-side. |
+| Everything | Account-wide key | [Console](https://console.openmail.sh/api-keys) only. Keep it server-side. |
 
 An inbox-scoped key can read and send from its one inbox and nothing else. It cannot see other inboxes, create or delete inboxes, mint keys, or read the [sender rules](/concepts/sender-rules) that apply to it. If an email tricks the agent, the damage stops at that inbox.
 
