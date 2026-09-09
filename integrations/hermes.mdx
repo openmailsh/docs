@@ -162,7 +162,7 @@ A parent with a pod key can give a child its own address: `openmail_create_inbox
 ## Attachments
 
 1. **Extracted text, inline.** OpenMail parses PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) on the server. That text is appended to the message the agent reads, capped at 8k characters per file and 24k in total.
-2. **Staged files.** Anything without extracted text is downloaded into Hermes's media cache and passed to the agent as a file, so a vision model sees the picture. Files over OpenMail's 25 MB mail limit are skipped and named.
+2. **Staged files.** Anything without extracted text is downloaded into Hermes's media cache and passed to the agent as a file, so a vision model sees the picture.
 3. **On request.** For the rest, the message tells the agent to call `openmail_attachment_text`.
 
 Outbound, `attachments` on `openmail_send` and `openmail_reply` take local file paths.
