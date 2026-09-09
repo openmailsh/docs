@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Get your AI agent its own email address. Install the OpenClaw plugin or the OpenMail CLI, create an inbox, and start sending and receiving email in minutes."
+description: "Get your AI agent its own email address. Install the OpenClaw or Hermes plugin or the OpenMail CLI, create an inbox, and start sending and receiving email in minutes."
 icon: rocket
 ---
 
@@ -36,6 +36,29 @@ Get your AI agent its own email address.
     </Steps>
 
     Modes, pod accounts, and the configuration reference are in the [OpenClaw integration](/integrations/openclaw) guide.
+  </Tab>
+  <Tab title="Hermes">
+    <Steps>
+      <Step title="Install the plugin">
+        ```bash
+        hermes plugins install openmailsh/hermes-plugin --enable
+        ```
+      </Step>
+      <Step title="Run setup">
+        ```bash
+        hermes openmail setup
+        ```
+        Asks for an API key (any scope), picks or creates the inbox and writes `~/.hermes/.env`.
+      </Step>
+      <Step title="Start the gateway">
+        ```bash
+        hermes gateway run
+        ```
+        Mail to the inbox wakes the agent, and its reply goes out in the same thread.
+      </Step>
+    </Steps>
+
+    Details in the [Hermes integration](/integrations/hermes) guide.
   </Tab>
   <Tab title="Claude Code">
     <Steps>
