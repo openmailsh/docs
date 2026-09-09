@@ -264,7 +264,7 @@ Pod-scoped API keys (mint requires an account-wide key):
 - GET    /v1/pods/{idOrClientId}/api-keys          list keys (masked: tokenPrefix + last4)
 - DELETE /v1/pods/{idOrClientId}/api-keys/{keyId}  revoke -> key gets 401 immediately
 
-Inbox-scoped API keys (mint requires an account-wide key):
+Inbox-scoped API keys (mint requires an account-wide key, or a pod key for the inbox's pod):
 - POST   /v1/inboxes/{id}/api-keys           body: { name? } -> 201 { token, ... }
     token returned once; confined to this one inbox (read/send only, 403 on any
     other inbox, cannot create/modify/delete inboxes, no key mgmt)
@@ -276,7 +276,8 @@ Inbox-scoped API keys (mint requires an account-wide key):
 Notes:
 - Inboxes can't move between pods; choose the pod at creation time.
 - Three key scopes: account-wide reaches everything, pod-scoped reaches one pod,
-  inbox-scoped reaches one inbox. Only an account-wide key can mint scoped keys.
+  inbox-scoped reaches one inbox. Pod keys are minted by the account key; inbox
+  keys by the account key or the pod's key. A key never widens its own reach.
 - Max 20 active keys per pod and per inbox.
 - Pods are organizational isolation, not network isolation.
 ```

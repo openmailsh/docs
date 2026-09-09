@@ -35,15 +35,7 @@ Each guide installs the integration, creates an inbox, and sends a first email.
 
 ## Narrow the agent's key
 
-An account-wide key reaches every inbox on your account. Give the agent an [inbox-scoped key](/concepts/inboxes#inbox-scoped-api-keys) instead, so a compromised agent can reach nothing but its own inbox.
-
-The OpenClaw plugin does this for you: `channels add` mints an inbox-scoped key and never stores the account key. Hermes swaps an account key for a narrower pod key. For the CLI and API paths, mint one yourself and put it in `OPENMAIL_API_KEY`:
-
-```bash
-openmail inbox keys create --inbox-id <inbox-id> --name my-agent --json
-```
-
-The token is shown once. Minting needs your account-wide key, so run this from your own shell, not the agent's.
+An account-wide key reaches every inbox. Give the agent an inbox-scoped key instead, so a compromised agent can reach nothing but its own inbox. The OpenClaw and Hermes plugins do this during setup; for the CLI and API paths, mint one yourself. See [Scope the agent's key](/best-practices/api-key-scopes).
 
 ## Next steps
 

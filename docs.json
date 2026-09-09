@@ -105,6 +105,7 @@
           {
             "group": "Best practices",
             "pages": [
+              "best-practices/api-key-scopes",
               "best-practices/email-deliverability",
               "best-practices/idempotency"
             ]
