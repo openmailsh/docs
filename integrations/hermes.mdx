@@ -1,12 +1,15 @@
 ---
 title: "Hermes Agent"
-description: "Give your Hermes agent an email address with the OpenMail platform plugin. Inbound mail wakes the agent over a websocket, replies go out in-thread, and native tools let it send, read, and provision inboxes."
-icon: bot
+description: "Give your Hermes agent an email address."
+icon: sticker
 ---
 
-[`openmailsh/hermes-plugin`](https://github.com/openmailsh/hermes-plugin) is a native Hermes Agent platform plugin. Mail to the agent's address reaches it as a conversation with the sender, and whatever it writes back goes out as the reply in the same thread. The gateway holds the websocket, so there's no public URL, webhook, or extra process.
+Install [`openmailsh/hermes-plugin`](https://github.com/openmailsh/hermes-plugin) and mail to the agent's address wakes it. Replies go out in the same thread.
 
-You need Hermes Agent with `httpx` and `websockets` (both ship with it) and an OpenMail API key from the [console](https://console.openmail.sh/api-keys). Any scope works.
+## Before you start
+
+- Hermes Agent, installed and working.
+- An OpenMail API key from the [console](https://console.openmail.sh/api-keys). Any scope works.
 
 ## Install
 
@@ -20,129 +23,73 @@ You need Hermes Agent with `httpx` and `websockets` (both ship with it) and an O
     ```bash
     hermes openmail setup
     ```
-    Paste the key. Setup picks your inbox (or creates one if you have none) and writes `~/.hermes/.env`. If `OPENMAIL_MODE` is unset it asks for a mode; the default is `channel`.
+    Paste the key. Setup picks your inbox, or creates one.
   </Step>
   <Step title="Start the gateway">
     ```bash
     hermes gateway run
     ```
-    Already running? `hermes gateway restart`. Look for `[OpenMail] Connected as <address> (channel mode)` in the log. `hermes openmail doctor` checks the key, inbox, mode, and sender gate.
+    Already running? `hermes gateway restart`. Look for `[OpenMail] Connected as <address>` in the log.
   </Step>
 </Steps>
 
-Now email the agent from your own account and watch it answer in the thread, or ask it on your usual chat:
+Email the agent and it answers in the thread. Or ask it on your usual chat:
 
 - "What's in the inbox since this morning?"
 - "Reply to Marc that Thursday works, and cc Jonas."
-- "Sign up for the Linear newsletter with your address and give me the confirmation code."
-- "Create an inbox called billing and give me its address."
+- "Sign up for the Linear newsletter and give me the confirmation code."
 
-## What setup writes
-
-### Which key
-
-| Key scope | What `setup` does with it |
-| --- | --- |
-| Inbox | Stores it as-is. That inbox is the agent. |
-| Pod | Stores it as-is. Pins the inbox you pick with `OPENMAIL_INBOX_ID`, or runs the whole pod with `OPENMAIL_POD_ID` if you say yes when asked. |
-| Account | Picks or creates the inbox, mints a pod-scoped key over that inbox's pod, and stores only that. The account key never touches `.env`. |
-
-The pod key you end up with can still create inboxes, mint inbox keys, and later run the whole pod with one env change; it can't reach other pods, webhooks, or account-wide policy.
-
-### Which inbox
-
-Without `OPENMAIL_INBOX_ID` or `OPENMAIL_POD_ID`, the plugin goes by what the key sees:
-
-| Key sees | Plugin does |
-| --- | --- |
-| One inbox | Runs as it |
-| No inbox | Creates one |
-| Several inboxes, one pod | Runs the whole pod |
-| Several inboxes, several pods | Stops and asks for `OPENMAIL_INBOX_ID` or `OPENMAIL_POD_ID` |
-
-### Scripting it
-
-`hermes openmail setup --api-key <key>` skips the prompt, `--api-key-stdin` reads the key from stdin, and `-y` takes every default without asking (first inbox wins).
+Something off? `hermes openmail doctor`.
 
 ## Modes
 
-`OPENMAIL_MODE`, default `channel`.
-
-| Mode | Inbound mail | Who replies |
+| Mode | When mail arrives | Good for |
 | --- | --- | --- |
-| `channel` | Wakes the agent as a conversation with the sender. | The agent, in-thread. Its final message is the email body, verbatim. |
-| `notify` | Wakes the agent with "summarise, do not act". | You, by asking. The summary goes to your home channel (Telegram, Slack, Discord), never to the sender. |
-| `tool` | Ignored. No websocket is opened. | Nobody, unless you ask. Email is a tool the agent has. |
+| `channel` | The agent replies in the thread. | An inbox that *is* the agent: `support@` |
+| `notify` | The agent summarises it to your home channel and does nothing else. | Your own inbox |
+| `tool` | Nothing. The agent reads the inbox when you ask. | "Sign up for X and tell me the code" |
 
-Use `channel` for an inbox that *is* the agent (`support@`, `sales@`). Use `notify` for your own inbox, where the agent relays "Stripe says your card expires Friday" and writes back only if you tell it to. `tool` fits "sign up for X and tell me the code", where the agent reads the inbox itself.
+Setup picks `channel`. Change it with `OPENMAIL_MODE` in `~/.hermes/.env`, or [per inbox](#several-inboxes). `notify` needs a home channel: `hermes gateway setup`.
 
-`notify` needs a home channel; set one with `hermes gateway setup`.
-
-### Only people get an automatic reply
-
-OpenMail classifies each inbound mail on the server as `personal`, `automated`, `marketing`, `bounce`, `spam`, or `malicious`. In `channel` mode only `personal` mail opens a reply turn. A GitHub notification or a verification code reaches the agent as information, the way `notify` delivers everything, so the agent learns the code arrived without emailing `noreply@` back. Spam and malicious mail is dropped in every mode.
+Only mail from a person gets a reply. Notifications and verification codes reach the agent as information, so it never answers `noreply@`. Spam never reaches it.
 
 ## Who can email the agent
 
-Two gates, in order.
-
-**OpenMail policy runs first**, server-side, before delivery, so the agent never sees a blocked sender. Manage rules under **Allow/Block List** in the [console](https://console.openmail.sh/sender-rules), or with the CLI:
+Anyone, by default. Restrict it under **Allow/Block List** in the [console](https://console.openmail.sh/sender-rules) or with the CLI:
 
 ```bash
 openmail policy mode --direction inbound --mode allowlist --inbox-id <id>
 openmail policy allow --direction inbound --value marc@example.com --inbox-id <id>
-openmail policy block --direction outbound --value "*.competitor.com"
 ```
 
-[Sender rules](/concepts/sender-rules) covers scopes and audit history.
+Blocked mail is dropped on the server; the agent never sees it. Hermes's own `GATEWAY_ALLOWED_USERS` applies too.
 
-**Then Hermes checks its own list**, as on every platform:
+### Prompt injection
 
-- `OPENMAIL_ALLOWED_USERS=alice@x.com,bob@y.io`: only these reach the agent.
-- `OPENMAIL_ALLOW_ALL_USERS=true`: OpenMail policy alone decides. `setup` writes this unless `OPENMAIL_ALLOWED_USERS` is already set.
+Replies go to the sender OpenMail recorded, not one the message claims. The model never sees the API key. Inbound mail can't issue gateway commands. The agent can still start new threads; to stop that, make the inbox's outbound policy an allowlist.
 
-With neither set, Hermes drops every sender and logs one warning. Unknown senders are dropped silently, and no pairing code goes out by email. `GATEWAY_ALLOWED_USERS` and `GATEWAY_ALLOW_ALL_USERS` count too.
-
-### What stops the agent doing something stupid
-
-Email is the easiest way to feed an agent text it didn't ask for, so the checks live where a forged message can't reach them.
-
-- A reply goes to the sender OpenMail's API recorded, not the one the websocket frame claimed, because the plugin re-fetches the message before every turn. A spoofed `Reply-To` changes nothing.
-- Only mail classified `personal` gets a reply turn, so a bounce or a newsletter can't start a conversation.
-- Spam and malicious mail never reaches the agent in any mode.
-- The API key stays in the plugin. The model never sees it, so a prompt injection can't exfiltrate it or point the tools at another account.
-- Inbound mail can't issue gateway commands.
-
-The plugin doesn't stop the agent starting new threads. If you want that, make the inbox's outbound policy an allowlist.
-
-## Tools
-
-Toolset `openmail`. Each tool defaults to the agent's own inbox; pass `inbox_id` to use another one the key can see.
+## What the agent can do
 
 | Tool | Does |
 | --- | --- |
-| `openmail_whoami` | Inboxes this agent can use, and its default |
-| `openmail_send` | New thread: `to`, `subject`, `body`, optional `cc`, `attachments` |
-| `openmail_reply` | Reply in a thread; recipient and subject come from it. `quote: false` drops the quoted message. |
-| `openmail_list_threads` | Threads in an inbox, newest first; filter with `is_read` |
-| `openmail_read_thread` | Every message in a thread, oldest first; marks it read |
-| `openmail_list_messages` | Messages in an inbox, filter by `direction` |
-| `openmail_attachment_text` | Text extracted server-side from PDF, DOCX, XLSX, and images (OCR) |
-| `openmail_list_inboxes` | Inboxes visible to the key |
-| `openmail_create_inbox` | New inbox; needs a pod or account key |
-| `openmail_create_inbox_key` | Inbox-scoped key for a subagent |
+| `openmail_whoami` | Its inboxes and default |
+| `openmail_send` | Start a thread, with cc and attachments |
+| `openmail_reply` | Reply in a thread |
+| `openmail_list_threads` | Threads, newest first |
+| `openmail_read_thread` | Every message in a thread |
+| `openmail_list_messages` | Messages, inbound or outbound |
+| `openmail_attachment_text` | Text from PDF, DOCX, XLSX, images |
+| `openmail_list_inboxes` | Inboxes the key can see |
+| `openmail_create_inbox` | New inbox (pod or account key) |
+| `openmail_create_inbox_key` | Key for a subagent |
 
-In `channel` mode the agent's final message already is the reply. If it answers the thread with `openmail_reply` instead, the plugin drops the final text so the sender isn't emailed twice.
+Tools default to the agent's own inbox. The bundled [`openmail` skill](/integrations/skill-files/openmail) teaches it the [CLI](/integrations/cli) for everything else; install the CLI separately.
 
-The plugin also bundles the [`openmail` skill](/integrations/skill-files/openmail), which teaches the agent the [CLI](/integrations/cli) for what the tools don't cover: pods, policy, the full API. The CLI is a separate install.
+## Several inboxes
 
-## One inbox or a whole pod
+Say yes when setup offers the whole [pod](/concepts/pods), and the agent runs every inbox in it, including ones it creates later. Each sender gets a conversation per inbox; replies leave from the inbox that received the mail.
 
-**Inbox scope** is the default. One key, one address, one websocket.
-
-**Pod scope** covers every inbox in a [pod](/concepts/pods), including ones the agent creates later. Set `OPENMAIL_POD_ID` with a pod or account key, or say yes when `setup` offers it. A new inbox starts receiving mail within a minute. Each `(inbox, sender)` pair is its own conversation, and replies leave from the inbox that received the mail.
-
-Inboxes inherit `OPENMAIL_MODE` unless you override by address or id in `~/.hermes/config.yaml`:
+Set modes per inbox in `~/.hermes/config.yaml`:
 
 ```yaml
 platforms:
@@ -150,66 +97,44 @@ platforms:
     inboxes:
       sales@omail.sh: { mode: channel }
       alerts@omail.sh: { mode: notify }
-      archive@omail.sh: { mode: tool }
 ```
-
-The trade-off: a pod key reads every inbox in the pod, not one.
 
 ## Subagents and Bots
 
-A parent with a pod key can give a child its own address: `openmail_create_inbox`, then `openmail_create_inbox_key`, then hand the key over. `delegate_task` children inherit the parent's env and can do this themselves. A [Bot](https://hermes-agent.nousresearch.com/docs/user-guide/bot-mode) has its own `.env`, so give each Bot its own inbox key and it runs as its own address.
+With a pod key, the agent can create an inbox, mint a key for it, and hand it to a child. `delegate_task` children inherit the parent's setup and can do this themselves. Give each [Bot](https://hermes-agent.nousresearch.com/docs/user-guide/bot-mode) its own inbox key and it runs as its own address.
 
 ## Attachments
 
-1. **Extracted text, inline.** OpenMail parses PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) on the server. The plugin appends that text to the message the agent reads, capped at 8k characters per file and 24k in total.
-2. **Staged files.** Anything without extracted text is downloaded into Hermes's media cache and passed to the agent as a file, so a vision model sees the picture.
-3. **On request.** For the rest, the message tells the agent to call `openmail_attachment_text`.
+Text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) reaches the agent inline, up to 8k characters per file and 24k total. Files without text arrive as files, so a vision model sees the picture. Outbound, the agent attaches local files by path.
 
-Outbound, `attachments` on `openmail_send` and `openmail_reply` take local file paths.
+## Scheduled jobs
+
+`--deliver openmail` on a cron job emails its output to you; `--deliver openmail:alice@x.com` to anyone. Works with the gateway stopped.
 
 ## Reliability
 
-Inbound rides a websocket with backoff on reconnect. The plugin keeps the last `event_id` in `~/.hermes/openmail/`, so a restart replays what it missed. The frame is only a hint: the plugin re-fetches every message from the API before the agent sees it, retries briefly while the record catches up, and drops anything it can't find. Thread context lives on disk too, so replies still land in-thread after a restart.
-
-If OpenMail rejects the key, the platform stops with `openmail_auth_error` instead of retrying. `hermes openmail doctor` says why.
-
-## Cron and notifications
-
-`--deliver openmail` sends a job's output to `OPENMAIL_HOME_ADDRESS`; `--deliver openmail:alice@x.com` sends it to any address. Both work whether the gateway is running or not, and the subject is `Message from your agent`.
+A restart replays missed mail and keeps replies in-thread. A rejected key stops the plugin instead of retrying; `hermes openmail doctor` says why.
 
 ## Configuration reference
 
-Everything is an `OPENMAIL_*` variable in `~/.hermes/.env`. Each also works under `platforms.openmail` in `~/.hermes/config.yaml`, lower-cased without the prefix (`api_key`, `inbox_id`). Env wins.
-
-To skip `setup` and configure by hand, two lines are enough:
-
-```bash
-OPENMAIL_API_KEY=om_...
-OPENMAIL_ALLOW_ALL_USERS=true
-```
+Setup writes `~/.hermes/.env`. If you gave it an account key, it stores a narrower pod key instead. Each variable also works under `platforms.openmail` in `config.yaml`, lower-cased without the prefix.
 
 | Variable | Meaning |
 | --- | --- |
-| `OPENMAIL_API_KEY` | Inbox, pod, or account key. `setup` swaps an account key for a pod-scoped one. |
-| `OPENMAIL_INBOX_ID` | The inbox to run as. Needed when the key sees several inboxes across pods. |
-| `OPENMAIL_POD_ID` | Run every inbox in this pod. Needs a pod or account key. |
-| `OPENMAIL_MODE` | `channel` (default), `notify`, or `tool`. |
-| `OPENMAIL_ALLOWED_USERS` | Comma-separated senders Hermes lets through. |
-| `OPENMAIL_ALLOW_ALL_USERS` | `true` to leave it to OpenMail policy. |
-| `OPENMAIL_HOME_ADDRESS` | Where `--deliver openmail` sends. |
-| `OPENMAIL_BASE_URL` | API host. Default `https://api.openmail.sh`. |
+| `OPENMAIL_API_KEY` | Inbox, pod, or account key |
+| `OPENMAIL_INBOX_ID` | Inbox to run as. Only needed when the key spans several pods |
+| `OPENMAIL_POD_ID` | Run every inbox in this pod |
+| `OPENMAIL_MODE` | `channel` (default), `notify`, or `tool` |
+| `OPENMAIL_ALLOWED_USERS` | Comma-separated senders Hermes lets through |
+| `OPENMAIL_ALLOW_ALL_USERS` | `true` to leave filtering to OpenMail. Setup writes this |
+| `OPENMAIL_HOME_ADDRESS` | Where `--deliver openmail` sends |
+| `OPENMAIL_BASE_URL` | API host. Default `https://api.openmail.sh` |
 
-Per-inbox `mode` overrides live only in `config.yaml`, under `platforms.openmail.inboxes` (see [One inbox or a whole pod](#one-inbox-or-a-whole-pod)).
-
-## Plugin or skill?
-
-A skill is a markdown file that tells the agent how to use tools it already has; the [`openmail` skill](https://github.com/openmailsh/skills) does that for Claude Code, Cursor, and any agent with a shell. It can send mail but can't receive any, because nothing is listening.
-
-A plugin is code the gateway loads. This one holds the websocket, turns inbound mail into agent turns, and registers the `openmail_*` tools. It bundles the skill too, so on Hermes you install the plugin and nothing else.
+Skipping setup? `OPENMAIL_API_KEY` and `OPENMAIL_ALLOW_ALL_USERS=true` are enough. Scripted: `hermes openmail setup --api-key <key> -y`, or `--api-key-stdin`.
 
 ## Related
 
-- [OpenClaw](/integrations/openclaw): the same design as a channel plugin for OpenClaw
+- [OpenClaw](/integrations/openclaw): the same design as a channel plugin
 - [Sender rules](/concepts/sender-rules): who can email the agent
 - [Pods](/concepts/pods): grouping inboxes under one key
 - [Attachments](/concepts/attachments): server-side text extraction
