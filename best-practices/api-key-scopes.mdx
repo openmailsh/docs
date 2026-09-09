@@ -40,8 +40,12 @@ Minting needs an account-wide key, or a pod key for the inbox's pod. Run it from
 
 ## Plugins do this for you
 
-- **OpenClaw**: `channels add` mints an inbox-scoped key and stores only that. The account key is never written to disk.
-- **Hermes Agent**: `hermes openmail setup` swaps an account key for a pod-scoped key.
+Both plugins swap an account key for a **pod-scoped** key during setup and store only that. The account key never touches disk. A pod key still lets the agent create inboxes in its pod, which is what lets one account grow into several inboxes later without a new key from the console.
+
+- **OpenClaw**: `channels add`
+- **Hermes Agent**: `hermes openmail setup`
+
+Pass an inbox-scoped key instead if you want the agent confined to one inbox; both plugins store it as-is.
 
 ## Rotate and revoke
 
