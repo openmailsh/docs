@@ -39,7 +39,7 @@ Configure a webhook URL in the [Dashboard](https://console.openmail.sh/login). W
 
 ## What's the Idempotency-Key for?
 
-The send endpoint requires it. Use a unique UUID per send so retries don't create duplicate emails. See [Idempotency](/best-practices/idempotency).
+It makes retries safe. The header is optional — without it OpenMail generates a key and sends once — but if your code retries on timeouts, pass a unique UUID per send so a retry never creates a duplicate email. See [Idempotency](/best-practices/idempotency).
 
 ## Can I control who my inboxes talk to?
 

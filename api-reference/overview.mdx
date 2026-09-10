@@ -33,7 +33,6 @@ All errors return a consistent structure:
 | Status | Code | Description |
 |--------|------|-------------|
 | 400 | `invalid_mailbox_name` | Mailbox name doesn't meet format requirements |
-| 400 | `missing_idempotency_key` | Send endpoint requires Idempotency-Key header |
 | 400 | `unsupported_field` | The request carried a field OpenMail does not support — notably `bcc`, which is rejected rather than silently dropped. See [Sender rules](/concepts/sender-rules#bcc-is-not-supported). |
 | 401 | `unauthorized` | Invalid or missing API key |
 | 402 | `spend_cap_paused` | Monthly spend limit reached; domain creation is paused |
@@ -58,4 +57,4 @@ All errors return a consistent structure:
 
 ## Idempotency
 
-The `POST /v1/inboxes/:id/send` endpoint requires an `Idempotency-Key` header. If you retry a request with the same key, we return the original response without sending a duplicate email. Keys are scoped to your account and expire after 24 hours.
+The `POST /v1/inboxes/:id/send` endpoint accepts an optional `Idempotency-Key` header. Without it, OpenMail generates a key and sends once. If you retry a request with the same key, we return the original response without sending a duplicate email. Keys are scoped to your account and expire after 24 hours.
