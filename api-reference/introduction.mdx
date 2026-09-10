@@ -30,7 +30,7 @@ Welcome to the OpenMail API. Our API is organized around REST. It has predictabl
 </ResponseField>
 
 <ResponseField name="Idempotency" type="string">
-  Send endpoint requires `Idempotency-Key` header (UUID)
+  Send endpoint accepts an optional `Idempotency-Key` header (UUID) that makes retries safe
 </ResponseField>
 
 <ResponseField name="Webhooks" type="string">

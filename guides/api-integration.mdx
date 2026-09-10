@@ -209,7 +209,7 @@ Multiple files: repeat the `-F "attachments=@..."` flag. Max 25 MB total per ema
 
 ## Notes
 
-- Always include `Idempotency-Key` when sending (prevents duplicates on retry)
+- Include `Idempotency-Key` when sending if your code retries (prevents duplicates; optional otherwise)
 - Use `threadId` when replying so the email threads correctly in the recipient's client
 - For attachments, use `multipart/form-data` with `-F` flags instead of `-d` JSON
 - `$OPENMAIL_*` variables are read from the container environment at runtime

@@ -4,7 +4,9 @@ description: "Use idempotency keys to safely retry failed send requests without 
 icon: repeat
 ---
 
-The `POST /v1/inboxes/{id}/send` endpoint requires an `Idempotency-Key` header. If you retry with the same key, we return the original response without sending a duplicate email.
+The `POST /v1/inboxes/{id}/send` endpoint accepts an optional `Idempotency-Key` header. If you retry with the same key, we return the original response without sending a duplicate email.
+
+The header is optional: without it, OpenMail generates a key and sends once. Pass your own key whenever your code retries on timeouts — a retry without one is a second email.
 
 ## Usage
 
@@ -18,6 +20,7 @@ curl -X POST https://api.openmail.sh/v1/inboxes/inb_xxx/send \
 
 ## Rules
 
+- **Optional, but pass one if you retry** - Without a key, the API cannot tell a retry from a new send.
 - **Unique per send** - Generate a new UUID for each distinct send (e.g. `uuidgen`, `crypto.randomUUID()`).
 - **Scoped to account** - Keys are per-account, not global.
 - **24-hour expiry** - Keys expire after 24 hours. Reusing an expired key creates a new send.

@@ -64,7 +64,7 @@ def check_inbox() -> list[dict]:
     resp = requests.get(
         f"{BASE}/inboxes/{INBOX_ID}/threads",
         headers=HEADERS,
-        params={"is_read": "false", "limit": "20"},
+        params={"isRead": "false", "limit": "20"},
     )
     resp.raise_for_status()
     return resp.json()
@@ -83,7 +83,7 @@ def read_thread(thread_id: str) -> list[dict]:
     requests.patch(
         f"{BASE}/threads/{thread_id}",
         headers=HEADERS,
-        json={"is_read": True},
+        json={"isRead": True},
     )
     return messages
 ```
@@ -141,7 +141,7 @@ const checkInbox = tool({
   inputSchema: z.object({}),
   execute: async () => {
     const resp = await fetch(
-      `${BASE}/inboxes/${INBOX_ID}/threads?is_read=false&limit=20`,
+      `${BASE}/inboxes/${INBOX_ID}/threads?isRead=false&limit=20`,
       { headers },
     );
     if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
@@ -162,7 +162,7 @@ const readThread = tool({
     await fetch(`${BASE}/threads/${threadId}`, {
       method: "PATCH",
       headers,
-      body: JSON.stringify({ is_read: true }),
+      body: JSON.stringify({ isRead: true }),
     });
     return messages;
   },
@@ -211,7 +211,7 @@ async function sendEmail({ to, subject, body, threadId }) {
 
 async function checkInbox() {
   const resp = await fetch(
-    `${BASE}/inboxes/${INBOX_ID}/threads?is_read=false&limit=20`,
+    `${BASE}/inboxes/${INBOX_ID}/threads?isRead=false&limit=20`,
     { headers },
   );
   if (!resp.ok) throw new Error(`OpenMail ${resp.status}`);
@@ -226,7 +226,7 @@ async function readThread(threadId) {
   await fetch(`${BASE}/threads/${threadId}`, {
     method: "PATCH",
     headers,
-    body: JSON.stringify({ is_read: true }),
+    body: JSON.stringify({ isRead: true }),
   });
   return messages;
 }
