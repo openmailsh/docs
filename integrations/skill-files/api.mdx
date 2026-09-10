@@ -179,7 +179,7 @@ All endpoints require `Authorization: Bearer `.
 
 ### POST /v1/inboxes/{id}/send
 
-Send an email. Requires `Idempotency-Key` header (UUID).
+Send an email. `Idempotency-Key` header (UUID) is optional; pass one to make retries safe.
 
 ```http
 POST /v1/inboxes/{id}/send
@@ -264,7 +264,7 @@ Returns attachment data. Signed URL included in message payload — fetch prompt
 
 ## Idempotency
 
-The send endpoint requires an `Idempotency-Key` header. Use a unique UUID per send attempt. Retrying with the same key within 24 hours returns the original response without resending.
+The send endpoint accepts an optional `Idempotency-Key` header. Without it the API generates one and sends once. If your code retries on timeouts, pass a unique UUID per send attempt: retrying with the same key within 24 hours returns the original response without resending.
 
 The CLI generates idempotency keys automatically. For direct API calls, generate a UUID:
 
