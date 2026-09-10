@@ -224,7 +224,7 @@ feature_requires_paid_plan` with `feature: "external_reply_to"`.
 ### GET /v1/inboxes/{id}/threads
 
 ```
-GET /v1/inboxes/{id}/threads?is_read=false&limit=20&offset=0
+GET /v1/inboxes/{id}/threads?isRead=false&limit=20&offset=0
 ```
 
 ### PATCH /v1/threads/{id}
@@ -233,7 +233,7 @@ GET /v1/inboxes/{id}/threads?is_read=false&limit=20&offset=0
 PATCH /v1/threads/{id}
 Content-Type: application/json
 
-{ "is_read": true }
+{ "isRead": true }
 ```
 
 ### GET /v1/threads/{id}/messages
