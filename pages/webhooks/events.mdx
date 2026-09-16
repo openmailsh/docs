@@ -53,6 +53,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
         "extractionMethod": "pdf"
       }
     ],
+    "raw_url": "https://api.openmail.sh/v1/messages/msg_.../raw",
     "received_at": "2024-03-21T10:05:00.000Z"
   }
 }
@@ -72,6 +73,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 | `message.subject` | Email subject line |
 | `message.body_text` | Plain-text body |
 | `message.attachments` | Array of attachments with `url`, `parsedText` (extracted content), and `extractionMethod`. See [Attachments](/concepts/attachments). |
+| `message.raw_url` | Link to the original message as `message/rfc822`. Fetch with your API key. `null` when not available. |
 
 ## Reputation lifecycle payload
 
