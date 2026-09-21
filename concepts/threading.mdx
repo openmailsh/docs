@@ -67,3 +67,14 @@ Every thread has an `isRead` flag that tracks whether your agent has processed i
 <Tip>
   If your agent uses webhooks or WebSockets, the same pattern applies — mark the thread as read after handling the event. Then use `?isRead=false` as a safety net to catch any events missed during downtime.
 </Tip>
+
+## Deleting mail
+
+Deleting is a two-step process, the same way a mail client works.
+
+1. `DELETE /v1/threads/:id` moves the thread to **Trash**. The API stops returning it and its messages, and a later reply from outside starts a new thread instead of reopening it. In the console, the thread appears under **Trash**, where you can restore it or delete it for good. Trashed mail still counts toward your storage.
+2. Deleting from Trash removes the thread from every folder and frees its storage immediately. It is **permanently erased within 30 days**.
+
+`DELETE /v1/messages/:id` removes a single message the same way, skipping Trash.
+
+Both endpoints need an account-wide or pod-scoped key. Inbox-scoped keys are read-and-send only and get a `403`.
