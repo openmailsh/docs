@@ -72,8 +72,8 @@ Every thread has an `isRead` flag that tracks whether your agent has processed i
 
 Deleting is a two-step process, the same way a mail client works.
 
-1. `DELETE /v1/threads/:id` moves the thread to **Trash**. The API stops returning it and its messages, and a later reply from outside starts a new thread instead of reopening it. In the console, the thread appears under **Trash**, where you can restore it or delete it for good. Trashed mail still counts toward your storage.
-2. Deleting from Trash removes the thread from every folder and frees its storage immediately. It is **permanently erased within 30 days**.
+1. `DELETE /v1/threads/:id` moves the thread to **Trash**. The API stops returning it and its messages, and a later reply from outside starts a new thread instead of reopening it. In the console, the thread appears under **Trash**, where you can restore it or delete it for good. Trashed mail still counts toward your storage and is **deleted automatically after 30 days**.
+2. Deleting from Trash (or the 30-day expiry) removes the thread from every folder and frees its storage immediately. It is **permanently erased within a further 30 days**.
 
 `DELETE /v1/messages/:id` removes a single message the same way, skipping Trash.
 
