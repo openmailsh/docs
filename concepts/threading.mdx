@@ -70,11 +70,12 @@ Every thread has an `isRead` flag that tracks whether your agent has processed i
 
 ## Deleting mail
 
-Deleting is a two-step process, the same way a mail client works.
+Deleting works the way it does in a mail client, in two steps.
 
-1. `DELETE /v1/threads/:id` moves the thread to **Trash**. The API stops returning it and its messages, and a later reply from outside starts a new thread instead of reopening it. In the console, the thread appears under **Trash**, where you can restore it or delete it for good. Trashed mail still counts toward your storage and is **deleted automatically after 30 days**.
-2. Deleting from Trash (or the 30-day expiry) removes the thread from every folder and frees its storage immediately. It is **permanently erased within a further 30 days**.
+`DELETE /v1/threads/:id` moves the thread to **Trash**. The API stops returning the thread and its messages, and a reply that arrives later starts a new thread rather than reopening the old one. In the console the thread sits under **Trash**, where you can restore it or delete it for good. Trashed mail still counts toward your storage; anything left in Trash is deleted automatically after 30 days.
 
-`DELETE /v1/messages/:id` removes a single message the same way, skipping Trash.
+Deleting from Trash, or that 30-day expiry, removes the thread from every folder and frees its storage at once. The data is permanently erased within a further 30 days.
 
-Both endpoints need an account-wide or pod-scoped key. Inbox-scoped keys are read-and-send only and get a `403`.
+`DELETE /v1/messages/:id` removes a single message and skips Trash.
+
+Both endpoints need an account-wide or pod-scoped key. Inbox-scoped keys can read and send only, so they get a `403`.
