@@ -55,7 +55,7 @@ Only mail from a person gets a reply. Notifications and verification codes reach
 
 ## Who can email the agent
 
-Two gates. Hermes checks `OPENMAIL_ALLOWED_USERS` first; setup asks for it. Pick "anyone sender rules let through" and OpenMail decides instead, under **Allow/Block List** in the [console](https://console.openmail.sh/sender-rules) or with the CLI:
+Setup asks. Either list the addresses (`OPENMAIL_ALLOWED_USERS`), or let OpenMail decide and manage it under **Allow/Block List** in the [console](https://console.openmail.sh/sender-rules) or with the CLI:
 
 ```bash
 openmail policy mode --direction inbound --mode allowlist --inbox-id <id>
