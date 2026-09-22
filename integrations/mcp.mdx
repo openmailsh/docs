@@ -10,11 +10,20 @@ The hosted MCP server at `https://mcp.openmail.sh/mcp` exposes the mailbox loop 
 
 <Tabs>
   <Tab title="Claude (OAuth)">
-    Add the URL as a connector. Sign in with your console account and grant **read**; **send** is a separate consent.
+    In Claude, go to **Settings → Connectors → Add custom connector** and fill in:
 
-    ```
-    https://mcp.openmail.sh/mcp
-    ```
+    | Field | Value |
+    | --- | --- |
+    | URL | `https://mcp.openmail.sh/mcp` |
+    | Authentication | **Sign in now** |
+    | OAuth client | **Use Claude's published identity** (or **Register automatically**) |
+    | Request headers | none |
+
+    Claude may show "No sign-in — Detected" next to the third option. That is expected: the server answers without a login so the docs tools work anywhere. Pick **Sign in now** anyway, or you get only `search_docs` and `get_docs`.
+
+    Click **Connect**. The console opens, you sign in, and the consent page shows the client name and host. **Read** is always granted; untick **Send**, **Setup**, or **Domains** if the agent should not have them. You can revoke the connection later under **Console → Settings → MCP**.
+
+    Custom connectors need a Claude Pro, Max, Team, or Enterprise plan.
   </Tab>
   <Tab title="Cursor / API key">
     Add to `.cursor/mcp.json`:
