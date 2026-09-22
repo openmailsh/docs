@@ -95,6 +95,7 @@
           {
             "group": "Integrations",
             "pages": [
+              "integrations/mcp",
               "integrations/openclaw",
               "integrations/hermes",
               "integrations/claude-code",

@@ -1,0 +1,94 @@
+---
+title: "MCP server"
+description: "Connect Claude, Cursor, or any MCP client to OpenMail. One hosted URL gives your agent an inbox, unread human mail, and in-thread replies."
+icon: plug
+---
+
+The hosted MCP server at `https://mcp.openmail.sh/mcp` exposes the mailbox loop as tools: create an inbox, list unread mail from humans, read a thread, reply in-thread. No CLI or SDK install.
+
+## Connect
+
+<Tabs>
+  <Tab title="Claude (OAuth)">
+    Add the URL as a connector. Sign in with your console account and grant **read**; **send** is a separate consent.
+
+    ```
+    https://mcp.openmail.sh/mcp
+    ```
+  </Tab>
+  <Tab title="Cursor / API key">
+    Add to `.cursor/mcp.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "openmail": {
+          "url": "https://mcp.openmail.sh/mcp",
+          "headers": { "Authorization": "Bearer om_YOUR_KEY" }
+        }
+      }
+    }
+    ```
+
+    Prefer an inbox-scoped key. Create one in the console or with `openmail inbox keys create`. The key is sent as a header, never in the URL.
+  </Tab>
+  <Tab title="stdio-only clients">
+    Bridge with `mcp-remote`:
+
+    ```json
+    {
+      "mcpServers": {
+        "openmail": {
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.openmail.sh/mcp"]
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## First run
+
+Ask your agent: *"Set up an inbox for this agent and show me the address."*
+
+It calls `setup_agent_email`, which returns a plan first. Confirm, and it creates the inbox and mints an inbox-scoped key. The key appears once in the tool result. Move it to the agent's environment and revoke it from the console if the transcript is shared.
+
+## Tools
+
+| Tool | What it does |
+| --- | --- |
+| `search_docs`, `get_docs` | Search and read these docs. Works before sign-in. |
+| `auth_me` | Which customer and inbox this credential can see. |
+| `setup_agent_email` | Plan, then create an inbox and mint a scoped key. |
+| `list_inboxes`, `get_inbox`, `create_inbox`, `mint_inbox_key` | Inbox management. |
+| `list_unread_threads` | Unread threads from humans. Spam, marketing, bounces, and automated mail are filtered out. |
+| `read_thread` | Full thread as Markdown with `autoReplyable` flags and attachment message ids. |
+| `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. |
+| `mark_thread_read` | Mark a thread handled. |
+| `get_attachment_text` | Extracted text from an attachment. Use the `message:` id shown in `read_thread`. |
+| `list_domains`, `add_domain`, `get_domain`, `verify_domain` | Custom domains with pasteable DNS records. Pro plan. |
+| `send_mcp_feedback` | Report a confusing or broken tool to the OpenMail team. |
+
+Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools.
+
+## Narrow what the agent can do
+
+| Goal | URL |
+| --- | --- |
+| Read only, no sending | `https://mcp.openmail.sh/mcp/readonly` or `?readonly=true` |
+| One inbox, no discovery | `https://mcp.openmail.sh/mcp/inbox/INBOX_ID` |
+| Fewer tools | `?toolsets=mailbox,docs` or the `X-MCP-Toolsets` header |
+
+## Example prompts
+
+- Set up an inbox for this agent and show me the address.
+- Reply to unread mail from humans.
+- Read the invoice attached to the latest thread and summarize it.
+- Add and verify `mail.example.com`.
+
+## Related
+
+- [Claude Code](/integrations/claude-code): CLI and skill instead of MCP
+- [Agent keys](/best-practices/api-key-scopes): why inbox-scoped keys
+- Source: [openmailsh/mcp](https://github.com/openmailsh/mcp) (MIT)
