@@ -1,10 +1,10 @@
 ---
 title: "MCP server"
-description: "Connect Claude, Cursor, or any MCP client to OpenMail. One hosted URL gives your agent an inbox, unread human mail, and in-thread replies."
+description: "Connect Claude, Cursor, or any MCP client to OpenMail. One hosted URL gives your agent an inbox, unread mail that needs a reply, and in-thread replies."
 icon: plug
 ---
 
-The hosted MCP server at `https://mcp.openmail.sh/mcp` exposes the mailbox loop as tools: create an inbox, list unread mail from humans, read a thread, reply in-thread. No CLI or SDK install.
+The hosted MCP server at `https://mcp.openmail.sh/mcp` exposes the mailbox loop as tools: create an inbox, list unread mail that needs a reply, read a thread, reply in-thread. No CLI or SDK install.
 
 ## Connect
 
@@ -62,7 +62,7 @@ It calls `setup_agent_email`, which returns a plan first. Confirm, and it create
 | `auth_me` | Which customer and inbox this credential can see. |
 | `setup_agent_email` | Plan, then create an inbox and mint a scoped key. |
 | `list_inboxes`, `get_inbox`, `create_inbox`, `mint_inbox_key` | Inbox management. |
-| `list_unread_threads` | Unread threads from humans. Spam, marketing, bounces, and automated mail are filtered out. |
+| `list_unread_threads` | Unread threads whose latest message is `autoReplyable`: sent by a person or another agent. Spam, marketing, bounces, and machine-generated mail (no-reply, OTPs, receipts) are filtered out. |
 | `read_thread` | Full thread as Markdown with `autoReplyable` flags and attachment message ids. |
 | `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. |
 | `mark_thread_read` | Mark a thread handled. |
@@ -83,7 +83,7 @@ Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_ag
 ## Example prompts
 
 - Set up an inbox for this agent and show me the address.
-- Reply to unread mail from humans.
+- Reply to unread mail that needs an answer.
 - Read the invoice attached to the latest thread and summarize it.
 - Add and verify `mail.example.com`.
 
