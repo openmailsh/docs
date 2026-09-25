@@ -19,11 +19,22 @@ The hosted MCP server at `https://mcp.openmail.sh/mcp` exposes the mailbox loop 
     | OAuth client | **Use Claude's published identity** (or **Register automatically**) |
     | Request headers | none |
 
-    Claude may show "No sign-in — Detected" next to the third option. That is expected: the server answers without a login so the docs tools work anywhere. Pick **Sign in now** anyway, or you get only `search_docs` and `get_docs`.
-
-    Click **Connect**. The console opens, you sign in, and the consent page shows the client name and host. **Read** is always granted; untick **Send**, **Setup**, or **Domains** if the agent should not have them. You can revoke the connection later under **Console → Settings → MCP**.
+    Click **Connect**. The console opens, you sign in, and the consent page shows the client name and host. If you belong to more than one organisation, pick the one the agent should use. **Read** is always granted; untick **Send**, **Setup**, or **Domains** if the agent should not have them. You can revoke the connection later under **Console → Settings → MCP**.
 
     Custom connectors need a Claude Pro, Max, Team, or Enterprise plan.
+  </Tab>
+  <Tab title="ChatGPT (OAuth)">
+    Turn on **Settings → Apps & Connectors → Advanced → Developer mode**, then **Create** and fill in:
+
+    | Field | Value |
+    | --- | --- |
+    | Name | OpenMail |
+    | MCP server URL | `https://mcp.openmail.sh/mcp` |
+    | Authentication | **OAuth** |
+
+    Leave the client id and secret empty: ChatGPT identifies itself with its published client metadata, and the consent page shows `chatgpt.com` as the host. Sign in, choose an organisation, and untick any scopes the agent should not have.
+
+    Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.
   </Tab>
   <Tab title="Cursor / API key">
     Add to `.cursor/mcp.json`:
@@ -57,6 +68,8 @@ The hosted MCP server at `https://mcp.openmail.sh/mcp` exposes the mailbox loop 
   </Tab>
 </Tabs>
 
+Without a credential, `/mcp` answers `401` so your client starts the sign-in flow. For an agent that only needs to read these docs, use `https://mcp.openmail.sh/mcp/public`: no sign-in, just `search_docs` and `get_docs`.
+
 ## First run
 
 Ask your agent: *"Set up an inbox for this agent and show me the address."*
@@ -67,13 +80,13 @@ It calls `setup_agent_email`, which returns a plan first. Confirm, and it create
 
 | Tool | What it does |
 | --- | --- |
-| `search_docs`, `get_docs` | Search and read these docs. Works before sign-in. |
+| `search_docs`, `get_docs` | Search and read these docs. Also available without sign-in at `/mcp/public`. |
 | `auth_me` | Which customer and inbox this credential can see. |
 | `setup_agent_email` | Plan, then create an inbox and mint a scoped key. |
 | `list_inboxes`, `get_inbox`, `create_inbox`, `mint_inbox_key` | Inbox management. |
 | `list_unread_threads` | Unread threads whose latest message is `autoReplyable`: sent by a person or another agent. Spam, marketing, bounces, and machine-generated mail (no-reply, OTPs, receipts) are filtered out. |
-| `read_thread` | Full thread as Markdown with `autoReplyable` flags and attachment message ids. |
-| `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. |
+| `read_thread` | Full thread as Markdown with timestamps, `autoReplyable` flags, and attachment message ids. Quoted reply history is stripped. |
+| `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. `send_email` names the inbox it used when you did not pass `inbox_id`. |
 | `mark_thread_read` | Mark a thread handled. |
 | `get_attachment_text` | Extracted text from an attachment. Use the `message:` id shown in `read_thread`. |
 | `list_domains`, `add_domain`, `get_domain`, `verify_domain` | Custom domains with pasteable DNS records. Pro plan. |
