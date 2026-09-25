@@ -10,16 +10,46 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
 
 <Tabs>
   <Tab title="Claude (OAuth)">
-    In Claude, go to **Settings → Connectors → Add custom connector** and fill in:
+    <Steps>
+      <Step title="Open Connectors">
+        Go to **Settings → Connectors**, click **Add**, then **Add custom connector**.
 
-    | Field | Value |
-    | --- | --- |
-    | URL | `https://mcp.openmail.sh/mcp` |
-    | Authentication | **Sign in now** |
-    | OAuth client | **Use Claude's published identity** (or **Register automatically**) |
-    | Request headers | none |
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/claude-connectors.png" alt="Claude Connectors settings with the Add menu open and Add custom connector highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/claude-connectors-dark.png" alt="Claude Connectors settings with the Add menu open and Add custom connector highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Name the server">
+        | Field | Value |
+        | --- | --- |
+        | Name | OpenMail |
+        | MCP server URL | `https://mcp.openmail.sh/mcp` |
 
-    Click **Connect**. The console opens, you sign in, and the consent page shows the client name and host. If you belong to more than one organisation, pick the one the agent should use. **Read** is always granted; untick **Send**, **Setup**, or **Domains** if the agent should not have them. You can revoke the connection later under **Console → Settings → MCP**.
+        Click **Continue**. Claude checks the URL and detects the sign-in settings.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/claude-add-connector.png" alt="Add custom connector dialog with the MCP server URL field highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/claude-add-connector-dark.png" alt="Add custom connector dialog with the MCP server URL field highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Keep the detected auth settings">
+        | Field | Value |
+        | --- | --- |
+        | Authentication | **Sign in now** |
+        | OAuth client | **Use Claude's published identity** (or **Register automatically**) |
+        | Request headers | none |
+
+        Both options are pre-selected and marked **Detected**. Leave **Advanced** alone and click **Add**.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/claude-auth.png" alt="Add custom connector step 2 with Sign in now and Use Claude's published identity highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/claude-auth-dark.png" alt="Add custom connector step 2 with Sign in now and Use Claude's published identity highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Sign in and approve">
+        The console opens, you sign in, and the consent page shows the client name and host. If you belong to more than one organisation, pick the one the agent should use. **Read** is always granted; untick **Send**, **Setup**, or **Domains** if the agent should not have them. You can revoke the connection later under **Console → Settings → MCP**.
+      </Step>
+    </Steps>
 
     Custom connectors need a Claude Pro, Max, Team, or Enterprise plan.
   </Tab>
