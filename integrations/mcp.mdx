@@ -24,15 +24,44 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     Custom connectors need a Claude Pro, Max, Team, or Enterprise plan.
   </Tab>
   <Tab title="ChatGPT (OAuth)">
-    Turn on **Settings → Apps & Connectors → Advanced → Developer mode**, then **Create** and fill in:
+    <Steps>
+      <Step title="Turn on Developer mode">
+        Go to **Settings → Apps & Connectors → Advanced** and switch on **Developer mode**.
 
-    | Field | Value |
-    | --- | --- |
-    | Name | OpenMail |
-    | MCP server URL | `https://mcp.openmail.sh/mcp` |
-    | Authentication | **OAuth** |
+        <Frame>
+          <img src="/images/mcp/chatgpt-developer-mode.png" alt="ChatGPT advanced settings with the Developer mode toggle highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Create an app">
+        Open **Plugins**, click **+** in the top right, then **Create app**.
 
-    Leave the client id and secret empty: ChatGPT identifies itself with its published client metadata, and the consent page shows `chatgpt.com` as the host. Sign in, choose an organisation, and untick any scopes the agent should not have.
+        <Frame>
+          <img src="/images/mcp/chatgpt-create-app.png" alt="ChatGPT Plugins page with the plus menu open and Create app highlighted" />
+        </Frame>
+
+        In the dialog, click **Create MCP App**.
+
+        <Frame>
+          <img src="/images/mcp/chatgpt-create-mcp-app.png" alt="New Plugin dialog with the Create MCP App button highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Fill in the form">
+        | Field | Value |
+        | --- | --- |
+        | Name | OpenMail |
+        | Connection | **Server URL** → `https://mcp.openmail.sh/mcp` |
+        | Authentication | **OAuth** |
+
+        Leave **Advanced OAuth settings** alone: ChatGPT identifies itself with its published client metadata, and the consent page shows `chatgpt.com` as the host. Tick the risk acknowledgement and click **Create**.
+
+        <Frame>
+          <img src="/images/mcp/chatgpt-form.png" alt="New Plugin form with the server URL and OAuth authentication fields highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Sign in and approve">
+        The console opens. Sign in, choose an organisation, and untick any scopes the agent should not have.
+      </Step>
+    </Steps>
 
     Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.
   </Tab>
