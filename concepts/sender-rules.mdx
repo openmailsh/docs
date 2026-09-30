@@ -78,8 +78,8 @@ Every address a send can reach is checked:
 |-------|---------|
 | `to` | Yes |
 | `cc` | Yes, after the auto-CC merge, so a thread reply cannot add a recipient that skips the check |
+| `bcc` | Yes. A blind copy is still a delivery, so it is checked like `cc` |
 | `replyTo` | Yes, otherwise a reply could be routed to an address outside the approved set |
-| `bcc` | Not supported. See below. |
 
 One denied recipient rejects the whole send. There is no partial delivery, and a rejected send does not count against your rate limits.
 
@@ -92,18 +92,11 @@ One denied recipient rejects the whole send. There is no partial delivery, and a
 }
 ```
 
-### Bcc is not supported
+### Bcc
 
-OpenMail has no Bcc. A send carrying a `bcc` field is rejected rather than accepted with the field ignored. Accepting it would mean reporting success for a recipient that was never delivered to and never checked against your rules.
+`bcc` recipients get the message but are left off the copy that `to` and `cc` recipients receive. Use it for CRM logging addresses (HubSpot, Salesforce) that only record mail sent to them in Bcc.
 
-```json
-// 400 Bad Request
-{
-  "error": "unsupported_field",
-  "field": "bcc",
-  "message": "Bcc is not supported. Send to each recipient separately, or use 'cc' — every 'to', 'cc', and 'replyTo' address is checked against this inbox's outbound recipient policy."
-}
-```
+Bcc is not a way around the rules. Every `bcc` address is checked against the outbound policy, counted toward billing and daily volume caps, and stored on the outbound message so you can see who was copied. An address already in `to` or `cc` is not blind-copied a second time.
 
 ## Who can change policy
 
