@@ -189,6 +189,8 @@ Idempotency-Key: <uuid>
 
 {
   "to": "recipient@example.com",
+  "cc": ["colleague@example.com"],
+  "bcc": ["crm@hubspot.example"],
   "subject": "Hello",
   "body": "<p>HTML body.</p>",
   "threadId": "thr_...",
@@ -212,6 +214,12 @@ the body by default. Pass `"includeQuote": false` to send only your reply text.
 
 `replyTo` is optional. When set, the email's `Reply-To` header is populated
 with that address so replies route there instead of to the sending inbox.
+
+`cc` and `bcc` are optional arrays. `bcc` addresses receive the message but are
+hidden from the To and Cc recipients — use it for CRM logging addresses. Every
+`to`, `cc`, `bcc`, and `replyTo` address is checked against the inbox's outbound
+sender rules; one denied address rejects the whole send with `403
+recipient_not_permitted`.
 
 - **Free plan**: `replyTo` must match the address of an inbox you own
   in OpenMail. Create the destination inbox first, then reference it here.

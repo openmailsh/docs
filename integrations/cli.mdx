@@ -51,11 +51,12 @@ Key scope decides what works:
 ```bash
 openmail send --to marc@example.com --subject "Thursday" --body "Thursday works."     # new thread
 openmail send --to marc@example.com --cc jonas@example.com --subject "Hi" --body "<p>Hi</p>"  # cc, HTML body
+openmail send --to marc@example.com --bcc crm@hubspot.example --subject "Hi" --body "Hi"       # bcc a CRM logging address
 openmail send --to marc@example.com --thread-id thr_xxx --body "Confirmed." --no-quote   # reply, no quoted history
 openmail send --to marc@example.com --subject "Report" --body "Attached." --attach report.pdf --attach data.csv
 ```
 
-One `--to`, on purpose: the CLI refuses a second so an agent can't spray. Repeat `--cc` for the others. HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe.
+One `--to`, on purpose: the CLI refuses a second so an agent can't spray. Repeat `--cc` for the others, `--bcc` for anyone who should get a copy without appearing on it. HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe.
 
 ### Read
 
