@@ -54,7 +54,7 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
       </Step>
     </Steps>
 
-    Custom connectors need a Claude Pro, Max, Team, or Enterprise plan.
+    <Note>Custom connectors need a Claude Pro, Max, Team, or Enterprise plan.</Note>
   </Tab>
   <Tab title="Claude Code">
     ```bash
@@ -112,7 +112,7 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
       </Step>
     </Steps>
 
-    Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.
+    <Note>Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.</Note>
   </Tab>
   <Tab title="Cursor">
     One click, then sign in with OAuth when Cursor prompts you:
@@ -120,6 +120,7 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=openmail&config=eyJ1cmwiOiJodHRwczovL21jcC5vcGVubWFpbC5zaC9tY3AifQ==">
       <img noZoom className="block dark:hidden" src="https://cursor.com/deeplink/mcp-install-light.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
       <img noZoom className="hidden dark:block" src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
+      <span className="sr-only">Add OpenMail MCP server to Cursor</span>
     </a>
 
     Or add it by hand to `.cursor/mcp.json`. Leave out `headers` to sign in with OAuth, or pass an API key for a headless agent:
@@ -135,7 +136,9 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     }
     ```
 
-    Prefer an inbox-scoped key. Create one in the console or with `openmail inbox keys create`. The key is sent as a header, never in the URL. Confirm with *"Which OpenMail inbox can you see?"* in a Cursor chat.
+    <Tip>Prefer an inbox-scoped key. Create one in the console or with `openmail inbox keys create`. The key is sent as a header, never in the URL.</Tip>
+
+    Confirm with *"Which OpenMail inbox can you see?"* in a Cursor chat.
   </Tab>
   <Tab title="VS Code / registry">
     OpenMail is listed in the [official MCP Registry](https://registry.modelcontextprotocol.io) as `sh.openmail/openmail`. In VS Code, run **MCP: Add Server** from the command palette, search for **OpenMail**, and sign in when prompted.
@@ -158,17 +161,19 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
   </Tab>
 </Tabs>
 
-Without a credential, `/mcp` answers `401` so your client starts the sign-in flow. For an agent that only needs to read these docs, use `https://mcp.openmail.sh/mcp/public`: no sign-in, just `search_docs` and `get_docs`.
+<Info>Without a credential, `/mcp` answers `401` so your client starts the sign-in flow. For an agent that only needs to read these docs, use `https://mcp.openmail.sh/mcp/public`: no sign-in, just `search_docs` and `get_docs`.</Info>
 
 ## First run
 
 Ask your agent: *"Set up an inbox for this agent and show me the address."*
 
-It calls `setup_agent_email`, which returns a plan first. Confirm, and it creates the inbox. What happens to the key depends on how you signed in: over OAuth the session already has access, so no key is minted and the tool points you to the console if a separate agent needs one. Over an API key, the new inbox-scoped key appears once in the tool result; move it to the agent's environment and revoke it from the console if the transcript is shared.
+It calls `setup_agent_email`, which returns a plan first. Confirm, and it creates the inbox. What happens to the key depends on how you signed in: over OAuth the session already has access, so no key is minted and the tool points you to the console if a separate agent needs one. Over an API key, the new inbox-scoped key appears once in the tool result.
+
+<Warning>Move that key to the agent's environment straight away, and revoke it from the console if the transcript is shared.</Warning>
 
 ## Tools
 
-19 tools. Your client reads the live list from the server, so this table can lag behind by a release.
+<Note>19 tools. Your client reads the live list from the server, so this table can lag behind by a release.</Note>
 
 | Tool | What it does |
 | --- | --- |
@@ -213,15 +218,23 @@ Tool results are dropped before they leave the server, except for `search_docs` 
 
 ## Troubleshooting
 
-**The consent page asked for an account you do not have.** Sign up at [console.openmail.sh](https://console.openmail.sh/signup) first, then start the connection again from your client.
-
-**You picked the wrong organisation.** Revoke the connection in [MCP settings](https://console.openmail.sh/settings/mcp), then connect again from the client. The consent page shows the organisation picker each time.
-
-**`401` with an API key.** Check the key starts with `om_`, was copied in full, and has not been revoked in the console. The key goes in the `Authorization: Bearer` header, not the URL. In Cursor, a leftover `om_YOUR_KEY` placeholder gives the same error.
-
-**Tools are missing.** An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools by design. If you changed scopes on the consent page, disconnect and reconnect so the client reloads the tool list.
-
-**Claude says it cannot reach OpenMail.** Open **Settings → Connectors** and check that OpenMail shows as connected. If not, repeat the Claude steps above.
+<AccordionGroup>
+  <Accordion title="The consent page asks for an account you do not have">
+    Sign up at [console.openmail.sh](https://console.openmail.sh/signup) first, then start the connection again from your client.
+  </Accordion>
+  <Accordion title="You picked the wrong organisation">
+    Revoke the connection in [MCP settings](https://console.openmail.sh/settings/mcp), then connect again from the client. The consent page shows the organisation picker each time.
+  </Accordion>
+  <Accordion title="401 with an API key">
+    Check the key starts with `om_`, was copied in full, and has not been revoked in the console. The key goes in the `Authorization: Bearer` header, not the URL. In Cursor, a leftover `om_YOUR_KEY` placeholder gives the same error.
+  </Accordion>
+  <Accordion title="Tools are missing">
+    An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools by design. If you changed scopes on the consent page, disconnect and reconnect so the client reloads the tool list.
+  </Accordion>
+  <Accordion title="Claude says it cannot reach OpenMail">
+    Open **Settings → Connectors** and check that OpenMail shows as connected. If not, repeat the Claude steps above.
+  </Accordion>
+</AccordionGroup>
 
 ## Example prompts
 
