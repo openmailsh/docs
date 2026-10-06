@@ -99,8 +99,14 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
 
     Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.
   </Tab>
-  <Tab title="Cursor / API key">
-    Add to `.cursor/mcp.json`:
+  <Tab title="Cursor">
+    One click, then sign in with OAuth when Cursor prompts you:
+
+    <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=openmail&config=eyJ1cmwiOiJodHRwczovL21jcC5vcGVubWFpbC5zaC9tY3AifQ==">
+      <img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
+    </a>
+
+    Or add it by hand to `.cursor/mcp.json`. Leave out `headers` to sign in with OAuth, or pass an API key for a headless agent:
 
     ```json
     {
@@ -114,6 +120,11 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     ```
 
     Prefer an inbox-scoped key. Create one in the console or with `openmail inbox keys create`. The key is sent as a header, never in the URL.
+  </Tab>
+  <Tab title="VS Code / registry">
+    OpenMail is listed in the [official MCP Registry](https://registry.modelcontextprotocol.io) as `sh.openmail/openmail`. In VS Code, run **MCP: Add Server** from the command palette, search for **OpenMail**, and sign in when prompted.
+
+    Any client that reads the registry can install it the same way. The hosted URL is always `https://mcp.openmail.sh/mcp`.
   </Tab>
   <Tab title="stdio-only clients">
     Bridge with `mcp-remote`:
@@ -164,6 +175,19 @@ Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_ag
 | Read only, no sending | `https://mcp.openmail.sh/mcp/readonly` or `?readonly=true` |
 | One inbox, no discovery | `https://mcp.openmail.sh/mcp/inbox/INBOX_ID` |
 | Fewer tools | `?toolsets=mailbox,docs` or the `X-MCP-Toolsets` header |
+
+## Usage analytics
+
+The server records how tools are used so we can fix the ones that fail or confuse agents. Each tool also accepts an optional `context` argument where the agent states in one line what it is trying to do; that line is recorded too.
+
+| Recorded | Never recorded |
+| --- | --- |
+| Tool name, success or failure, latency | Message bodies, subjects, recipients |
+| Client name and version (Claude, Cursor, ChatGPT) | Attachment text |
+| The agent's `context` line | Inbox names and display names |
+| Your organisation id | API keys and OAuth tokens |
+
+Tool results are dropped before they leave the server, except for `search_docs` and `get_docs`, which return public documentation. The agent can skip `context` at any time; nothing breaks.
 
 ## Example prompts
 
