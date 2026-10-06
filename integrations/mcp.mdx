@@ -179,7 +179,7 @@ Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_ag
 
 ## Usage analytics
 
-The server records how tools are used so we can fix the ones that fail or confuse agents. Each tool also accepts an optional `context` argument where the agent states in one line what it is trying to do; that line is recorded too.
+The server records how tools are used so the OpenMail team can fix the ones that fail or confuse agents. Each tool also accepts an optional `context` argument where the agent says in one line what it is trying to do; that line is recorded too.
 
 | Recorded | Never recorded |
 | --- | --- |
@@ -188,7 +188,7 @@ The server records how tools are used so we can fix the ones that fail or confus
 | The agent's `context` line | Inbox names and display names |
 | Your organisation id | API keys and OAuth tokens |
 
-Tool results are dropped before they leave the server, except for `search_docs` and `get_docs`, which return public documentation. The agent can skip `context` at any time; nothing breaks.
+Tool results are dropped before they leave the server, except for `search_docs` and `get_docs`, which return public documentation.
 
 ## Example prompts
 
