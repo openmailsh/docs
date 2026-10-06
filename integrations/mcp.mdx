@@ -49,9 +49,21 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
       <Step title="Sign in and approve">
         The console opens, you sign in, and the consent page shows the client name and host. If you belong to more than one organisation, pick the one the agent should use. **Read** is always granted; untick **Send**, **Setup**, or **Domains** if the agent should not have them. You can revoke the connection later from [MCP settings](https://console.openmail.sh/settings/mcp) in the console.
       </Step>
+      <Step title="Confirm">
+        Ask Claude *"Which OpenMail inbox can you see?"*. It calls `auth_me` and names the organisation and inbox.
+      </Step>
     </Steps>
 
     Custom connectors need a Claude Pro, Max, Team, or Enterprise plan.
+  </Tab>
+  <Tab title="Claude Code">
+    ```bash
+    claude mcp add --transport http openmail https://mcp.openmail.sh/mcp
+    ```
+
+    Claude Code runs the OAuth flow on first use. Connectors added on claude.ai do not carry over to Claude Code, so add it here separately. Confirm with *"Which OpenMail inbox can you see?"*.
+
+    Prefer the CLI and skill instead of MCP? See [Claude Code](/integrations/claude-code).
   </Tab>
   <Tab title="ChatGPT (OAuth)">
     <Steps>
@@ -95,6 +107,9 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
       <Step title="Sign in and approve">
         The console opens. Sign in, choose an organisation, and untick any scopes the agent should not have.
       </Step>
+      <Step title="Confirm">
+        In a chat, open the **+** menu, choose **Developer mode**, and select **OpenMail**. Ask *"Which OpenMail inbox can you see?"*. ChatGPT asks you to approve write actions such as sending mail before it runs them.
+      </Step>
     </Steps>
 
     Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.
@@ -120,7 +135,7 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     }
     ```
 
-    Prefer an inbox-scoped key. Create one in the console or with `openmail inbox keys create`. The key is sent as a header, never in the URL.
+    Prefer an inbox-scoped key. Create one in the console or with `openmail inbox keys create`. The key is sent as a header, never in the URL. Confirm with *"Which OpenMail inbox can you see?"* in a Cursor chat.
   </Tab>
   <Tab title="VS Code / registry">
     OpenMail is listed in the [official MCP Registry](https://registry.modelcontextprotocol.io) as `sh.openmail/openmail`. In VS Code, run **MCP: Add Server** from the command palette, search for **OpenMail**, and sign in when prompted.
@@ -153,6 +168,8 @@ It calls `setup_agent_email`, which returns a plan first. Confirm, and it create
 
 ## Tools
 
+19 tools. Your client reads the live list from the server, so this table can lag behind by a release.
+
 | Tool | What it does |
 | --- | --- |
 | `search_docs`, `get_docs` | Search and read these docs. Also available without sign-in at `/mcp/public`. |
@@ -177,6 +194,10 @@ Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_ag
 | One inbox, no discovery | `https://mcp.openmail.sh/mcp/inbox/INBOX_ID` |
 | Fewer tools | `?toolsets=mailbox,docs` or the `X-MCP-Toolsets` header |
 
+## What the connected client can do
+
+A connected client receives whatever the tools return: thread contents, attachment text, inbox addresses. With the **Send** scope it can also send and reply as your inbox. The client handles that data under its own terms, so connect only clients you trust and leave scopes unticked when the agent does not need them. Revoking the connection in [MCP settings](https://console.openmail.sh/settings/mcp), or the API key it uses, stops access at once.
+
 ## Usage analytics
 
 The server records how tools are used so the OpenMail team can fix the ones that fail or confuse agents. Each tool also accepts an optional `context` argument where the agent says in one line what it is trying to do; that line is recorded too.
@@ -189,6 +210,18 @@ The server records how tools are used so the OpenMail team can fix the ones that
 | Your organisation id | API keys and OAuth tokens |
 
 Tool results are dropped before they leave the server, except for `search_docs` and `get_docs`, which return public documentation.
+
+## Troubleshooting
+
+**The consent page asked for an account you do not have.** Sign up at [console.openmail.sh](https://console.openmail.sh/signup) first, then start the connection again from your client.
+
+**You picked the wrong organisation.** Revoke the connection in [MCP settings](https://console.openmail.sh/settings/mcp), then connect again from the client. The consent page shows the organisation picker each time.
+
+**`401` with an API key.** Check the key starts with `om_`, was copied in full, and has not been revoked in the console. The key goes in the `Authorization: Bearer` header, not the URL. In Cursor, a leftover `om_YOUR_KEY` placeholder gives the same error.
+
+**Tools are missing.** An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools by design. If you changed scopes on the consent page, disconnect and reconnect so the client reloads the tool list.
+
+**Claude says it cannot reach OpenMail.** Open **Settings → Connectors** and check that OpenMail shows as connected. If not, repeat the Claude steps above.
 
 ## Example prompts
 
