@@ -4,7 +4,7 @@ description: "Connect Claude, Cursor, or any MCP client to OpenMail. One hosted 
 icon: plug
 ---
 
-Add one URL to your client and your agent gets tools to create an inbox, read threads, and reply. Sign in with OAuth or an API key. No CLI or SDK install.
+Add one URL to your client. Your agent can then create an inbox, read threads, and reply. OAuth or API key; nothing to install.
 
 ## Connect
 
@@ -39,7 +39,7 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
         | OAuth client | **Use Claude's published identity** (or **Register automatically**) |
         | Request headers | none |
 
-        Both options are pre-selected and marked **Detected**. Leave **Advanced** alone and click **Add**.
+        Both are pre-selected and marked **Detected**. Leave **Advanced** alone and click **Add**.
 
         <Frame>
           <img className="block dark:hidden" src="/images/mcp/claude-auth.png" alt="Add custom connector step 2 with Sign in now and Use Claude's published identity highlighted" />
@@ -47,10 +47,10 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
         </Frame>
       </Step>
       <Step title="Sign in and approve">
-        The console opens, you sign in, and the consent page shows the client name and host. If you belong to more than one organisation, pick the one the agent should use. **Read** is always granted; untick **Send**, **Setup**, or **Domains** if the agent should not have them. You can revoke the connection later from [MCP settings](https://console.openmail.sh/settings/mcp) in the console.
+        The console opens and shows the client name and host. Pick an organisation if you belong to several. **Read** is always granted; untick **Send**, **Setup**, or **Domains** to withhold them. Revoke any time from [MCP settings](https://console.openmail.sh/settings/mcp).
       </Step>
       <Step title="Confirm">
-        Ask Claude *"Which OpenMail inbox can you see?"*. It calls `auth_me` and names the organisation and inbox.
+        Ask *"Which OpenMail inbox can you see?"*. Claude calls `auth_me` and answers with the organisation and inbox.
       </Step>
     </Steps>
 
@@ -61,9 +61,9 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     claude mcp add --transport http openmail https://mcp.openmail.sh/mcp
     ```
 
-    Claude Code runs the OAuth flow on first use. Connectors added on claude.ai do not carry over to Claude Code, so add it here separately. Confirm with *"Which OpenMail inbox can you see?"*.
+    Claude Code signs in with OAuth on first use. Connectors added on claude.ai do not carry over, so add it here too. Confirm with *"Which OpenMail inbox can you see?"*.
 
-    Prefer the CLI and skill instead of MCP? See [Claude Code](/integrations/claude-code).
+    Prefer the CLI and skill? See [Claude Code](/integrations/claude-code).
   </Tab>
   <Tab title="ChatGPT (OAuth)">
     <Steps>
@@ -97,7 +97,7 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
         | Connection | **Server URL** → `https://mcp.openmail.sh/mcp` |
         | Authentication | **OAuth** |
 
-        Leave **Advanced OAuth settings** alone: ChatGPT identifies itself with its published client metadata, and the consent page shows `chatgpt.com` as the host. Tick the risk acknowledgement and click **Create**.
+        Leave **Advanced OAuth settings** alone; ChatGPT identifies itself, and the consent page shows `chatgpt.com` as the host. Tick the risk acknowledgement and click **Create**.
 
         <Frame>
           <img className="block dark:hidden" src="/images/mcp/chatgpt-form.png" alt="New Plugin form with the server URL and OAuth authentication fields highlighted" />
@@ -108,14 +108,14 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
         The console opens. Sign in, choose an organisation, and untick any scopes the agent should not have.
       </Step>
       <Step title="Confirm">
-        In a chat, open the **+** menu, choose **Developer mode**, and select **OpenMail**. Ask *"Which OpenMail inbox can you see?"*. ChatGPT asks you to approve write actions such as sending mail before it runs them.
+        In a chat, open the **+** menu, choose **Developer mode**, and select **OpenMail**. Ask *"Which OpenMail inbox can you see?"*. ChatGPT asks before any write action, such as sending mail.
       </Step>
     </Steps>
 
     <Note>Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.</Note>
   </Tab>
   <Tab title="Cursor">
-    One click, then sign in with OAuth when Cursor prompts you:
+    One click, then sign in when Cursor prompts you:
 
     <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=openmail&config=eyJ1cmwiOiJodHRwczovL21jcC5vcGVubWFpbC5zaC9tY3AifQ==">
       <img noZoom className="block dark:hidden" src="https://cursor.com/deeplink/mcp-install-light.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
@@ -123,7 +123,7 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
       <span className="sr-only">Add OpenMail MCP server to Cursor</span>
     </a>
 
-    Or add it by hand to `.cursor/mcp.json`. Leave out `headers` to sign in with OAuth, or pass an API key for a headless agent:
+    Or edit `.cursor/mcp.json` by hand. Drop `headers` for OAuth; keep it for a headless agent:
 
     ```json
     {
@@ -136,14 +136,12 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     }
     ```
 
-    <Tip>Prefer an inbox-scoped key. Create one in the console or with `openmail inbox keys create`. The key is sent as a header, never in the URL.</Tip>
+    <Tip>Use an inbox-scoped key, from the console or `openmail inbox keys create`. Keys go in the header, never the URL.</Tip>
 
     Confirm with *"Which OpenMail inbox can you see?"* in a Cursor chat.
   </Tab>
   <Tab title="VS Code / registry">
-    OpenMail is listed in the [official MCP Registry](https://registry.modelcontextprotocol.io) as `sh.openmail/openmail`. In VS Code, run **MCP: Add Server** from the command palette, search for **OpenMail**, and sign in when prompted.
-
-    Any client that reads the registry can install it the same way. The hosted URL is always `https://mcp.openmail.sh/mcp`.
+    OpenMail is in the [MCP Registry](https://registry.modelcontextprotocol.io) as `sh.openmail/openmail`. In VS Code, run **MCP: Add Server**, search for **OpenMail**, and sign in when prompted. Any registry-aware client installs it the same way.
   </Tab>
   <Tab title="stdio-only clients">
     Bridge with `mcp-remote`:
@@ -161,19 +159,19 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
   </Tab>
 </Tabs>
 
-<Info>Without a credential, `/mcp` answers `401` so your client starts the sign-in flow. For an agent that only needs to read these docs, use `https://mcp.openmail.sh/mcp/public`: no sign-in, just `search_docs` and `get_docs`.</Info>
+<Info>Without a credential, `/mcp` answers `401` and your client starts sign-in. An agent that only needs these docs can use `https://mcp.openmail.sh/mcp/public`: no sign-in, just `search_docs` and `get_docs`.</Info>
 
 ## First run
 
 Ask your agent: *"Set up an inbox for this agent and show me the address."*
 
-It calls `setup_agent_email`, which returns a plan first. Confirm, and it creates the inbox. What happens to the key depends on how you signed in: over OAuth the session already has access, so no key is minted and the tool points you to the console if a separate agent needs one. Over an API key, the new inbox-scoped key appears once in the tool result.
+It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates the inbox. Over OAuth no key is minted; the session already has access, and the tool points to the console if another agent needs one. Over an API key, a new inbox-scoped key appears once in the result.
 
-<Warning>Move that key to the agent's environment straight away, and revoke it from the console if the transcript is shared.</Warning>
+<Warning>Move that key to the agent's environment now. If the transcript is shared, revoke it in the console.</Warning>
 
 ## Tools
 
-<Note>19 tools. Your client reads the live list from the server, so this table can lag behind by a release.</Note>
+<Note>19 tools. Your client reads the live list from the server; this table can lag a release.</Note>
 
 | Tool | What it does |
 | --- | --- |
@@ -201,11 +199,11 @@ Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_ag
 
 ## What the connected client can do
 
-A connected client receives whatever the tools return: thread contents, attachment text, inbox addresses. With the **Send** scope it can also send and reply as your inbox. The client handles that data under its own terms, so connect only clients you trust and leave scopes unticked when the agent does not need them. Revoking the connection in [MCP settings](https://console.openmail.sh/settings/mcp), or the API key it uses, stops access at once.
+A connected client sees whatever the tools return: thread contents, attachment text, inbox addresses. With **Send** it can also send and reply as your inbox. That data falls under the client's own terms, so connect only clients you trust and untick scopes the agent does not need. Revoking the connection in [MCP settings](https://console.openmail.sh/settings/mcp), or its API key, stops access at once.
 
 ## Usage analytics
 
-The server records how tools are used so the OpenMail team can fix the ones that fail or confuse agents. Each tool also accepts an optional `context` argument where the agent says in one line what it is trying to do; that line is recorded too.
+The server records how tools are used so the OpenMail team can fix the ones that fail or confuse agents. Each tool accepts an optional `context` argument: one line from the agent on what it is trying to do. That line is recorded too.
 
 | Recorded | Never recorded |
 | --- | --- |
@@ -214,25 +212,25 @@ The server records how tools are used so the OpenMail team can fix the ones that
 | The agent's `context` line | Inbox names and display names |
 | Your organisation id | API keys and OAuth tokens |
 
-Tool results are dropped before they leave the server, except for `search_docs` and `get_docs`, which return public documentation.
+Tool results never leave the server, except from `search_docs` and `get_docs`, which return public documentation.
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="The consent page asks for an account you do not have">
-    Sign up at [console.openmail.sh](https://console.openmail.sh/signup) first, then start the connection again from your client.
+    Sign up at [console.openmail.sh](https://console.openmail.sh/signup), then connect again from your client.
   </Accordion>
   <Accordion title="You picked the wrong organisation">
-    Revoke the connection in [MCP settings](https://console.openmail.sh/settings/mcp), then connect again from the client. The consent page shows the organisation picker each time.
+    Revoke it in [MCP settings](https://console.openmail.sh/settings/mcp) and connect again. The consent page shows the picker each time.
   </Accordion>
   <Accordion title="401 with an API key">
-    Check the key starts with `om_`, was copied in full, and has not been revoked in the console. The key goes in the `Authorization: Bearer` header, not the URL. In Cursor, a leftover `om_YOUR_KEY` placeholder gives the same error.
+    Check the key starts with `om_`, is complete, and is not revoked. It belongs in the `Authorization: Bearer` header, not the URL. A leftover `om_YOUR_KEY` placeholder in Cursor gives the same error.
   </Accordion>
   <Accordion title="Tools are missing">
-    An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools by design. If you changed scopes on the consent page, disconnect and reconnect so the client reloads the tool list.
+    An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools on purpose. After changing scopes, disconnect and reconnect so the client reloads the list.
   </Accordion>
   <Accordion title="Claude says it cannot reach OpenMail">
-    Open **Settings → Connectors** and check that OpenMail shows as connected. If not, repeat the Claude steps above.
+    Check **Settings → Connectors** shows OpenMail as connected. If not, repeat the Claude steps.
   </Accordion>
 </AccordionGroup>
 
