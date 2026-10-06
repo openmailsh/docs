@@ -103,7 +103,8 @@ Add one URL to your client and your agent gets tools to create an inbox, read th
     One click, then sign in with OAuth when Cursor prompts you:
 
     <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=openmail&config=eyJ1cmwiOiJodHRwczovL21jcC5vcGVubWFpbC5zaC9tY3AifQ==">
-      <img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
+      <img noZoom className="block dark:hidden" src="https://cursor.com/deeplink/mcp-install-light.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
+      <img noZoom className="hidden dark:block" src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
     </a>
 
     Or add it by hand to `.cursor/mcp.json`. Leave out `headers` to sign in with OAuth, or pass an API key for a headless agent:
