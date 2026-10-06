@@ -1,0 +1,27 @@
+#!/bin/sh
+# Runs the Mintlify checks before every commit. Installed by `pnpm install`
+# (the `prepare` script points core.hooksPath here).
+set -e
+
+# Mintlify refuses Node 25+. If the default node is too new and nvm has an
+# LTS installed, use the newest v24 it has.
+major=$(node -v 2>/dev/null | sed 's/^v\([0-9]*\).*/\1/')
+if [ "${major:-0}" -ge 25 ] && [ -d "$HOME/.nvm/versions/node" ]; then
+  lts=$(ls -d "$HOME/.nvm/versions/node"/v24.* 2>/dev/null | sort -V | tail -1)
+  [ -n "$lts" ] && PATH="$lts/bin:$PATH"
+fi
+
+run() {
+  printf '• mint %s\n' "$1"
+  out=$(pnpm exec mint "$1" 2>&1 | sed 's/\x1b\[[0-9;]*[A-Za-z]//g' | grep -v '^[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]' | grep -v '^$' || true)
+  printf '%s\n' "$out" | grep -viE 'checking|validating' || true
+  # mint exits 0 even when a11y fails, so look at the summary instead.
+  if printf '%s' "$out" | grep -qiE '\bFAIL\b|error|✗'; then
+    echo "mint $1 failed; fix the issues above or commit with --no-verify"
+    exit 1
+  fi
+}
+
+run validate
+run broken-links
+run a11y

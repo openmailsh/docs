@@ -8,7 +8,9 @@
   "scripts": {
     "dev": "mint dev",
     "validate": "mint validate",
-    "broken-links": "mint broken-links"
+    "broken-links": "mint broken-links",
+    "a11y": "mint a11y",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "mint": "^4.0.0"
