@@ -6,68 +6,83 @@ icon: gauge
 
 ## Send limits
 
+Fixed limits on how fast an inbox can send and how many inboxes an account can create. They don't change with plan or history.
+
 | Limit | Value | Scope |
 |-------|-------|-------|
 | Burst | 10/minute | Per inbox |
 | Daily | 200/day | Per inbox |
 | Inbox creation | 100/day | Per account |
 
+Over one of these, the API returns `429` with a `Retry-After` header:
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "message": "Max 10 sends per minute per inbox"
+}
+```
+
 ## Cold outreach cap
 
-The cold outreach cap limits how many **new recipients** your agents can email per UTC day. It is the reputation guard: providers judge a sender by how many strangers it writes to and how they react, not by raw volume.
+The cold outreach cap limits how many **new recipients** your agents can email per UTC day. Providers judge a sender by how many strangers it writes to and how those strangers react, so this is the cap that protects your domain's reputation.
 
 ### What counts as a new recipient
 
-A recipient is new on the first email **from an inbox** to an address that has never written to that inbox. Each unique To/Cc address on a send counts once. These are **not** counted:
+A recipient is new on the first email **from an inbox** to an address that has never written to that inbox. Each unique To/Cc address on a send counts once. Not counted:
 
-- Replies to anyone who has emailed the inbox ("warm" recipients).
+- Replies to anyone who has emailed the inbox.
 - Follow-ups to someone the inbox has already emailed.
-- Bcc addresses (they are billed, but not metered as cold).
-- Your own inboxes on the same account, so deliverability probes between your mailboxes cost nothing.
+- Bcc addresses. They're billed, not metered as cold.
+- Your own inboxes on the same account, so a deliverability probe between your mailboxes costs nothing.
 
 Warmth is per inbox: a contact who wrote to inbox A is still new for inbox B.
 
-### Pro: reputation-driven cap
+### Caps by plan
 
-On Pro the cap is not a fixed number. It starts at a floor and grows with clean sending history. Three scopes are checked, in this order; the first one you exceed produces the `429`.
+<Tabs>
+  <Tab title="Pro">
+    The cap starts at a floor and grows with clean sending history. Three scopes are checked in order; the first one you exceed produces the `429`.
 
-**Inbox.** 20 new recipients/day per inbox during the account's warm-up. No per-inbox cold cap afterwards (the 200/day send limit still applies).
+    **Inbox.** 20 new recipients/day per inbox during the account's warm-up. No per-inbox cold cap afterwards (the 200/day send limit still applies).
 
-**Sending domain** (custom domains only). Each verified domain climbs a tier schedule on its own age and lifetime new recipients. Both conditions must be met; the first tier you qualify for applies:
+    **Sending domain** (custom domains only). Each verified domain climbs a tier schedule on its own age and lifetime new recipients. Both conditions must be met; the first tier you qualify for applies.
 
-| Tier | Domain age | Lifetime new recipients | New recipients/day |
-|------|-----------|-------------------------|--------------------|
-| 0 | under 7 days | any | 20 |
-| 1 | 7 days | 50 | 50 |
-| 2 | 14 days | 150 | 100 |
-| 3 | 28 days | 400 | your account cap |
+    | Tier | Domain age | Lifetime new recipients | New recipients/day |
+    |------|-----------|-------------------------|--------------------|
+    | 0 | under 7 days | any | 20 |
+    | 1 | 7 days | 50 | 50 |
+    | 2 | 14 days | 150 | 100 |
+    | 3 | 28 days | 400 | your account cap |
 
-Age counts from the day the domain verified. The volume condition stops a domain that sat idle for a month from jumping straight to the account cap: providers have never seen it send. A proven account that adds a fresh domain still starts that domain at tier 0, because providers score the domain, not your account. Inboxes on the shared `omail.sh` domain have no domain cap.
+    Age counts from the day the domain verified. The volume condition stops a domain that sat idle for a month from jumping straight to the account cap, because providers have never seen it send. A proven account that adds a fresh domain still starts that domain at tier 0; providers score the domain, not your account. Inboxes on the shared `omail.sh` domain have no domain cap.
 
-**Account.** 150/day across all inboxes during warm-up. Afterwards, 2× your account's trailing 7-day average of new recipients per day, min 150, max 500. The account cap is the ceiling on everything: adding domains or inboxes never pushes you past it.
+    **Account.** 150/day across all inboxes during warm-up. Afterwards, 2× your account's trailing 7-day average of new recipients per day, min 150, max 500. The account cap is the ceiling on everything: adding domains or inboxes never pushes you past it.
 
-**Account warm-up** ends after **7 days or 100 lifetime new recipients**, whichever comes first.
+    **Account warm-up** ends after 7 days or 100 lifetime new recipients, whichever comes first.
 
-**Growth** of the account cap is gated by engagement once you have enough history. With 200 or more cold threads opened in the 14 days ending 3 days ago, the daily multiplier depends on how many got a human reply: 1% or more → 2×, 0.5% or more → 1.5×, below that the cap holds at your average. Below 200 threads the 2× applies.
+    **Growth** of the account cap is gated by engagement once you have enough history. With 200 or more cold threads opened in the 14 days ending 3 days ago, the daily multiplier depends on how many got a human reply: 1% or more gives 2×, 0.5% or more gives 1.5×, below that the cap holds at your average. Below 200 threads the 2× applies.
 
-**Reputation state** only ever lowers a cap: `watch` holds the account cap at your trailing average and drops a domain one tier, `throttled` halves every cap, `suspended` sets them to 0. See [Reputation](#reputation) below.
+    **Reputation state** only ever lowers a cap. `watch` holds the account cap at your trailing average and drops a domain one tier; `throttled` halves every cap; `suspended` sets them to 0. See [Reputation](#reputation).
 
-### Free: fixed caps
+    If you have a vetted use case that needs volume before the history exists, contact us. We can set a trusted volume that replaces the warm-up.
+  </Tab>
+  <Tab title="Free">
+    Free sends from the shared domain, so its reputation is everyone's. The caps are fixed and age-based.
 
-Free sends from the shared domain, so its reputation is everyone's. The caps are fixed and age-based:
+    | Scope | First 30 days | After 30 days |
+    |-------|---------------|---------------|
+    | **Inbox** | 20/day | 200/day |
+    | **Account** | 30/day | 100/day |
+  </Tab>
+  <Tab title="Enterprise">
+    Negotiated caps. Contact us to set them.
+  </Tab>
+</Tabs>
 
-| Scope | First 30 days | After 30 days |
-|-------|---------------|---------------|
-| **Inbox** | 20/day | 200/day |
-| **Account** | 30/day | 100/day |
+### When you hit the cap
 
-### Enterprise
-
-Enterprise accounts have negotiated caps. Contact us to set them.
-
-### Rate limit response
-
-When a cold cap is hit the API returns `429` with a `Retry-After` header and tells you which scope blocked the send:
+The API returns `429` with a `Retry-After` header and names the scope that blocked the send:
 
 ```json
 {
@@ -79,17 +94,13 @@ When a cold cap is hit the API returns `429` with a `Retry-After` header and tel
 }
 ```
 
-`scope` is `inbox`, `domain` or `customer` (the account). The send is rejected whole: no recipient on it is counted, and nothing is sent. Replies and follow-ups keep going.
+`scope` is `inbox`, `domain` or `customer` (the account). The send is rejected whole: no recipient on it is counted and nothing goes out. Replies and follow-ups keep going.
 
-There is no endpoint to read today's remaining allowance yet. Schedulers should treat the `429` as the signal and back off until `resetsAt`.
-
-### Raising the cap
-
-On Pro the cap grows on its own: domains climb the tier schedule as they age and send, and the account cap grows with steady volume, low bounces and complaints, and replies. If you have a vetted use case that needs volume before the history exists, contact us; we can set a trusted volume that replaces the warm-up.
+There's no endpoint to read today's remaining allowance yet, so schedulers should treat the `429` as the signal and back off until `resetsAt`.
 
 ## Reputation
 
-Every inbox and pod has a reputation state: `good`, `watch`, `throttled` or `suspended`. It is computed from permanent bounces and spam complaints, once an inbox is at least 3 days old or has sent 20 emails. Rates are judged over the trailing 7 days, plus a 24-hour burst check that catches a fast spike at lower volume.
+Every inbox and pod has a reputation state: `good`, `watch`, `throttled` or `suspended`. It's computed from permanent bounces and spam complaints once an inbox is at least 3 days old or has sent 20 emails. Rates are judged over the trailing 7 days, plus a 24-hour burst check that catches a fast spike at lower volume.
 
 | Signal | `watch` | `throttled` | `suspended` |
 |--------|---------|-------------|-------------|
@@ -98,25 +109,10 @@ Every inbox and pod has a reputation state: `good`, `watch`, `throttled` or `sus
 | Complaints (≥ 1,000 sends in 7d) | Any complaint | Rate ≥ 0.1% | Rate ≥ 0.3% and ≥ 3 complaints |
 | Complaint burst (≥ 200 sends in 24h) | | | Rate ≥ 0.3% and ≥ 3 complaints |
 
-So 30 probe sends in a day with 5 bounces among them is enough to suspend an inbox. Bounces to your own inboxes caused by a DNS problem count like any other bounce: fix the DNS before probing.
+<Warning>
+  30 probe sends in a day with 5 bounces among them is enough to suspend an inbox. Bounces to your own inboxes caused by a DNS problem count like any other bounce, so fix the DNS before probing.
+</Warning>
 
 `throttled` cuts the inbox's daily send limit to 25% and halves its cold cap. `suspended` blocks every send from the inbox; the API refuses with a message saying the inbox is suspended for reputation. `watch` and `throttled` recover on their own as the rate falls. A suspension does not: OpenMail lifts it after review, and the `inbox.reactivated` [webhook](/pages/webhooks/events) fires when that happens.
 
-## Other limits
-
-When a send limit is hit, the API returns `429` with a `Retry-After` header:
-
-```json
-{
-  "error": "rate_limit_exceeded",
-  "message": "Max 10 sends per minute per inbox"
-}
-```
-
-## Why this matters
-
-Fresh domains on shared IP pools need time to build reputation. If your agents send too much cold outreach too quickly, emails will land in spam - which hurts your agents' effectiveness and your domain's reputation. These limits exist to protect deliverability.
-
-Contact us if you need higher limits or a dedicated sending IP.
-
-For a complete warm-up strategy and content best practices, see [Email deliverability](/best-practices/email-deliverability).
+For how to send so you never meet these limits, read [Email deliverability](/best-practices/email-deliverability).
