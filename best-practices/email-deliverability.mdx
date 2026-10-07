@@ -4,58 +4,73 @@ description: "How to send so your agents' email lands in the inbox: domain setup
 icon: mail-check
 ---
 
-Deliverability is whether your message lands in the inbox or in spam. Gmail and Outlook decide that from your sending domain's reputation, and reputation comes from how many strangers you write to and what they do next. Follow the steps below and the [rate limits](/concepts/rate-limits) will do the rest.
+This page assumes you know what SPF, DKIM and warm-up are. It covers what's different on OpenMail: the cold cap does the warm-up, and reputation is tracked per inbox and per domain.
 
-## Set up the domain
+## Domain
 
 <Steps>
-  <Step title="Verify a custom domain">
-    Inboxes start on the shared `omail.sh` domain. That's fine for testing and for agents that mostly reply, but for outreach you want the reputation you build to be yours. Add a [custom domain](/concepts/custom-domains) (Pro and above).
+  <Step title="Add a custom domain">
+    Reputation built on the shared `omail.sh` isn't yours. Add a [custom domain](/concepts/custom-domains) (Pro and above) and run outreach from there.
   </Step>
-  <Step title="Publish all four DNS records">
-    MX, SPF, DKIM and DMARC, exactly as the domain page shows them. The domain verifies without DMARC, so it's easy to skip; don't. Gmail and Yahoo require it from bulk senders. If the domain already has a `_dmarc` record, keep it.
+  <Step title="Publish DMARC too">
+    The domain verifies without it, so it's easy to skip. Gmail and Yahoo require it from bulk senders. Keep an existing `_dmarc` record if you have one.
   </Step>
-  <Step title="Send a test between your own inboxes">
-    Create two inboxes on the domain and send from one to the other. It doesn't count against the cold cap, and a bounce here means a DNS problem to fix before you write to anyone outside.
-  </Step>
-  <Step title="Keep cold mail on its own domain (optional)">
-    `outreach.yourcompany.com` keeps a reputation hit on cold mail away from the domain your team uses for everything else. If you run outreach for several products or clients, give each its own domain so one bad campaign is contained. Each domain ramps on its own, but the account cap still applies, so this is for isolation, not volume.
+  <Step title="Probe before you write to anyone">
+    Send between two inboxes on the new domain. It doesn't count against the cold cap, and a bounce here means a DNS problem.
   </Step>
 </Steps>
 
-## Send
+<Tip>
+  Keep cold mail on its own subdomain, like `outreach.yourcompany.com`, so a reputation hit never touches the domain your team uses. Several products or clients: one domain each. Each domain ramps on its own, but the account cap still applies, so this buys isolation, not volume.
+</Tip>
 
-<Steps>
-  <Step title="Let the cap ramp on its own">
-    A new domain starts at 20 new recipients a day and climbs to 50, 100, then your account cap as it ages and builds history. You don't need a warm-up schedule, and you don't need to hit the cap every day. Just send.
-  </Step>
-  <Step title="Spread sends across the day">
-    10 a minute per inbox is the hard limit, but providers also notice a domain that sends 50 messages at 09:00 and nothing until tomorrow. Queue cold sends over the working day.
-  </Step>
-  <Step title="On a 429, stop until resetsAt">
-    The response names which cap you hit and when it resets (midnight UTC). Retrying earlier fails the same way. Moving the send to another inbox on the same domain won't help either; the cap is per domain. See [When you get a 429](/concepts/rate-limits#when-you-get-a-429).
-  </Step>
-  <Step title="Only email addresses you have reason to believe exist">
-    Validate before sending, don't buy lists. Over 5% bounces in a week throttles the inbox; 10% suspends it, and only a review lifts that.
-  </Step>
-  <Step title="Don't add inboxes to get more volume">
-    Caps are per domain and per account, so 50 inboxes on a new domain still share 20 new recipients a day. Create inboxes when agents need separate identities, not for throughput.
-  </Step>
-</Steps>
+## Sending
 
-## Write the first message
+Warm-up is built in. A new domain ramps as it ages and as you actually reach people; there's no schedule to follow and no need to hit the cap every day.
 
-Spam filters read the first message to a stranger more harshly than anything after it, and a reply is also what lets your cap keep growing. Write to earn one.
+| Days since domain added | New recipients messaged so far | New recipients/day |
+|------------------------:|-------------------------------:|-------------------:|
+| 0+ | 0+ | 20 |
+| 7+ | 50+ | 50 |
+| 14+ | 150+ | 100 |
+| 28+ | 400+ | your account cap |
 
-- Open with the recipient's name and something specific to them. A sentence that could have gone to anyone reads as a blast, to the filter and to the person.
-- Write to start a conversation, not to close a sale. Ask one question; leave the pitch for the reply.
-- Skip "free", "limited time", capitals and exclamation marks.
-- No images and no links in the first message. Send the link in your reply once they've answered.
-- Short enough to read on a phone without scrolling.
+Three things that slow it down:
 
-You don't need to add a plain-text part (the API generates one) or turn off open tracking. OpenMail has none, and that's deliberate: a tracking pixel is an image, and it trips the same filters as any other.
+- **Adding inboxes for volume.** Caps are per domain and per account, so 50 inboxes on a new domain still share 20 new recipients a day. Create inboxes for separate identities, not throughput.
+- **Bursting.** 10 a minute per inbox is the hard limit, but a domain that sends 50 at 09:00 and nothing until tomorrow looks like a blast. Queue cold sends over the working day.
+- **Retrying a 429.** The response names the cap and `resetsAt` (midnight UTC). Another inbox on the same domain hits the same cap. See [When you get a 429](/concepts/rate-limits#when-you-get-a-429).
 
-## Handle bounces and complaints
+<Warning>
+  Over 5% bounces in a week throttles the inbox; 10% suspends it, and only a review lifts that. Validate addresses; don't buy lists.
+</Warning>
+
+## The first message
+
+Filters read the first message to a stranger more harshly than anything after it, and a reply is what grows your cap. Write to earn one.
+
+<Columns cols={2}>
+  <div className="card-do">
+    <Card title="Do" icon="check">
+      - Open with their name and something specific to them
+      - Ask one question; leave the pitch for the reply
+      - Keep it short enough to read on a phone without scrolling
+      - Send the link once they've answered
+    </Card>
+  </div>
+  <div className="card-dont">
+    <Card title="Don't" icon="x">
+      - Open with a sentence that could have gone to anyone
+      - Use "free", "limited time", capitals or exclamation marks
+      - Put links or images in the first message
+      - Add a tracking pixel — it's an image, and trips the same filters
+    </Card>
+  </div>
+</Columns>
+
+Plain text is handled: the API generates a text part for every HTML message and adds no tracking pixel.
+
+## Bounces and complaints
 
 An address that bounces, complains or unsubscribes goes on your [suppression list](/concepts/suppressions) and later sends to it return `422 recipient_suppressed`. When your agent sees that, drop the contact or try another channel. Don't look for a way around it; a second bounce to the same address is what costs reputation.
 

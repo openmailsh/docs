@@ -205,3 +205,22 @@ html[data-theme="dark"] #topbar-cta-button a:hover .bg-primary-dark {
 .dark .tab-container > .tabs-boxed {
   background-color: #0a0a0a;
 }
+
+/* ================================
+   DO / DON'T CARDS
+   <Card className="card-do"> / <Card className="card-dont">: icon takes the
+   console's status green / red (Geist, --success / --destructive). Mintlify
+   draws card icons as a masked <svg> coloured by background-color.
+   ================================ */
+.card-do [data-component-part="card-icon"] svg {
+  background-color: #107d32 !important;
+}
+.card-dont [data-component-part="card-icon"] svg {
+  background-color: #ea0000 !important;
+}
+.dark .card-do [data-component-part="card-icon"] svg {
+  background-color: #00ca50 !important;
+}
+.dark .card-dont [data-component-part="card-icon"] svg {
+  background-color: #ff4d46 !important;
+}
