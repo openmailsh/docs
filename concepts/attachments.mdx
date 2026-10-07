@@ -83,7 +83,7 @@ The `extractionMethod` field tells you how the text was extracted: `pdf`, `ocr`,
 
 Each attachment includes a `url` field in the message response:
 
-```
+```text
 https://api.openmail.sh/v1/attachments/{messageId}/{filename}
 ```
 
@@ -99,7 +99,7 @@ curl https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf \
 
 For attachments that were stored before text extraction was available, or to re-extract text, use the `/text` endpoint:
 
-```
+```text
 GET /v1/attachments/{messageId}/{filename}/text
 ```
 
