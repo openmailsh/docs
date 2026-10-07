@@ -44,6 +44,10 @@ Warmth is per inbox: a contact who wrote to inbox A is still new for inbox B.
   <Tab title="Pro">
     The cap starts at a floor and grows with clean sending history. Three scopes are checked in order; the first one you exceed produces the `429`.
 
+    <img className="block dark:hidden mx-auto" src="/images/rate-limits/trays-light.svg" alt="Line drawing of a wide tray holding two smaller trays, each with a few beads in it." noZoom />
+    <img className="hidden dark:block mx-auto" src="/images/rate-limits/trays-dark.svg" alt="Line drawing of a wide tray holding two smaller trays, each with a few beads in it." noZoom />
+    <p className="text-center text-sm text-zinc-500">One tray per account, one per domain, a bead per inbox. Beads in a tray share its cap.</p>
+
     **Inbox.** 20 new recipients/day per inbox during the account's warm-up. No per-inbox cold cap afterwards (the 200/day send limit still applies).
 
     **Sending domain** (custom domains only). Each verified domain climbs a tier schedule on its own age and lifetime new recipients. Both conditions must be met; the first tier you qualify for applies.
@@ -54,6 +58,10 @@ Warmth is per inbox: a contact who wrote to inbox A is still new for inbox B.
     | 1 | 7 days | 50 | 50 |
     | 2 | 14 days | 150 | 100 |
     | 3 | 28 days | 400 | your account cap |
+
+    <img className="block dark:hidden mx-auto" src="/images/rate-limits/stairs-light.svg" alt="Line drawing of four steps climbing away from the viewer with a small block resting on the second." noZoom />
+    <img className="hidden dark:block mx-auto" src="/images/rate-limits/stairs-dark.svg" alt="Line drawing of four steps climbing away from the viewer with a small block resting on the second." noZoom />
+    <p className="text-center text-sm text-zinc-500">Each step is an age and asks for a volume. The block climbs only as far as both allow.</p>
 
     Age counts from the day the domain verified. The volume condition stops a domain that sat idle for a month from jumping straight to the account cap, because providers have never seen it send. A proven account that adds a fresh domain still starts that domain at tier 0; providers score the domain, not your account. Inboxes on the shared `omail.sh` domain have no domain cap.
 
@@ -108,6 +116,10 @@ Every inbox and pod has a reputation state: `good`, `watch`, `throttled` or `sus
 | Bounce burst (≥ 20 sends in 24h) | | | Rate ≥ 10% and ≥ 5 bounces |
 | Complaints (≥ 1,000 sends in 7d) | Any complaint | Rate ≥ 0.1% | Rate ≥ 0.3% and ≥ 3 complaints |
 | Complaint burst (≥ 200 sends in 24h) | | | Rate ≥ 0.3% and ≥ 3 complaints |
+
+<img className="block dark:hidden mx-auto" src="/images/rate-limits/valve-light.svg" alt="Line drawing of a short pipe on two saddles with a round flap hanging ajar at its mouth and a bolt beneath." noZoom />
+<img className="hidden dark:block mx-auto" src="/images/rate-limits/valve-dark.svg" alt="Line drawing of a short pipe on two saddles with a round flap hanging ajar at its mouth and a bolt beneath." noZoom />
+<p className="text-center text-sm text-zinc-500">The flap closes by degrees as the bounce rate rises. Past the last threshold the bolt holds it until a review.</p>
 
 <Warning>
   30 probe sends in a day with 5 bounces among them is enough to suspend an inbox. Bounces to your own inboxes caused by a DNS problem count like any other bounce, so fix the DNS before probing.
