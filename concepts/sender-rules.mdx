@@ -192,7 +192,7 @@ Up to 500 rules per direction per call.
 }
 ```
 
-`rules` are set on this scope; `inheritedRules` come from the pod and account. An inherited rule can only be removed at the scope that owns it; deleting one from a child scope returns `403 inherited_rule`.
+`rules` are set on this scope; `inheritedRules` come from the pod and account. An inherited rule can only be removed at the scope that owns it. Trying to delete it from a child scope is refused, and the response tells you which scope to delete it from.
 
 ### History query parameters
 

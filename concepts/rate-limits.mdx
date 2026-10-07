@@ -102,7 +102,7 @@ Every inbox and pod has a reputation state: `good`, `watch`, `throttled` or `sus
 
 So 30 probe sends in a day with 5 bounces among them is enough to suspend an inbox. Bounces to your own inboxes caused by a DNS problem count like any other bounce: fix the DNS before probing.
 
-`throttled` cuts the inbox's daily send limit to 25% and halves its cold cap. `suspended` blocks sending from the inbox with `403 reputation_suspended`. `watch` and `throttled` recover on their own as the rate falls. A suspension does not: OpenMail lifts it after review, and the `inbox.reactivated` [webhook](/pages/webhooks/events) fires when that happens.
+`throttled` cuts the inbox's daily send limit to 25% and halves its cold cap. `suspended` blocks every send from the inbox; the API refuses with a message saying the inbox is suspended for reputation. `watch` and `throttled` recover on their own as the rate falls. A suspension does not: OpenMail lifts it after review, and the `inbox.reactivated` [webhook](/pages/webhooks/events) fires when that happens.
 
 ## Other limits
 
