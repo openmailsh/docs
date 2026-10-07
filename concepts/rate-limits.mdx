@@ -98,16 +98,16 @@ A recipient is **new** the first time an inbox emails an address that has never 
 
 ## Reputation
 
-Every inbox has its own reputation state, computed from its permanent bounces and spam complaints over the trailing 7 days. The states are `good`, `watch`, `throttled` and `suspended`. Keep bounces under 5% and complaints under 0.1% and the inbox stays in `good`, with full caps.
+Every inbox has a reputation state: `good`, `watch`, `throttled` or `suspended`. It's computed from the inbox's permanent bounces and spam complaints over the trailing 7 days. Keep bounces under 5% and complaints under 0.1% and the inbox stays in `good`, with full caps.
 
-The thresholds that move an inbox into each state:
+### Thresholds
 
 | Signal | `watch` | `throttled` | `suspended` |
 |--------|---------|-------------|-------------|
 | Bounce rate | Any bounce | 5% | 10% |
 | Complaint rate | Any complaint | 0.1% | 0.3% |
 
-Each state past `good` does something to the inbox, and clears differently:
+### What each state does
 
 | State | Effect | How it clears |
 |-------|--------|---------------|
@@ -115,6 +115,10 @@ Each state past `good` does something to the inbox, and clears differently:
 | `throttled` | Daily send limit cut to 25%; cold caps halved | On its own, as the rate falls |
 | `suspended` | Every send from the inbox refused | After review by OpenMail; the `inbox.reactivated` [webhook](/pages/webhooks/events) fires |
 
-If an inbox is suspended, contact us. Before you do, fix what caused the bounces: validate the list, check DNS, drop the source.
+### If an inbox is suspended
+
+1. Fix what caused the bounces or complaints: validate the list, check DNS, drop the source.
+2. Contact us for review.
+3. Wait for the `inbox.reactivated` webhook before sending again.
 
 For how to send so you never meet these limits, read [Email deliverability](/best-practices/email-deliverability).
