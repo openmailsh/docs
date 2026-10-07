@@ -105,7 +105,7 @@ When adding a domain, pick **All pods** or a specific pod. On a pod's detail pag
 
 To change scope later, open the domain's page in the [console](https://console.openmail.sh/domains) and click **Change** next to "Available to …" (also under the **⋯** menu), or call `PATCH /v1/domains/{id}` with `podId` (a pod id, or `null` for all pods). From the CLI: `openmail domain update --domain-id <id> --pod-id <pod_id>` or `--all-pods`. DNS records and verification are untouched.
 
-Making a domain account-wide always works. Narrowing it to a pod is blocked while inboxes on that domain live outside the target pod (`409 domain_has_inboxes`), because inboxes cannot move between pods. Scope changes need an account-wide API key.
+Making a domain account-wide always works. Narrowing it to one pod only works if every inbox on that domain is already in that pod. Inboxes cannot move between pods, so if some live elsewhere the change is refused and the response tells you how many and what to do: delete those inboxes first, or keep the domain available to all pods. Scope changes need an account-wide API key.
 
 ## Limits
 
