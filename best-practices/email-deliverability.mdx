@@ -18,8 +18,8 @@ Deliverability is whether your message lands in the inbox or in spam. Gmail and 
   <Step title="Send a test between your own inboxes">
     Create two inboxes on the domain and send from one to the other. It doesn't count against the cold cap, and a bounce here means a DNS problem to fix before you write to anyone outside.
   </Step>
-  <Step title="Use a subdomain for high volume (optional)">
-    `outreach.yourcompany.com` keeps a reputation hit on cold mail away from the domain your team uses for everything else.
+  <Step title="Keep cold mail on its own domain (optional)">
+    `outreach.yourcompany.com` keeps a reputation hit on cold mail away from the domain your team uses for everything else. If you run outreach for several products or clients, give each its own domain so one bad campaign is contained. Each domain ramps on its own, but the account cap still applies, so this is for isolation, not volume.
   </Step>
 </Steps>
 
@@ -48,11 +48,12 @@ Deliverability is whether your message lands in the inbox or in spam. Gmail and 
 Spam filters read the first message to a stranger more harshly than anything after it, and a reply is also what lets your cap keep growing. Write to earn one.
 
 - Open with the recipient's name and something specific to them. A sentence that could have gone to anyone reads as a blast, to the filter and to the person.
+- Write to start a conversation, not to close a sale. Ask one question; leave the pitch for the reply.
 - Skip "free", "limited time", capitals and exclamation marks.
 - No images and no links in the first message. Send the link in your reply once they've answered.
 - Short enough to read on a phone without scrolling.
 
-You don't need to add a plain-text part (the API generates one) or turn off tracking (there isn't any).
+You don't need to add a plain-text part (the API generates one) or turn off open tracking. OpenMail has none, and that's deliberate: a tracking pixel is an image, and it trips the same filters as any other.
 
 ## Handle bounces and complaints
 
