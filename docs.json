@@ -170,6 +170,7 @@
               "GET /v1/domains",
               "POST /v1/domains",
               "GET /v1/domains/{id}",
+              "PATCH /v1/domains/{id}",
               "POST /v1/domains/{id}/verify",
               "DELETE /v1/domains/{id}"
             ]

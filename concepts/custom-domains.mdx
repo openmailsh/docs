@@ -103,7 +103,9 @@ Custom domains can be shared across your account or limited to a single [pod](/c
 
 When adding a domain, pick **All pods** or a specific pod. On a pod's detail page, the **Domains** tab lists domains scoped to that pod; account-wide domains still appear when creating inboxes inside the pod.
 
-To move a scoped domain to another pod (or make it account-wide), reassign it in the dashboard. Narrowing scope is blocked while inboxes on that domain live outside the target pod.
+To change scope later, open the domain's page in the [console](https://console.openmail.sh/domains) and click **Change** next to "Available to …" (also under the **⋯** menu), or call `PATCH /v1/domains/{id}` with `podId` (a pod id, or `null` for all pods). From the CLI: `openmail domain update --domain-id <id> --pod-id <pod_id>` or `--all-pods`. DNS records and verification are untouched.
+
+Making a domain account-wide always works. Narrowing it to a pod is blocked while inboxes on that domain live outside the target pod (`409 domain_has_inboxes`), because inboxes cannot move between pods. Scope changes need an account-wide API key.
 
 ## Limits
 
