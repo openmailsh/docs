@@ -33,19 +33,26 @@ Warmth is per inbox: a contact who wrote to inbox A is still new for inbox B.
 
 On Pro the cap is not a fixed number. It starts at a floor and grows with clean sending history. Three scopes are checked, in this order; the first one you exceed produces the `429`.
 
-| Scope | During warm-up | After warm-up |
-|-------|----------------|---------------|
-| **Inbox** | 20/day per inbox | No per-inbox cold cap (the 200/day send limit still applies) |
-| **Sending domain** (custom domains only) | 20/day across all inboxes on that domain | 2× the domain's trailing 7-day average of new recipients per day, min 20, max your account cap |
-| **Account** | 150/day across all inboxes | 2× your account's trailing 7-day average, min 150, max 500 |
+**Inbox.** 20 new recipients/day per inbox during the account's warm-up. No per-inbox cold cap afterwards (the 200/day send limit still applies).
 
-**Warm-up** ends after **7 days or 100 lifetime new recipients**, whichever comes first. It is tracked separately for the account (from account creation) and for each custom domain (from the day it verified). A proven account that adds a fresh domain still warms that domain up from 20/day, because providers score the domain, not your account.
+**Sending domain** (custom domains only). Each verified domain climbs a tier schedule on its own age and lifetime new recipients. Both conditions must be met; the first tier you qualify for applies:
 
-Every verified domain gets its own warm-up allowance, so N fresh domains can send up to N × 20 new recipients per day. The account cap is the ceiling on the total: adding domains or inboxes never pushes you past it. Inboxes on the shared `omail.sh` domain have no domain cap.
+| Tier | Domain age | Lifetime new recipients | New recipients/day |
+|------|-----------|-------------------------|--------------------|
+| 0 | under 7 days | any | 20 |
+| 1 | 7 days | 50 | 50 |
+| 2 | 14 days | 150 | 100 |
+| 3 | 28 days | 400 | your account cap |
 
-**Growth** is gated by engagement once you have enough history. With 200 or more cold threads opened in the 14 days ending 3 days ago, the daily multiplier depends on how many got a human reply: 1% or more → 2×, 0.5% or more → 1.5×, below that the cap holds at your average. Below 200 threads the 2× applies.
+Age counts from the day the domain verified. The volume condition stops a domain that sat idle for a month from jumping straight to the account cap: providers have never seen it send. A proven account that adds a fresh domain still starts that domain at tier 0, because providers score the domain, not your account. Inboxes on the shared `omail.sh` domain have no domain cap.
 
-**Reputation state** scales the cap as well: `watch` holds it at your trailing average, `throttled` halves it, `suspended` sets it to 0. See [Reputation](#reputation) below.
+**Account.** 150/day across all inboxes during warm-up. Afterwards, 2× your account's trailing 7-day average of new recipients per day, min 150, max 500. The account cap is the ceiling on everything: adding domains or inboxes never pushes you past it.
+
+**Account warm-up** ends after **7 days or 100 lifetime new recipients**, whichever comes first.
+
+**Growth** of the account cap is gated by engagement once you have enough history. With 200 or more cold threads opened in the 14 days ending 3 days ago, the daily multiplier depends on how many got a human reply: 1% or more → 2×, 0.5% or more → 1.5×, below that the cap holds at your average. Below 200 threads the 2× applies.
+
+**Reputation state** only ever lowers a cap: `watch` holds the account cap at your trailing average, `throttled` halves every cap, `suspended` sets them to 0. See [Reputation](#reputation) below.
 
 ### Free: fixed caps
 
@@ -67,7 +74,7 @@ When a cold cap is hit the API returns `429` with a `Retry-After` header and tel
 ```json
 {
   "error": "cold_outreach_limit",
-  "message": "You've reached today's limit of new recipients. Try again after midnight UTC.",
+  "message": "This sending domain has reached today's limit of new recipients. The limit rises as the domain ages and builds a clean sending history. Try again after midnight UTC.",
   "scope": "domain",
   "limit": 20,
   "resetsAt": "2026-09-30T00:00:00.000Z"
@@ -80,7 +87,7 @@ There is no endpoint to read today's remaining allowance yet. Schedulers should 
 
 ### Raising the cap
 
-On Pro the cap grows on its own: send steadily, keep bounces and complaints low, and get replies. If you have a vetted use case that needs volume before the history exists, contact us; we can set a trusted volume that replaces the warm-up.
+On Pro the cap grows on its own: domains climb the tier schedule as they age and send, and the account cap grows with steady volume, low bounces and complaints, and replies. If you have a vetted use case that needs volume before the history exists, contact us; we can set a trusted volume that replaces the warm-up.
 
 ## Reputation
 
