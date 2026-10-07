@@ -1,140 +1,92 @@
 ---
 title: "Email deliverability"
-description: "Best practices for landing outbound emails in the inbox. Covers IP warming, SPF/DKIM/DMARC alignment, content tips, and suppression handling."
+description: "How to send so your agents' email lands in the inbox: domain setup, letting the cold cap do the warm-up, and content that gets replies."
 icon: mail-check
 ---
 
-Deliverability is whether your email lands in the inbox or the spam folder. Providers like Gmail and Outlook decide that from your sending reputation, and reputation is earned; how you send matters as much as what you send. This guide covers both.
+This page assumes you know what SPF, DKIM and warm-up are. It covers what's different on OpenMail: the cold cap does the warm-up, and reputation is tracked per inbox and per domain.
 
-### SPF, DKIM, and DMARC
+## Domain
 
-Set these up before your first send. They are DNS records that prove to receiving providers you are who you say you are.
+<Steps>
+  <Step title="Add a custom domain">
+    Reputation built on the shared `omail.sh` isn't yours. Add a [custom domain](/concepts/custom-domains) (Pro and above) and run outreach from there.
+  </Step>
+  <Step title="Publish DMARC too">
+    The domain verifies without it, so it's easy to skip. Gmail and Yahoo require it from bulk senders. Keep an existing `_dmarc` record if you have one.
+  </Step>
+  <Step title="Probe before you write to anyone">
+    Send between two inboxes on the new domain. It doesn't count against the cold cap, and a bounce here means a DNS problem.
+  </Step>
+</Steps>
 
 <Tip>
-  OpenMail handles SPF, DKIM, and DMARC automatically for `omail.sh` — great for getting started. For high-volume cold outreach, verify your own custom domain (Pro plan and above). See [Custom domains](/concepts/custom-domains).
+  Keep cold mail on its own subdomain, like `outreach.yourcompany.com`, so a reputation hit never touches the domain your team uses. Several products or clients: one domain each. Each domain ramps on its own, but the account cap still applies, so this buys isolation, not volume.
 </Tip>
 
-All inboxes use `omail.sh` by default. For production outreach at scale, send from a verified custom domain like `outreach@yourcompany.com` so your reputation belongs to you.
+## Sending
 
-<CardGroup>
-  <Card title="Inboxes" icon="inbox" href="/concepts/inboxes">
-    Learn about inbox address formats and how to configure your sending domain.
-  </Card>
-</CardGroup>
+Warm-up is built in. A new domain ramps as it ages and as you actually reach people; there's no schedule to follow and no need to hit the cap every day.
 
-## High-volume sending strategy
+| Days since domain added | New recipients messaged so far | New recipients/day |
+|------------------------:|-------------------------------:|-------------------:|
+| 0+ | 0+ | 20 |
+| 7+ | 50+ | 50 |
+| 14+ | 150+ | 100 |
+| 28+ | 400+ | your account cap |
 
-How you send your emails is just as important as what you send. If you're sending a large volume of emails, follow these steps to build and maintain a strong sender reputation.
+Three things that slow it down:
 
-<Steps>
-  <Step title="Warm up your inboxes">
-    Don't go from zero to a thousand emails overnight. Email providers get
-    suspicious of new inboxes that immediately send a high volume. Start slow
-    and gradually increase your sending volume over several days or weeks. This
-    "warm-up" process signals that you're a legitimate sender.
+- **Adding inboxes for volume.** Caps are per domain and per account, so 50 inboxes on a new domain still share 20 new recipients a day. Create inboxes for separate identities, not throughput.
+- **Bursting.** 10 a minute per inbox is the hard limit, but a domain that sends 50 at 09:00 and nothing until tomorrow looks like a blast. Queue cold sends over the working day.
+- **Retrying a 429.** The response names the cap and `resetsAt` (midnight UTC). Another inbox on the same domain hits the same cap. See [When you get a 429](/concepts/rate-limits#when-you-get-a-429).
 
-    <Note>
-      **Example warm-up schedule:**
-      - Day 1: 10 emails/inbox
-      - Day 2: 20 emails/inbox
-      - Day 3: 40 emails/inbox
-      - ...and so on, doubling until you reach your target.
-    </Note>
+<Warning>
+  Over 5% bounces in a week throttles the inbox; 10% suspends it, and only a review lifts that. Validate addresses; don't buy lists.
+</Warning>
 
-    See [Rate limits](/concepts/rate-limits) for per-inbox sending limits.
-  </Step>
+## The first message
 
-  <Step title="Distribute across inboxes">
-    Instead of sending 10,000 emails from a single inbox, send 100 emails from
-    100 different inboxes. This distributes your sending volume, reduces the
-    risk of any single inbox getting flagged, and looks much more natural to
-    email providers. OpenMail's ability to create inboxes at scale makes this
-    easy to implement.
+Filters read the first message to a stranger more harshly than anything after it, and a reply is what grows your cap. Write to earn one.
 
-    <Warning>
-      **Distribute on your domain.** Use multiple inboxes on a verified custom
-      domain — one per agent, campaign, or [pod](/concepts/pods) tenant. Do
-      not run high-volume cold outreach from shared `@omail.sh` addresses.
-    </Warning>
+<Columns cols={2}>
+  <div className="card-do">
+    <Card title="Do" icon="check">
+      - Open with their name and something specific to them
+      - Ask one question; leave the pitch for the reply
+      - Keep it short enough to read on a phone without scrolling
+      - Send the link once they've answered
+    </Card>
+  </div>
+  <div className="card-dont">
+    <Card title="Don't" icon="x">
+      - Open with a sentence that could have gone to anyone
+      - Use "free", "limited time", capitals or exclamation marks
+      - Put links or images in the first message
+      - Add a tracking pixel — it's an image, and trips the same filters
+    </Card>
+  </div>
+</Columns>
 
-    <Note>
-      **Reputation, not quota.** Inbox distribution protects per-inbox
-      reputation and helps you stay under per-inbox daily limits. Your
-      [account cold cap](/concepts/rate-limits) is shared across all inboxes —
-      adding more inboxes does not multiply total cold volume. Upgrade your plan
-      if you need a higher ceiling.
-    </Note>
-  </Step>
+Plain text is handled: the API generates a text part for every HTML message and adds no tracking pixel.
 
-  <Step title="Protect your reputation">
-    A domain's reputation is slow to build and quick to burn. If you use a custom
-    domain for outreach, consider rotating sending identities so a reputation
-    hit on one doesn't impact the rest.
-  </Step>
-</Steps>
+## Bounces and complaints
 
-## High-impact content strategy
-
-Content decides whether a spam filter reads your email as a message or as junk.
-
-<Steps>
-  <Step title="Personalize everything">
-    Address your recipients by name in the subject line and email body. Use
-    other data points you have to make the email feel like a one-to-one
-    conversation, not a mass blast. Generic emails are a major red flag for spam
-    filters.
-  </Step>
-
-  <Step title="Write like a human, not a marketer">
-    Avoid "spammy" keywords (e.g., "free," "buy now," "limited time offer"),
-    excessive exclamation points, and ALL CAPS. Write in a natural,
-    conversational tone. The goal is to start a conversation, not to close a
-    sale in the first email.
-  </Step>
-
-  <Step title="Skip images and tracking pixels">
-    Images embedded in the email body set off spam filters. Open-tracking pixels
-    are just tiny images encoded into the body — email providers know it. Drop
-    them to improve deliverability.
-  </Step>
-
-  <Step title="Delay your links">
-    Email providers are wary of links, especially in the first message of a
-    conversation. Send your initial outreach with no links or images. Wait for
-    the recipient to reply, and *then* send your call-to-action link. This
-    looks like a natural conversation to providers.
-  </Step>
-
-  <Step title="Always include plain text">
-    Email providers often flag HTML-only emails as spam. Including a plain text
-    alternative demonstrates legitimacy and increases your chances of reaching
-    the inbox.
-  </Step>
-</Steps>
-
-## Suppressions
-
-OpenMail automatically maintains a suppression list for bounces and spam complaints. Recipients who bounce or mark your email as spam are suppressed from future sends.
-
-<CardGroup>
-  <Card title="Suppressions" icon="ban" href="/concepts/suppressions">
-    Learn how suppression lists work and how to manage them.
-  </Card>
-</CardGroup>
+An address that bounces, complains or unsubscribes goes on your [suppression list](/concepts/suppressions) and later sends to it return `422 recipient_suppressed`. When your agent sees that, drop the contact or try another channel. Don't look for a way around it; a second bounce to the same address is what costs reputation.
 
 ## What's next
 
 <CardGroup cols={2}>
   <Card title="Rate limits" icon="gauge" href="/concepts/rate-limits">
-    Per-inbox send limits and cold outreach throttling.
+    The exact caps per plan and the reputation thresholds.
+  </Card>
+  <Card title="Custom domains" icon="globe" href="/concepts/custom-domains">
+    DNS records, verification and pod scoping.
+  </Card>
+  <Card title="Suppressions" icon="ban" href="/concepts/suppressions">
+    The three reasons an address is refused, and the error you get.
   </Card>
   <Card title="Idempotency" icon="repeat" href="/best-practices/idempotency">
-    Safe retries so agents never send duplicate emails.
-  </Card>
-  <Card title="Inboxes" icon="inbox" href="/concepts/inboxes">
-    Address formats, external IDs, and multi-tenant routing.
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/introduction">
-    Full endpoint documentation.
+    Safe retries so a `429` never turns into a duplicate send.
   </Card>
 </CardGroup>
