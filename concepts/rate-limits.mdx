@@ -55,7 +55,7 @@ A recipient is new on the first email **from an inbox** to an address that has n
     | 2 | 14+ | 150+ | 100 |
     | 3 | 28+ | 400+ | your account cap |
 
-    Age is counted on OpenMail, from the day the domain verified; how long you've owned the domain doesn't matter, since providers only start scoring it when it sends through us. The volume condition stops a domain that sat idle for a month from jumping straight to the account cap, because providers have never seen it send. A proven account that adds a fresh domain still starts that domain at tier 0; providers score the domain, not your account. Inboxes on the shared `omail.sh` domain have no domain cap.
+    Both columns are measured on OpenMail. The clock starts when the domain is added and verified here, not when you registered it, and the recipients counted are the ones it has messaged through us. That's also why the second column exists: a domain that sat idle for a month has age but no sending history, so it stays at 20/day until it has one. The schedule is per domain, so a proven account adding a new domain starts that domain at tier 0. Inboxes on the shared `omail.sh` domain have no domain cap.
 
     **Account.** 150/day across all inboxes during warm-up. Afterwards, 2× your account's trailing 7-day average of new recipients per day, min 150, max 500. The account cap is the ceiling on everything: adding domains or inboxes never pushes you past it.
 
