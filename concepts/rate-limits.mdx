@@ -48,12 +48,12 @@ A recipient is new on the first email **from an inbox** to an address that has n
 
     **Sending domain** (custom domains only). Each verified domain climbs a tier schedule on its own age and lifetime new recipients. A domain gets the highest tier whose age and volume it has both reached.
 
-    | Tier | Days since verified, at least | Lifetime new recipients, at least | New recipients/day |
-    |------|-------------------------------|-----------------------------------|--------------------|
-    | 0 | 0 | 0 | 20 |
-    | 1 | 7 | 50 | 50 |
-    | 2 | 14 | 150 | 100 |
-    | 3 | 28 | 400 | your account cap |
+    | Tier | Days since domain added | New recipients messaged so far | New recipients/day |
+    |------|-------------------------|--------------------------------|--------------------|
+    | 0 | 0+ | 0+ | 20 |
+    | 1 | 7+ | 50+ | 50 |
+    | 2 | 14+ | 150+ | 100 |
+    | 3 | 28+ | 400+ | your account cap |
 
     Age is counted on OpenMail, from the day the domain verified; how long you've owned the domain doesn't matter, since providers only start scoring it when it sends through us. The volume condition stops a domain that sat idle for a month from jumping straight to the account cap, because providers have never seen it send. A proven account that adds a fresh domain still starts that domain at tier 0; providers score the domain, not your account. Inboxes on the shared `omail.sh` domain have no domain cap.
 
