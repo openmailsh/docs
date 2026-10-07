@@ -32,7 +32,7 @@ Over one of these, the API returns `429` with a `Retry-After` header:
 
 A recipient is **new** the first time an inbox emails an address that has never written to it. Each To/Cc address counts once; Bcc, your own inboxes, and anyone who has already emailed or been emailed by that inbox don't count. Warmth is per inbox, so a contact known to inbox A is still new to inbox B.
 
-<Tabs>
+<Tabs className="tabs-boxed">
   <Tab title="Pro">
     Three caps apply at once. The lowest one you reach is the one that blocks.
 
