@@ -100,10 +100,14 @@ A recipient is **new** the first time an inbox emails an address that has never 
 
 Every inbox has its own reputation state, computed from its permanent bounces and spam complaints over the trailing 7 days. The states are `good`, `watch`, `throttled` and `suspended`. Keep bounces under 5% and complaints under 0.1% and the inbox stays in `good`, with full caps.
 
+The thresholds that move an inbox into each state:
+
 | Signal | `watch` | `throttled` | `suspended` |
 |--------|---------|-------------|-------------|
 | Bounce rate | Any bounce | 5% | 10% |
 | Complaint rate | Any complaint | 0.1% | 0.3% |
+
+Each state past `good` does something to the inbox, and clears differently:
 
 | State | Effect | How it clears |
 |-------|--------|---------------|
