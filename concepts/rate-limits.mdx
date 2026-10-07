@@ -107,10 +107,6 @@ Every inbox has its own reputation state, computed from its permanent bounces an
 | Complaints (≥ 1,000 sends in 7d) | Any complaint | Rate ≥ 0.1% | Rate ≥ 0.3% and ≥ 3 complaints |
 | Complaint burst (≥ 200 sends in 24h) | | | Rate ≥ 0.3% and ≥ 3 complaints |
 
-<Warning>
-  30 probe sends in a day with 5 bounces is enough to suspend an inbox. Bounces to your own inboxes caused by a DNS problem count like any other, so fix DNS before probing.
-</Warning>
-
 | State | Effect | How it clears |
 |-------|--------|---------------|
 | `watch` | Caps stop growing; a custom domain drops one tier | On its own, as the rate falls |
