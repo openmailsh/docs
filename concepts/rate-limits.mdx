@@ -98,7 +98,7 @@ A recipient is **new** the first time an inbox emails an address that has never 
 
 ## Reputation
 
-Every inbox has its own reputation state, computed from its permanent bounces and spam complaints over the trailing 7 days, with a 24-hour check for sudden spikes. The effects below apply to that inbox; pods and accounts are only suspended by us, after review. Keep bounces under 5% and complaints under 0.1% and you'll never leave `good`.
+Every inbox has its own reputation state, computed from its permanent bounces and spam complaints over the trailing 7 days, with a 24-hour check for sudden spikes. The effects below apply to that inbox; pods and accounts are only suspended by us, after review. The states are `good`, `watch`, `throttled` and `suspended`. Keep bounces under 5% and complaints under 0.1% and the inbox stays in `good`, with full caps.
 
 | Signal | `watch` | `throttled` | `suspended` |
 |--------|---------|-------------|-------------|
