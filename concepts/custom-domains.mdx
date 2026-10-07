@@ -15,7 +15,7 @@ By default, inboxes use `@omail.sh` addresses. With a custom domain you can use 
 
 ## Adding a domain
 
-Go to **Settings → Domains** in the dashboard and click **Add domain**. Enter the domain you want to use (e.g. `mail.acme.com`). You can also add it with `POST /v1/domains`.
+Open [Domains](https://console.openmail.sh/domains) in the console, enter the domain you want to use (e.g. `mail.acme.com`) and click **Add domain**. You can also add it with `POST /v1/domains`.
 
 <Note>
   You can use a subdomain like `mail.acme.com` or an apex domain like `acme.com`. A subdomain is generally easier to configure without affecting other email on your domain.
@@ -25,10 +25,16 @@ After adding your domain, OpenMail returns the DNS records to set at your regist
 
 ## DNS records
 
+The domain page lists every record with a copy button for the host and the value. Each row turns green as the record is found.
+
+<Frame caption="DNS records for a newly added domain, waiting on DNS">
+  <img src="/images/custom-domains/dns-records-dark.png" alt="DNS records panel showing five pending rows: MX, DKIM TXT, MAIL FROM MX, SPF TXT and DMARC TXT, each with copy buttons" />
+</Frame>
+
 | Type | Host | Value |
 |------|------|-------|
 | MX | `@` (or your subdomain) | `inbound-smtp.eu-north-1.amazonaws.com` (priority 10) |
-| CNAME | `omail._domainkey` (+ your subdomain) | Provided by OpenMail (three records) |
+| TXT | `omail._domainkey` (+ your subdomain) | `v=DKIM1; k=rsa; p=…` (unique per domain) |
 | MX | `bounce` (+ your subdomain) | `feedback-smtp.eu-north-1.amazonses.com` (priority 10) |
 | TXT | `bounce` (+ your subdomain) | `v=spf1 include:amazonses.com ~all` |
 | TXT | `_dmarc` (+ your subdomain) | `v=DMARC1; p=none;` |
@@ -37,7 +43,7 @@ Always prefer the exact records shown in the dashboard or API after you add the 
 
 **MX record** on your domain routes inbound email to OpenMail.
 
-**DKIM records** are three CNAMEs under `_domainkey` (hosts like `omail._domainkey`). They add a cryptographic signature to outbound email, proving messages were sent by you. The hosts and targets are unique per domain and provided after you add it.
+**DKIM record** is a single TXT on `omail._domainkey`. It adds a cryptographic signature to outbound email, proving messages were sent by you. The public key is unique per domain and provided after you add it. Copy the whole value; a truncated key fails verification.
 
 **MAIL FROM records** (`bounce` MX + TXT) set the envelope sender on your domain so SPF can align. Publish both on the `bounce` host exactly as shown — do not put the SPF include on your apex unless the records tell you to. Merge the SPF include into any `v=spf1` record you already have; two SPF records on the same host are invalid.
 
@@ -47,7 +53,11 @@ DNS changes typically propagate within minutes but can take up to 48 hours.
 
 ## Verifying your domain
 
-You don't need to click **Verify**. Once the records are published, OpenMail checks them in the background and the domain becomes **Verified** within a couple of minutes. Click **Verify** only if you want to check sooner.
+You don't need to click **Check DNS**. Once the records are published, OpenMail checks them in the background and the domain becomes **Verified** within a couple of minutes. Click **Check DNS** only if you want to check sooner.
+
+<Frame caption="All records found — the domain can send and receive">
+  <img src="/images/custom-domains/verified-dark.png" alt="DNS records panel with a green Verified badge and a green check next to each of the five records" />
+</Frame>
 
 <Note>
   DMARC is your own published policy, so it is not checked during verification — a domain verifies without it. The record is shown because bulk-sender requirements expect one.
@@ -57,7 +67,7 @@ If verification fails, double-check each record at your registrar and try again.
 
 - Existing MX records on the domain that weren't replaced
 - MAIL FROM MX or SPF published on the apex instead of `bounce`
-- Only one of the three DKIM CNAMEs published, or a host copied without the subdomain suffix
+- DKIM value truncated, or a host copied without the subdomain suffix
 - Two `v=spf1` TXT records on the same host (only one is allowed — merge includes into a single record)
 
 ## Using your domain
