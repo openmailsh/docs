@@ -44,7 +44,7 @@ Warmth is per inbox: a contact who wrote to inbox A is still new for inbox B.
   <Tab title="Pro">
     The cap starts at a floor and grows with clean sending history. Three scopes are checked in order; the first one you exceed produces the `429`.
 
-    **Inbox.** 20 new recipients/day per inbox during the account's warm-up. No per-inbox cold cap afterwards (the 200/day send limit still applies).
+    **Inbox.** During warm-up, each inbox can email at most 20 new recipients a day, within the account's 150. After warm-up there's no per-inbox cold cap; the domain and account caps, and the fixed 200 sends/day limit, are what remain.
 
     **Sending domain** (custom domains only). Each verified domain climbs a tier schedule on its own age and lifetime new recipients. Both conditions must be met; the first tier you qualify for applies.
 
