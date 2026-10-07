@@ -12,7 +12,7 @@ Without verification, anyone who discovers your webhook URL could send fake requ
 
 ## Signature format
 
-```
+```text
 HMAC-SHA256(webhook_secret, "{timestamp}.{raw_json_payload}")
 ```
 

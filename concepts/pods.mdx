@@ -6,11 +6,11 @@ icon: boxes
 
 A pod is an isolated workspace inside your account. Each pod holds its own inboxes, so you can give every one of your end users (or tenants, agents, or projects) a clean, separate slice of OpenMail while keeping a single account and one bill. A [pod-scoped API key](#pod-scoped-api-keys) locks an integration to a single pod.
 
-Pods are designed for multi-tenant apps. If you run one agent for yourself, you don't need to think about them — your inboxes simply live in your account's default pod.
+Pods are designed for multi-tenant apps. If you run one agent for yourself, you don't need to think about them — your inboxes live in your account's default pod.
 
 ## The hierarchy
 
-```
+```text
 Account (your OpenMail account, account-wide API key)
 ├── Domain (account-wide)       ← usable by every pod; optional
 ├── Default pod                 ← inboxes land here unless you say otherwise
@@ -46,7 +46,7 @@ The same building block — one pod per tenant — maps onto a few common shapes
 
 **Multi-tenant SaaS** — one pod per customer company, addressed by your own tenant ID:
 
-```
+```text
 Account
 ├── Pod  clientId: "meridian"        (Meridian Analytics)
 │   ├── Domain: meridian.io
@@ -60,7 +60,7 @@ Account
 
 **Agency / white-label** — one pod per client you manage on their behalf:
 
-```
+```text
 Account
 ├── Pod  clientId: "client-vantage"   (Vantage Retail)
 │   ├── Domain: vantageretail.com
@@ -72,7 +72,7 @@ Account
 
 **AI agent platform** — one pod per agent, each with its own set of inboxes:
 
-```
+```text
 Account
 ├── Domain: relaystack.com          ← account-wide; shared across agent pods
 ├── Pod  "support-agent"
