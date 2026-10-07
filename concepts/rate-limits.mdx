@@ -55,7 +55,7 @@ A recipient is **new** the first time an inbox emails an address that has never 
 
     1. Send to new recipients most days. The account cap follows your trailing average, and a domain's tier needs volume as well as age.
     2. Keep bounces under 5% and complaints under 0.1%. Anything worse throttles the inbox, and at 10% bounces or 0.3% complaints suspends it; see [Reputation](#reputation).
-    3. Get replies. Once you've opened 200 or more cold threads in a two-week window, the account cap only keeps doubling if at least 1% got a human reply (1.5× at 0.5%).
+    3. Get replies. Cold threads that get a human reply are what let the account cap keep doubling.
 
     Need volume before the history exists? Contact us about a trusted volume for a vetted use case.
   </Tab>
@@ -98,14 +98,12 @@ A recipient is **new** the first time an inbox emails an address that has never 
 
 ## Reputation
 
-Every inbox has its own reputation state, computed from its permanent bounces and spam complaints over the trailing 7 days, with a 24-hour check for sudden spikes. The effects below apply to that inbox; pods and accounts are only suspended by us, after review. The states are `good`, `watch`, `throttled` and `suspended`. Keep bounces under 5% and complaints under 0.1% and the inbox stays in `good`, with full caps.
+Every inbox has its own reputation state, computed from its permanent bounces and spam complaints over the trailing 7 days. The states are `good`, `watch`, `throttled` and `suspended`. Keep bounces under 5% and complaints under 0.1% and the inbox stays in `good`, with full caps.
 
 | Signal | `watch` | `throttled` | `suspended` |
 |--------|---------|-------------|-------------|
-| Bounces (≥ 100 sends in 7d) | Any bounce | Rate ≥ 5% | Rate ≥ 10% and ≥ 5 bounces |
-| Bounce burst (≥ 20 sends in 24h) | | | Rate ≥ 10% and ≥ 5 bounces |
-| Complaints (≥ 1,000 sends in 7d) | Any complaint | Rate ≥ 0.1% | Rate ≥ 0.3% and ≥ 3 complaints |
-| Complaint burst (≥ 200 sends in 24h) | | | Rate ≥ 0.3% and ≥ 3 complaints |
+| Bounce rate | Any bounce | 5% | 10% |
+| Complaint rate | Any complaint | 0.1% | 0.3% |
 
 | State | Effect | How it clears |
 |-------|--------|---------------|
