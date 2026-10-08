@@ -58,10 +58,17 @@ Add one URL to your client. Your agent can then create an inbox, read threads, a
   </Tab>
   <Tab title="Claude Code">
     ```bash
+    claude plugin marketplace add openmailsh/mcp
+    claude plugin install openmail@openmailsh-mcp
+    ```
+
+    Or add the server directly, without the plugin:
+
+    ```bash
     claude mcp add --transport http openmail https://mcp.openmail.sh/mcp
     ```
 
-    Claude Code signs in with OAuth on first use. Connectors added on claude.ai do not carry over, so add it here too. Confirm with *"Which OpenMail inbox can you see?"*.
+    Either way, Claude Code signs in with OAuth on first use. Connectors added on claude.ai do not carry over, so add it here too. Confirm with *"Which OpenMail inbox can you see?"*.
 
     Prefer the CLI and skill? See [Claude Code](/integrations/claude-code).
   </Tab>
@@ -115,7 +122,7 @@ Add one URL to your client. Your agent can then create an inbox, read threads, a
     <Note>Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.</Note>
   </Tab>
   <Tab title="Cursor">
-    One click, then sign in when Cursor prompts you:
+    Install the [OpenMail plugin](https://cursor.directory/plugins/openmail) from cursor.directory, or click once here and sign in when Cursor prompts you:
 
     <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=openmail&config=eyJ1cmwiOiJodHRwczovL21jcC5vcGVubWFpbC5zaC9tY3AifQ==">
       <img noZoom className="block dark:hidden" src="https://cursor.com/deeplink/mcp-install-light.svg" alt="Add OpenMail MCP server to Cursor" height="32" />
