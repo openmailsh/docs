@@ -61,14 +61,7 @@ Add one URL to your client. Your agent can then create an inbox, read threads, a
     claude mcp add --transport http openmail https://mcp.openmail.sh/mcp
     ```
 
-    Or install it as a plugin (two steps: register the repo as a source, then install from it):
-
-    ```bash
-    claude plugin marketplace add openmailsh/mcp
-    claude plugin install openmail@openmailsh-mcp
-    ```
-
-    Either way, Claude Code signs in with OAuth on first use. Connectors added on claude.ai do not carry over, so add it here too. Confirm with *"Which OpenMail inbox can you see?"*.
+    Claude Code signs in with OAuth on first use. Connectors added on claude.ai do not carry over, so add it here too. Confirm with *"Which OpenMail inbox can you see?"*.
 
     Prefer the CLI and skill? See [Claude Code](/integrations/claude-code).
   </Tab>
