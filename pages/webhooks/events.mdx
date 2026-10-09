@@ -41,6 +41,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
     "from": "sender@example.com",
     "to": "inbox@omail.sh",
     "cc": [],
+    "address_names": { "sender@example.com": "Alice Smith" },
     "subject": "Email subject",
     "body_text": "Plain text body",
     "attachments": [
@@ -70,6 +71,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 | `thread_id` | Conversation thread. Use with the API to fetch or send messages. |
 | `message.id` | Unique message ID |
 | `message.from` | Sender email address |
+| `message.address_names` | Display names from the From, To and Cc headers, keyed by lower-cased address. `null` when the sender's mail client sent none. Address fields stay bare, so match on those. |
 | `message.subject` | Email subject line |
 | `message.body_text` | Plain-text body |
 | `message.attachments` | Array of attachments with `url`, `parsedText` (extracted content), and `extractionMethod`. See [Attachments](/concepts/attachments). |
