@@ -171,7 +171,7 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 
 ## Tools
 
-<Note>19 tools. Your client reads the live list from the server; this table can lag a release.</Note>
+<Note>24 tools. Your client reads the live list from the server; this table can lag a release.</Note>
 
 | Tool | What it does |
 | --- | --- |
@@ -180,14 +180,18 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 | `setup_agent_email` | Plan, then create an inbox and mint a scoped key. |
 | `list_inboxes`, `get_inbox`, `create_inbox`, `mint_inbox_key` | Inbox management. |
 | `list_unread_threads` | Unread threads whose latest message is `autoReplyable`: sent by a person or another agent. Spam, marketing, bounces, and machine-generated mail (no-reply, OTPs, receipts) are filtered out. |
-| `read_thread` | Full thread as Markdown with timestamps, `autoReplyable` flags, and attachment message ids. Quoted reply history is stripped. |
+| `read_thread` | Full thread as Markdown with timestamps, `autoReplyable` flags, and the `message:` id of each message. Quoted reply history is stripped. |
+| `search_mail` | Find messages by words in the subject, body, sender, or recipient. Searches the newest 500 messages of one inbox. |
 | `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. `send_email` names the inbox it used when you did not pass `inbox_id`. |
+| `forward_message` | Forward one message to another address as a new thread. Attachments are not included. |
 | `mark_thread_read` | Mark a thread handled. |
+| `update_inbox` | Rename an inbox or set auto-forwarding (`forward_to`, `forward_when`). Account-wide API key only. |
+| `delete_thread`, `delete_message` | Move a thread to Trash (restorable for 30 days), or delete one message for good. Account-wide or pod-scoped API key only. |
 | `get_attachment_text` | Extracted text from an attachment. Use the `message:` id shown in `read_thread`. |
 | `list_domains`, `add_domain`, `get_domain`, `verify_domain` | Custom domains with pasteable DNS records. Pro plan. |
 | `send_mcp_feedback` | Report a confusing or broken tool to the OpenMail team. |
 
-Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools.
+Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, the domain tools, and the delete tools. OAuth sessions do not get `update_inbox` or the delete tools: no consent scope covers them.
 
 ## Narrow what the agent can do
 
