@@ -204,6 +204,12 @@
             ]
           },
           {
+            "group": "Limits",
+            "pages": [
+              "GET /v1/limits/cold"
+            ]
+          },
+          {
             "group": "Feedback",
             "pages": [
               "POST /v1/feedback"
