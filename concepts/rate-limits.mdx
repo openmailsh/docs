@@ -41,6 +41,8 @@ Mail to your own organisation isn't cold outreach, so recipients on a domain you
 
 To add an owned domain, open [Domains](https://console.openmail.sh/domains) and add it under **Owned domains**, or call `POST /v1/owned-domains`. Publish the one TXT record from the response (`_openmail-owner.<domain>`), then verify. Up to 20 per organisation; public mailbox providers such as `gmail.com` are refused.
 
+Keep the TXT record in place. OpenMail re-checks pending domains every few minutes and verified ones hourly: a pending domain verifies on its own once the record resolves, and a verified domain whose record disappears is marked failed and loses the exemption until you republish it.
+
 <Tabs className="tabs-boxed">
   <Tab title="Pro">
     Three caps apply at once. The lowest one you reach is the one that blocks.
