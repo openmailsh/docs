@@ -30,7 +30,16 @@ Over one of these, the API returns `429` with a `Retry-After` header:
 
 ## Cold outreach cap
 
-A recipient is **new** the first time an inbox emails an address that has never written to it. Each To/Cc address counts once; Bcc, your own inboxes, and anyone who has already emailed or been emailed by that inbox don't count. Warmth is per inbox, so a contact known to inbox A is still new to inbox B.
+A recipient is **new** the first time an inbox emails an address that has never written to it. Each To/Cc address counts once; Bcc, your own inboxes, anyone on a domain you own (see below), and anyone who has already emailed or been emailed by that inbox don't count. Warmth is per inbox, so a contact known to inbox A is still new to inbox B.
+
+### Your own domains don't count
+
+Mail to your own organisation isn't cold outreach, so recipients on a domain you control never count as new. Two kinds of domain qualify:
+
+- **Verified custom domains**, and their subdomains, automatically.
+- **Owned domains**: domains you don't send from through OpenMail but can prove you control, such as your company's main domain while agents send from `agents.acme.com`. Controlling a subdomain's DNS says nothing about the apex, so these need their own proof.
+
+To add an owned domain, open [Domains](https://console.openmail.sh/domains) and add it under **Owned domains**, or call `POST /v1/owned-domains`. Publish the one TXT record from the response (`_openmail-owner.<domain>`), then verify. Up to 20 per organisation; public mailbox providers such as `gmail.com` are refused.
 
 <Tabs className="tabs-boxed">
   <Tab title="Pro">

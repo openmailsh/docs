@@ -176,6 +176,16 @@
             ]
           },
           {
+            "group": "Owned domains",
+            "pages": [
+              "GET /v1/owned-domains",
+              "POST /v1/owned-domains",
+              "GET /v1/owned-domains/{id}",
+              "POST /v1/owned-domains/{id}/verify",
+              "DELETE /v1/owned-domains/{id}"
+            ]
+          },
+          {
             "group": "Messages",
             "pages": [
               "POST /v1/inboxes/{id}/send",
