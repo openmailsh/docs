@@ -38,9 +38,9 @@ Mail to your own organisation isn't cold outreach, so addresses on your organisa
 
 - **A verified sending domain** covers its whole registrable domain. Verify `agents.acme.com` and `acme.com`, `hr.acme.com` and every other `*.acme.com` are covered. Only the registrable domain qualifies: `you.example-hosting.com` on a shared host doesn't cover the rest of that host.
 - **A team member's login.** If someone on your team signs in with `name@acme.com`, `acme.com` is covered. Public mailbox providers such as `gmail.com` don't count.
-- **A TXT record** for any other domain you own, such as a second brand your agents don't send from. Add it on [Sending limits](https://console.openmail.sh/domains/limits), publish the one record shown (`_openmail-owner.<domain>`), and verify, or use `POST /v1/owned-domains`. Up to 20 per organisation.
+- **A TXT record** for any other domain you own, such as a second brand your agents don't send from. Add it on [Domains](https://console.openmail.sh/domains), publish the one record shown (`_openmail-owner.<domain>`), and verify, or use `POST /v1/owned-domains`. Up to 20 per organisation.
 
-[Sending limits](https://console.openmail.sh/domains/limits) lists every covered domain and why. `GET /v1/limits/cold` returns the same list as `internalDomains`. Coverage is re-checked: a sending domain that fails DNS or a TXT record that disappears loses the exemption until you fix it.
+[Domains](https://console.openmail.sh/domains) lists every covered domain and why. `GET /v1/limits/cold` returns the same list as `internalDomains`. Coverage is re-checked: a sending domain that fails DNS or a TXT record that disappears loses the exemption until you fix it.
 
 <Tabs className="tabs-boxed">
   <Tab title="Pro">
@@ -115,7 +115,7 @@ Mail to your own organisation isn't cold outreach, so addresses on your organisa
 
 `sustainPerDayToGrow` is the number to plan around: average more than that many new recipients a day over a week, keep bounces and complaints clean, and the account cap rises. A `nextTier.limit` of `null` means the domain graduates to the account cap. An inbox-scoped key sees its own inbox and domain; pass `?inboxId=` with an account key to get the same view for one inbox. The API reference lists every field.
 
-The same numbers appear on [Sending limits](https://console.openmail.sh/domains/limits) in the console.
+The same numbers appear on [Settings → Limits](https://console.openmail.sh/settings/limits) in the console.
 
 ## When you get a 429
 
@@ -126,7 +126,7 @@ The same numbers appear on [Sending limits](https://console.openmail.sh/domains/
   "scope": "domain",
   "limit": 20,
   "resetsAt": "2026-09-30T00:00:00.000Z",
-  "nextStep": "This domain is on a warm-up tier of 20 new recipients/day. It moves to 50/day once it is 7+ days old and has reached 50+ first contacts. Check GET /v1/limits/cold for where it stands. Mail to acme.com counted as new. If that is your organisation's domain, verify it at https://console.openmail.sh/domains/limits and mail to it stops counting."
+  "nextStep": "This domain is on a warm-up tier of 20 new recipients/day. It moves to 50/day once it is 7+ days old and has reached 50+ first contacts. Check GET /v1/limits/cold for where it stands. Mail to acme.com counted as new. If that is your organisation's domain, verify it at https://console.openmail.sh/domains and mail to it stops counting."
 }
 ```
 
