@@ -42,10 +42,32 @@ Pass `"unsubscribe": true` on a [send](/api-reference/messages/send-email) to gi
 
 When the recipient unsubscribes, they become an `unsub` suppression for your whole organisation, not just the inbox that sent. You don't need to handle the opt-out yourself: later sends to them return `422 recipient_suppressed`.
 
-The link opts out the `to` address only, so you can't combine `unsubscribe` with `cc` or `bcc`. A body that contains `{{unsubscribe_url}}` without `"unsubscribe": true` is rejected, so the placeholder never reaches a recipient unfilled.
+The link opts out the `to` address only, so you can't combine `unsubscribe` with `cc` or `bcc`. A body that contains `{{unsubscribe_url}}` is rejected when the send carries no unsubscribe link, so the placeholder never reaches a recipient unfilled.
 
 An unsubscribed recipient stays blocked even if they later write to you, so your agent can't reply to them. If they ask to hear from you again, email support@openmail.sh to lift the suppression.
 
 Gmail and Yahoo require this header for bulk senders, and it's a simple way to give cold outreach the opt-out the law expects.
+
+### Shared domains
+
+On shared OpenMail domains such as `openmail.sh`, OpenMail adds one-click unsubscribe automatically. It goes on any send with a single recipient, no `cc` or `bcc`, that isn't to another OpenMail inbox, on a thread where the recipient hasn't written to you yet. You can't turn it off, and you can't set your own `List-Unsubscribe` header there. Every customer shares these domains' reputation.
+
+### Custom domains
+
+On your own domain, the header is only added when you pass `"unsubscribe": true`. To use your own unsubscribe system instead, set it with `headers`:
+
+```json
+{
+  "to": "lead@example.com",
+  "subject": "Quick question",
+  "body": "Hi Dana, ...",
+  "headers": {
+    "List-Unsubscribe": "<https://example.com/u/123>",
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+  }
+}
+```
+
+OpenMail never sees those opt-outs, so honouring them is up to you. You can't combine your own `List-Unsubscribe` with `"unsubscribe": true`.
 
 Suppressions are one part of deliverability. For domain setup, warm-up and content, see [Email deliverability](/best-practices/email-deliverability).
