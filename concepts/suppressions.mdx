@@ -29,7 +29,23 @@ Your agent should handle this gracefully - for example, by noting that the conta
 
 ## One-click unsubscribe
 
-Pass `"unsubscribe": true` on a [send](/api-reference/messages/send-email) to give the recipient a way to opt out. OpenMail adds `List-Unsubscribe` and `List-Unsubscribe-Post` headers (RFC 8058), so Gmail, Yahoo and Apple Mail show their own **Unsubscribe** button. Put `{{unsubscribe_url}}` in the body to show the same link in the message.
+One-click unsubscribe gives the recipient a way to opt out. OpenMail adds `List-Unsubscribe` and `List-Unsubscribe-Post` headers (RFC 8058), so Gmail, Yahoo and Apple Mail show their own **Unsubscribe** button. Gmail and Yahoo require these headers from bulk senders.
+
+When the recipient unsubscribes, they become an `unsub` suppression for your whole organisation, not just the inbox that sent. You don't need to handle the opt-out yourself. Later sends to them return `422 recipient_suppressed`.
+
+### On the shared domains
+
+Inboxes on the shared `@omail.sh` and `@openmail.sh` domains get one-click unsubscribe automatically. OpenMail adds it to a send when all of these are true:
+
+- It has one recipient, with no `cc` or `bcc`.
+- The recipient isn't another OpenMail inbox.
+- The recipient hasn't written to you on the thread yet.
+
+You can't turn it off, and you can't set your own `List-Unsubscribe` header. Every organisation on the shared domains shares their reputation.
+
+### On a custom domain
+
+On a [custom domain](/concepts/custom-domains), pass `"unsubscribe": true` on a [send](/api-reference/messages/send-email) to add it:
 
 ```json
 {
@@ -40,21 +56,7 @@ Pass `"unsubscribe": true` on a [send](/api-reference/messages/send-email) to gi
 }
 ```
 
-When the recipient unsubscribes, they become an `unsub` suppression for your whole organisation, not just the inbox that sent. You don't need to handle the opt-out yourself: later sends to them return `422 recipient_suppressed`.
-
-The link opts out the `to` address only, so you can't combine `unsubscribe` with `cc` or `bcc`. A body that contains `{{unsubscribe_url}}` is rejected when the send carries no unsubscribe link, so the placeholder never reaches a recipient unfilled.
-
-An unsubscribed recipient stays blocked even if they later write to you, so your agent can't reply to them. If they ask to hear from you again, email support@openmail.sh to lift the suppression.
-
-Gmail and Yahoo require this header for bulk senders, and it's a simple way to give cold outreach the opt-out the law expects.
-
-### Shared domains
-
-On shared OpenMail domains such as `openmail.sh`, OpenMail adds one-click unsubscribe automatically. It goes on any send with a single recipient, no `cc` or `bcc`, that isn't to another OpenMail inbox, on a thread where the recipient hasn't written to you yet. You can't turn it off, and you can't set your own `List-Unsubscribe` header there. Every customer shares these domains' reputation.
-
-### Custom domains
-
-On your own domain, the header is only added when you pass `"unsubscribe": true`. To use your own unsubscribe system instead, set it with `headers`:
+To use your own unsubscribe system instead, set the headers yourself with `headers`. OpenMail never sees those opt-outs, so honouring them is up to you. You can't combine your own `List-Unsubscribe` with `"unsubscribe": true`.
 
 ```json
 {
@@ -68,6 +70,11 @@ On your own domain, the header is only added when you pass `"unsubscribe": true`
 }
 ```
 
-OpenMail never sees those opt-outs, so honouring them is up to you. You can't combine your own `List-Unsubscribe` with `"unsubscribe": true`.
+### Rules
+
+- Put `{{unsubscribe_url}}` in the body to show the unsubscribe link in the message.
+- A body with `{{unsubscribe_url}}` is rejected when the send carries no unsubscribe link, so the placeholder never reaches a recipient unfilled.
+- The link opts out the `to` address only, so you can't combine `"unsubscribe": true` with `cc` or `bcc`.
+- An unsubscribed recipient stays blocked even if they later write to you, so your agent can't reply to them. If they ask to hear from you again, email support@openmail.sh to lift the suppression.
 
 Suppressions are one part of deliverability. For domain setup, warm-up and content, see [Email deliverability](/best-practices/email-deliverability).
