@@ -42,6 +42,10 @@ Pass `"unsubscribe": true` on a [send](/api-reference/messages/send-email) to gi
 
 When the recipient unsubscribes, they become an `unsub` suppression for your whole organisation, not just the inbox that sent. You don't need to handle the opt-out yourself: later sends to them return `422 recipient_suppressed`.
 
-The link opts out the `to` address only, so you can't combine `unsubscribe` with `cc`. Gmail and Yahoo require this header for bulk senders, and it's a simple way to give cold outreach the opt-out the law expects.
+The link opts out the `to` address only, so you can't combine `unsubscribe` with `cc` or `bcc`. A body that contains `{{unsubscribe_url}}` without `"unsubscribe": true` is rejected, so the placeholder never reaches a recipient unfilled.
+
+An unsubscribed recipient stays blocked even if they later write to you, so your agent can't reply to them. If they ask to hear from you again, email support@openmail.sh to lift the suppression.
+
+Gmail and Yahoo require this header for bulk senders, and it's a simple way to give cold outreach the opt-out the law expects.
 
 Suppressions are one part of deliverability. For domain setup, warm-up and content, see [Email deliverability](/best-practices/email-deliverability).
