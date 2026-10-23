@@ -27,4 +27,21 @@ The send request returns `422` with a typed error:
 
 Your agent should handle this gracefully - for example, by noting that the contact is unreachable and trying an alternative communication channel.
 
+## One-click unsubscribe
+
+Pass `"unsubscribe": true` on a [send](/api-reference/messages/send-email) to give the recipient a way to opt out. OpenMail adds `List-Unsubscribe` and `List-Unsubscribe-Post` headers (RFC 8058), so Gmail, Yahoo and Apple Mail show their own **Unsubscribe** button. Put `{{unsubscribe_url}}` in the body to show the same link in the message.
+
+```json
+{
+  "to": "lead@example.com",
+  "subject": "Quick question",
+  "body": "Hi Dana, ...\n\nNot interested? Unsubscribe: {{unsubscribe_url}}",
+  "unsubscribe": true
+}
+```
+
+When the recipient unsubscribes, they become an `unsub` suppression for your whole organisation, not just the inbox that sent. You don't need to handle the opt-out yourself: later sends to them return `422 recipient_suppressed`.
+
+The link opts out the `to` address only, so you can't combine `unsubscribe` with `cc`. Gmail and Yahoo require this header for bulk senders, and it's a simple way to give cold outreach the opt-out the law expects.
+
 Suppressions are one part of deliverability. For domain setup, warm-up and content, see [Email deliverability](/best-practices/email-deliverability).
