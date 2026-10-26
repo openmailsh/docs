@@ -217,7 +217,8 @@
           {
             "group": "Feedback",
             "pages": [
-              "POST /v1/feedback"
+              "POST /v1/feedback",
+              "GET /v1/feedback/{id}"
             ]
           }
         ],
