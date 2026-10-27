@@ -172,16 +172,6 @@ html[data-theme="dark"] #topbar-cta-button a:hover .bg-primary-dark {
 }
 
 /* ================================
-   HIDE FOOTER SOCIAL ICONS (X, GitHub)
-   Only email support link shown via footer.links
-   ================================ */
-#footer a[href*="x.com"],
-#footer a[href*="twitter.com"],
-#footer a[href*="github.com"] {
-  display: none !important;
-}
-
-/* ================================
    BOXED TABS
    Opt in with <Tabs className="tabs-boxed">: the tab content sits in a
    bordered container so it reads as one unit. Mintlify puts className on
