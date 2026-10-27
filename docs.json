@@ -263,6 +263,9 @@
   "footer": {
     "socials": {
       "website": "https://openmail.sh",
+      "x": "https://x.com/openmailsh",
+      "linkedin": "https://www.linkedin.com/company/openmail",
+      "github": "https://github.com/openmailsh",
       "discord": "https://discord.com/invite/eFfQFMZbsK"
     }
   },
