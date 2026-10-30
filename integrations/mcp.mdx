@@ -1,14 +1,52 @@
 ---
 title: "MCP server"
-description: "Connect Claude, Cursor, or any MCP client to OpenMail. One hosted URL gives your agent an inbox so it can read, send, and reply to email."
+description: "Connect ChatGPT, Claude, Cursor, or any MCP client to OpenMail. One hosted URL gives your agent an inbox so it can read, send, and reply to email."
 icon: plug
 ---
 
-Add one URL to your client. Your agent can then create an inbox, read threads, and reply. OAuth or API key; nothing to install.
+Install the plugin in ChatGPT, or add one URL to any other client. Your agent can then create an inbox, read threads, and reply. OAuth or API key; nothing to install locally.
 
 ## Connect
 
 <Tabs>
+  <Tab title="ChatGPT">
+    <Steps>
+      <Step title="Install the plugin">
+        Open the [OpenMail listing](https://chatgpt.com/plugins/plugin_asdk_app_6ad21ddbacdc8191a2a9a711aa63487c) and click **Install plugin**. Or open **Plugins** in ChatGPT and search for **OpenMail**.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-listing.png" alt="OpenMail listing in the ChatGPT plugin directory with the Install plugin button highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-listing-dark.png" alt="OpenMail listing in the ChatGPT plugin directory with the Install plugin button highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Connect">
+        ChatGPT explains what it shares with the plugin. Click **Connect OpenMail**.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-connect.png" alt="ChatGPT Connect OpenMail dialog with the Connect OpenMail button highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-connect-dark.png" alt="ChatGPT Connect OpenMail dialog with the Connect OpenMail button highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Approve in the console">
+        The console opens: sign in, pick an organisation if you belong to several, and untick any scopes the agent should not have. **Read mail** is always granted; **Set up inboxes**, **Send mail**, and **Domains** are optional. Click **Allow**. Revoke any time from [MCP settings](https://console.openmail.sh/settings/mcp).
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-consent.png" alt="OpenMail console consent page listing scopes with the Allow button highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-consent-dark.png" alt="OpenMail console consent page listing scopes with the Allow button highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Confirm">
+        Start a new chat and ask *"Which OpenMail inbox can you see?"*, or mention `@OpenMail`. ChatGPT asks before any write action, such as sending mail.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-first-message.png" alt="ChatGPT answering which OpenMail inboxes it can access" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-first-message-dark.png" alt="ChatGPT answering which OpenMail inboxes it can access" />
+        </Frame>
+      </Step>
+    </Steps>
+
+    <Note>The directory is available on every ChatGPT plan. In a Business, Enterprise, or Edu workspace, an admin may need to allow the plugin first. The same plugin works in Codex: run `/plugins` in Codex CLI, or open **Sources → Use plugins** in the desktop app.</Note>
+  </Tab>
   <Tab title="Claude (OAuth)">
     <Steps>
       <Step title="Open Connectors">
@@ -64,55 +102,6 @@ Add one URL to your client. Your agent can then create an inbox, read threads, a
     Claude Code signs in with OAuth on first use. Connectors added on claude.ai do not carry over, so add it here too. Confirm with *"Which OpenMail inbox can you see?"*.
 
     Prefer the CLI and skill? See [Claude Code](/integrations/claude-code).
-  </Tab>
-  <Tab title="ChatGPT (OAuth)">
-    <Steps>
-      <Step title="Turn on Developer mode">
-        Go to **Settings → Security and login** and switch on **Developer mode**.
-
-        <Frame>
-          <img className="block dark:hidden" src="/images/mcp/chatgpt-developer-mode.png" alt="ChatGPT advanced settings with the Developer mode toggle highlighted" />
-          <img className="hidden dark:block" src="/images/mcp/chatgpt-developer-mode-dark.png" alt="ChatGPT advanced settings with the Developer mode toggle highlighted" />
-        </Frame>
-      </Step>
-      <Step title="Create an app">
-        Open **Plugins**, click **+** in the top right, then **Create app**.
-
-        <Frame>
-          <img className="block dark:hidden" src="/images/mcp/chatgpt-create-app.png" alt="ChatGPT Plugins page with the plus menu open and Create app highlighted" />
-          <img className="hidden dark:block" src="/images/mcp/chatgpt-create-app-dark.png" alt="ChatGPT Plugins page with the plus menu open and Create app highlighted" />
-        </Frame>
-
-        In the dialog, click **Create MCP App**.
-
-        <Frame>
-          <img className="block dark:hidden" src="/images/mcp/chatgpt-create-mcp-app.png" alt="New Plugin dialog with the Create MCP App button highlighted" />
-          <img className="hidden dark:block" src="/images/mcp/chatgpt-create-mcp-app-dark.png" alt="New Plugin dialog with the Create MCP App button highlighted" />
-        </Frame>
-      </Step>
-      <Step title="Fill in the form">
-        | Field | Value |
-        | --- | --- |
-        | Name | OpenMail |
-        | Connection | **Server URL** → `https://mcp.openmail.sh/mcp` |
-        | Authentication | **OAuth** |
-
-        Leave **Advanced OAuth settings** alone; ChatGPT identifies itself, and the consent page shows `chatgpt.com` as the host. Tick the risk acknowledgement and click **Create**.
-
-        <Frame>
-          <img className="block dark:hidden" src="/images/mcp/chatgpt-form.png" alt="New Plugin form with the server URL and OAuth authentication fields highlighted" />
-          <img className="hidden dark:block" src="/images/mcp/chatgpt-form-dark.png" alt="New Plugin form with the server URL and OAuth authentication fields highlighted" />
-        </Frame>
-      </Step>
-      <Step title="Sign in and approve">
-        The console opens. Sign in, choose an organisation, and untick any scopes the agent should not have.
-      </Step>
-      <Step title="Confirm">
-        In a chat, open the **+** menu, choose **Developer mode**, and select **OpenMail**. Ask *"Which OpenMail inbox can you see?"*. ChatGPT asks before any write action, such as sending mail.
-      </Step>
-    </Steps>
-
-    <Note>Developer mode is available on Plus, Pro, Business, Enterprise, and Edu plans.</Note>
   </Tab>
   <Tab title="Cursor">
     Install the [OpenMail plugin](https://cursor.directory/plugins/openmail) from cursor.directory, or click once here and sign in when Cursor prompts you:
@@ -228,6 +217,12 @@ Tool results never leave the server, except from `search_docs` and `get_docs`, w
   </Accordion>
   <Accordion title="Tools are missing">
     An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools on purpose. After changing scopes, disconnect and reconnect so the client reloads the list.
+  </Accordion>
+  <Accordion title="OpenMail is not in ChatGPT's plugin directory">
+    Check you are signed in to the right account or workspace. In a Business, Enterprise, or Edu workspace, an admin controls which plugins members can install; ask them to allow OpenMail from the Admin console.
+  </Accordion>
+  <Accordion title="ChatGPT installed the plugin but will not use it">
+    Start a new chat; installed plugins only load into new conversations. Then check **Settings → Plugins** shows OpenMail as **Connected**. If it does not, click **Connect** and sign in again.
   </Accordion>
   <Accordion title="Claude says it cannot reach OpenMail">
     Check **Settings → Connectors** shows OpenMail as connected. If not, repeat the Claude steps.
