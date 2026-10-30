@@ -12,13 +12,36 @@ Install the plugin in ChatGPT, or add one URL to any other client. Your agent ca
   <Tab title="ChatGPT">
     <Steps>
       <Step title="Install the plugin">
-        Open the [OpenMail listing](https://chatgpt.com/plugins/plugin_asdk_app_6ad21ddbacdc8191a2a9a711aa63487c) and click **+** to install. Or open **Plugins** in ChatGPT and search for **OpenMail**.
+        Open the [OpenMail listing](https://chatgpt.com/plugins/plugin_asdk_app_6ad21ddbacdc8191a2a9a711aa63487c) and click **Install plugin**. Or open **Plugins** in ChatGPT and search for **OpenMail**.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-listing.png" alt="OpenMail listing in the ChatGPT plugin directory with the Install plugin button highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-listing-dark.png" alt="OpenMail listing in the ChatGPT plugin directory with the Install plugin button highlighted" />
+        </Frame>
       </Step>
-      <Step title="Connect and approve">
-        Click **Connect** when prompted. The console opens: sign in, pick an organisation if you belong to several, and untick any scopes the agent should not have. **Read** is always granted; **Send**, **Setup**, and **Domains** are optional. Revoke any time from [MCP settings](https://console.openmail.sh/settings/mcp).
+      <Step title="Connect">
+        ChatGPT explains what it shares with the plugin. Click **Connect OpenMail**.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-connect.png" alt="ChatGPT Connect OpenMail dialog with the Connect OpenMail button highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-connect-dark.png" alt="ChatGPT Connect OpenMail dialog with the Connect OpenMail button highlighted" />
+        </Frame>
+      </Step>
+      <Step title="Approve in the console">
+        The console opens: sign in, pick an organisation if you belong to several, and untick any scopes the agent should not have. **Read mail** is always granted; **Set up inboxes**, **Send mail**, and **Domains** are optional. Click **Allow**. Revoke any time from [MCP settings](https://console.openmail.sh/settings/mcp).
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-consent.png" alt="OpenMail console consent page listing scopes with the Allow button highlighted" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-consent-dark.png" alt="OpenMail console consent page listing scopes with the Allow button highlighted" />
+        </Frame>
       </Step>
       <Step title="Confirm">
         Start a new chat and ask *"Which OpenMail inbox can you see?"*, or mention `@OpenMail`. ChatGPT asks before any write action, such as sending mail.
+
+        <Frame>
+          <img className="block dark:hidden" src="/images/mcp/chatgpt-first-message.png" alt="ChatGPT answering which OpenMail inboxes it can access" />
+          <img className="hidden dark:block" src="/images/mcp/chatgpt-first-message-dark.png" alt="ChatGPT answering which OpenMail inboxes it can access" />
+        </Frame>
       </Step>
     </Steps>
 
