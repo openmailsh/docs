@@ -315,7 +315,7 @@ The event payload is identical for both methods:
     ```
   </Tab>
   <Tab title="Webhook">
-    Configure your webhook URL in the [dashboard](https://console.openmail.sh/login). OpenMail POSTs events to your endpoint with HMAC-SHA256 signatures.
+    Add an endpoint on the [Webhooks](https://console.openmail.sh/webhooks) page. OpenMail POSTs events to it with HMAC-SHA256 signatures.
 
     <CodeGroup>
 
@@ -392,7 +392,7 @@ The event payload is identical for both methods:
 | `OPENMAIL_API_KEY` | Agent env | Inbox-scoped key, minted when you create the inbox |
 | `OPENMAIL_INBOX_ID` | Agent env | Written when you create the inbox |
 | `OPENMAIL_ADDRESS` | Agent env | Written when you create the inbox |
-| WebSocket client **or** Webhook handler | Your backend | Connect to `wss://api.openmail.sh/v1/ws` or configure webhook URL in dashboard |
+| WebSocket client **or** Webhook handler | Your backend | Connect to `wss://api.openmail.sh/v1/ws` or add a webhook endpoint in the console |
 
 <CardGroup cols={2}>
   <Card title="Email deliverability" icon="mail-check" href="/best-practices/email-deliverability">

@@ -1,39 +1,61 @@
 ---
 title: "Verification"
-description: "Verify OpenMail webhook payloads using HMAC-SHA256 signatures. Step-by-step examples for checking signatures and preventing replay attacks."
+description: "Verify OpenMail webhook requests. Covers the OpenMail HMAC signature, Standard Webhooks signatures, and bearer tokens, with code examples and replay protection."
 icon: shield-check
 ---
 
-Always verify the webhook signature before processing. Never trust unverified payloads.
+Always verify a webhook before you process it. Never trust an unverified payload.
 
 ## Why verify?
 
-Without verification, anyone who discovers your webhook URL could send fake requests, potentially triggering actions on spoofed events or exhausting your resources. Always verify in production.
+Anyone who finds your webhook URL can send it fake requests. Verification proves the request came from OpenMail. Always verify in production.
 
-## Signature format
+## Pick your scheme
+
+Each endpoint uses one scheme. OpenMail picks it from the **Auth header or secret** field when you add or edit the endpoint on the [Webhooks](https://console.openmail.sh/webhooks) page:
+
+| Field value | Scheme | Headers |
+|-------------|--------|---------|
+| Empty | [OpenMail signature](#openmail-signature) | `X-Timestamp`, `X-Signature`, `X-Event-Id` |
+| Starts with `whsec_` | [Standard Webhooks](#standard-webhooks) | `webhook-id`, `webhook-timestamp`, `webhook-signature` |
+| Anything else | [Bearer token](#bearer-token) | `Authorization`, `X-Event-Id` |
+
+The endpoint page shows which scheme it uses under **Authentication**.
+
+## OpenMail signature
+
+Leave the field empty and OpenMail generates a secret for the endpoint. Every request carries:
+
+| Header | Description |
+|--------|-------------|
+| `X-Event-Id` | Stable event ID. Same across retries. Use for deduplication. |
+| `X-Timestamp` | Unix timestamp (seconds) of this attempt |
+| `X-Signature` | Hex HMAC-SHA256 signature |
+
+### Signature format
 
 ```
 HMAC-SHA256(webhook_secret, "{timestamp}.{raw_json_payload}")
 ```
 
-- `timestamp` = value of `X-Timestamp` header
-- `raw_json_payload` = raw request body as string (do not parse JSON first)
+- `timestamp` = value of the `X-Timestamp` header
+- `raw_json_payload` = raw request body as a string (do not parse the JSON first)
 
-## Verification steps
+### Verification steps
 
 1. Read the raw request body as a string.
-2. Get `X-Timestamp` and `X-Signature` from headers.
-3. Compute `HMAC-SHA256(secret, timestamp + "." + body)`.
-4. Compare with `X-Signature` using **constant-time comparison** (e.g. `crypto.timingSafeEqual` in Node.js, `hmac.compare_digest` in Python).
-5. Verify `X-Timestamp` is within 5 minutes of current time (replay protection).
+2. Get `X-Timestamp` and `X-Signature` from the headers.
+3. Compute `HMAC-SHA256(secret, timestamp + "." + body)` as hex.
+4. Compare it with `X-Signature` using **constant-time comparison** (e.g. `crypto.timingSafeEqual` in Node.js, `hmac.compare_digest` in Python).
+5. Check `X-Timestamp` is within 5 minutes of the current time (replay protection).
 
 <Warning>
   Use constant-time comparison to prevent timing attacks. Do not use `==` or string equality.
 </Warning>
 
-## Example (Node.js)
+<CodeGroup>
 
-```javascript
+```javascript Node.js
 const crypto = require("crypto");
 
 function verifyWebhook(payload, timestamp, signature, secret) {
@@ -41,16 +63,13 @@ function verifyWebhook(payload, timestamp, signature, secret) {
     .createHmac("sha256", secret)
     .update(`${timestamp}.${payload}`)
     .digest("hex");
-  return crypto.timingSafeEqual(
-    Buffer.from(signature, "hex"),
-    Buffer.from(expected, "hex")
-  );
+  const a = Buffer.from(signature, "hex");
+  const b = Buffer.from(expected, "hex");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 ```
 
-## Example (Python)
-
-```python
+```python Python
 import hmac
 import hashlib
 
@@ -60,17 +79,133 @@ def verify_webhook(payload: bytes, timestamp: str, signature: str, secret: str) 
     return hmac.compare_digest(signature, expected)
 ```
 
-## Getting your secret
+</CodeGroup>
 
-Your webhook secret is shown in the [Dashboard](https://console.openmail.sh/login) when you configure your webhook URL. Store it in an environment variable (e.g. `OPENMAIL_WEBHOOK_SECRET`) and never commit it to version control.
+### Getting your secret
+
+Open the endpoint on the [Webhooks](https://console.openmail.sh/webhooks) page. Under **Authentication**, click the eye icon to reveal the signing secret, or the copy icon to copy it. Store it in an environment variable (e.g. `OPENMAIL_WEBHOOK_SECRET`) and never commit it to version control.
+
+To replace it, open the endpoint's actions menu and click **Rotate secret**. The old secret stops working immediately.
+
+## Standard Webhooks
+
+Paste a `whsec_` secret and OpenMail signs each request per the [Standard Webhooks](https://www.standardwebhooks.com/) spec. Use this for receivers that already verify Standard Webhooks, such as [Grok automations](/pages/webhooks/platforms#grok-automations).
+
+The part after `whsec_` must be base64. Every request carries:
+
+| Header | Description |
+|--------|-------------|
+| `webhook-id` | The event ID. Same across retries. Use for deduplication. |
+| `webhook-timestamp` | Unix timestamp (seconds) of this attempt |
+| `webhook-signature` | `v1,` followed by the base64 HMAC-SHA256 signature |
+
+### Signature format
+
+```
+key       = base64_decode(secret without the "whsec_" prefix)
+signature = base64(HMAC-SHA256(key, "{webhook-id}.{webhook-timestamp}.{raw_json_payload}"))
+```
+
+### Verification steps
+
+1. Read the raw request body as a string.
+2. Strip `whsec_` from your secret and base64-decode the rest. This is the HMAC key.
+3. Compute the signature over `{webhook-id}.{webhook-timestamp}.{body}`.
+4. Compare it with the value after `v1,` in `webhook-signature`, in constant time.
+5. Check `webhook-timestamp` is within 5 minutes of the current time.
+
+<CodeGroup>
+
+```javascript Node.js
+const crypto = require("crypto");
+
+function verifyStandardWebhook(payload, headers, secret) {
+  const id = headers["webhook-id"];
+  const timestamp = headers["webhook-timestamp"];
+  const key = Buffer.from(secret.replace(/^whsec_/, ""), "base64");
+  const expected = crypto
+    .createHmac("sha256", key)
+    .update(`${id}.${timestamp}.${payload}`)
+    .digest("base64");
+  return (headers["webhook-signature"] || "")
+    .split(" ")
+    .some((sig) => {
+      const [version, value] = sig.split(",");
+      if (version !== "v1" || !value) return false;
+      const a = Buffer.from(value);
+      const b = Buffer.from(expected);
+      return a.length === b.length && crypto.timingSafeEqual(a, b);
+    });
+}
+```
+
+```python Python
+import base64
+import hashlib
+import hmac
+
+def verify_standard_webhook(payload: bytes, headers: dict, secret: str) -> bool:
+    msg_id = headers["webhook-id"]
+    timestamp = headers["webhook-timestamp"]
+    key = base64.b64decode(secret.removeprefix("whsec_"))
+    signed = f"{msg_id}.{timestamp}.".encode() + payload
+    expected = base64.b64encode(hmac.new(key, signed, hashlib.sha256).digest()).decode()
+    for sig in headers.get("webhook-signature", "").split(" "):
+        version, _, value = sig.partition(",")
+        if version == "v1" and hmac.compare_digest(value, expected):
+            return True
+    return False
+```
+
+</CodeGroup>
+
+You can also use the official [Standard Webhooks libraries](https://github.com/standard-webhooks/standard-webhooks), which check the timestamp for you.
+
+### Getting your secret
+
+You create the `whsec_` secret, or the receiving platform gives you one. To make your own:
+
+```bash
+echo "whsec_$(openssl rand -base64 32)"
+```
+
+OpenMail never shows a pasted secret again; the endpoint page shows only its last four characters. To change it, click **Replace** under **Authentication** and paste a new one.
+
+## Bearer token
+
+Paste any other value and OpenMail sends it as a bearer token. You can paste the whole `Authorization: Bearer …` header or just the token. Every request carries:
+
+| Header | Description |
+|--------|-------------|
+| `Authorization` | `Bearer <your token>` |
+| `X-Event-Id` | Stable event ID. Same across retries. Use for deduplication. |
+
+The request is not signed and has no timestamp. Compare the token with the one you expect, in constant time:
+
+```javascript Node.js
+const crypto = require("crypto");
+
+function verifyBearer(authorization, token) {
+  const a = Buffer.from(authorization || "");
+  const b = Buffer.from(`Bearer ${token}`);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+```
+
+<Note>
+  A bearer token proves who sent the request, but not that the body is unchanged, and it gives no replay protection. Use it for receivers that only accept a token, and only over HTTPS. Prefer a signature when your receiver supports one.
+</Note>
+
+As with `whsec_` secrets, OpenMail never shows the token again. Click **Replace** under **Authentication** to change it.
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| Signature verification fails | Use the raw request body - do not parse JSON first. Ensure your secret matches the dashboard. |
-| Wrong secret | Rotate the secret in **Settings** → **Webhook secret** → **Rotate** and update your env. |
-| Timestamp expired | Verify `X-Timestamp` is within 5 minutes of current time. Check server clock sync. |
+| Signature verification fails | Use the raw request body; do not parse the JSON first. Check the secret matches the endpoint. |
+| Wrong scheme | Check **Authentication** on the endpoint page. A value starting with `whsec_` uses Standard Webhooks; any other value is sent as a bearer token. |
+| Wrong secret | For an OpenMail signature, click **Rotate secret** in the endpoint's actions menu and update your env. For a pasted secret or token, click **Replace**. |
+| Timestamp expired | Check the timestamp is within 5 minutes of the current time. Check your server clock is in sync. |
 | Body parsing strips data | In Express, use `express.raw()` for the webhook route, not `express.json()`. |
 
 See [Setup](/guides/webhooks) for full server examples and local development.
