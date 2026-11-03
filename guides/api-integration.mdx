@@ -4,12 +4,12 @@ description: "Create and manage inboxes programmatically via the OpenMail REST A
 icon: code
 ---
 
-For developers building AI agents with [n8n](https://n8n.io), [Make](https://make.com), or any agent framework. This guide covers the multi-tenant pattern: create inbox, inject env vars, route inbound by `inbox_id`. For LangChain or Vercel AI SDK, see [Agent frameworks](/integrations/agent-frameworks) for ready-made tool definitions. For OpenClaw, use the [channel plugin](/integrations/openclaw) instead; a pod account covers every inbox you create.
+For developers building AI agents with [Make](https://make.com) or any agent framework. This guide covers the multi-tenant pattern: create inbox, inject env vars, route inbound by `inbox_id`. For LangChain or Vercel AI SDK, see [Agent frameworks](/integrations/agent-frameworks) for ready-made tool definitions. For OpenClaw, use the [channel plugin](/integrations/openclaw) instead; a pod account covers every inbox you create.
 
 ## Prerequisites
 
 - [OpenMail account](https://console.openmail.sh/login) with API key
-- An AI agent or agent framework (e.g. [LangChain](https://langchain.com), [n8n](https://n8n.io))
+- An AI agent or agent framework (e.g. [LangChain](https://langchain.com))
 
 <div className="openmail-prompt-card">
 <Prompt
@@ -116,7 +116,7 @@ OPENMAIL_INBOX_ID=inb_8f3a1b2c
 OPENMAIL_ADDRESS=jane@omail.sh
 ```
 
-Inject them into your agent's environment (e.g. LangChain tool config, n8n node credentials, a Docker `--env-file`).
+Inject them into your agent's environment (e.g. LangChain tool config, a Docker `--env-file`).
 
 ## Step 3: Add the skill file
 
