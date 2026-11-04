@@ -205,6 +205,22 @@
             ]
           },
           {
+            "group": "Webhooks",
+            "pages": [
+              "GET /v1/webhooks/event-types",
+              "GET /v1/webhooks/endpoints",
+              "POST /v1/webhooks/endpoints",
+              "GET /v1/webhooks/endpoints/{id}",
+              "PATCH /v1/webhooks/endpoints/{id}",
+              "DELETE /v1/webhooks/endpoints/{id}",
+              "POST /v1/webhooks/endpoints/{id}/rotate-secret",
+              "POST /v1/webhooks/endpoints/{id}/test",
+              "GET /v1/webhooks/deliveries",
+              "GET /v1/webhooks/deliveries/{id}",
+              "POST /v1/webhooks/deliveries/{id}/redeliver"
+            ]
+          },
+          {
             "group": "Limits",
             "pages": [
               "GET /v1/limits/cold",
