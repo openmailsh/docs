@@ -1,10 +1,22 @@
 ---
 title: "Setup"
-description: "Configure webhook endpoints to receive inbound email events from OpenMail in real time. Covers endpoint setup, payload format, and signature verification."
+description: "Add a webhook endpoint to receive inbound email events from OpenMail in real time. Covers endpoint setup, local development, testing, and signature verification."
 icon: wrench
 ---
 
-Configure a webhook URL in the [Dashboard](https://console.openmail.sh/login). When inbound email arrives, OpenMail POSTs to your endpoint.
+Add an endpoint on the [Webhooks](https://console.openmail.sh/webhooks) page. When inbound email arrives, OpenMail POSTs to it.
+
+## Add an endpoint
+
+1. Open [Webhooks](https://console.openmail.sh/webhooks) and click **Add endpoint**.
+2. Enter your **Endpoint URL**. It must be publicly reachable.
+3. Leave **Auth header or secret** empty to use an OpenMail signature. To use Standard Webhooks or a bearer token instead, see [Authentication](/concepts/webhooks#authentication).
+4. Pick the **Events** to send. All events are selected by default.
+5. Optionally narrow **Scope** to some pods or inboxes. Empty means the whole organisation.
+6. Click **Create endpoint**.
+7. On the endpoint page, copy the signing secret under **Authentication**.
+
+The examples below use the OpenMail signature. For the other schemes, see [Verification](/pages/webhooks/verification).
 
 ## Implementation flow
 
@@ -24,10 +36,10 @@ For local development, you need a public URL so OpenMail can reach your machine.
 3. Start your webhook server (see examples below)
 4. In another terminal: `ngrok http 3000`
 5. Copy the `https://` forwarding URL (e.g. `https://abc123.ngrok-free.app`)
-6. In the [Dashboard](https://console.openmail.sh/login) → **Settings**, set webhook URL to `https://abc123.ngrok-free.app/webhooks`
-7. Copy your webhook secret into `.env` as `OPENMAIL_WEBHOOK_SECRET`
+6. On the [Webhooks](https://console.openmail.sh/webhooks) page, [add an endpoint](#add-an-endpoint) with the URL `https://abc123.ngrok-free.app/webhooks`
+7. Copy the endpoint's signing secret into `.env` as `OPENMAIL_WEBHOOK_SECRET`
 
-Free ngrok accounts have 2-hour session limits. When the tunnel disconnects, restart ngrok and update the webhook URL in the dashboard.
+Free ngrok URLs can change when you restart ngrok. When that happens, open the endpoint, click **Edit** in its actions menu, and update the URL.
 
 ## Full server examples
 
@@ -124,16 +136,21 @@ app.listen(3000);
 ## Testing locally
 
 1. Start your server and ngrok.
-2. Set the webhook URL and secret in the dashboard.
-3. Use **Test webhook** in **Settings** to send a test event.
-4. Or send an email to one of your inbox addresses and watch the console.
+2. [Add an endpoint](#add-an-endpoint) with your ngrok URL, and set its secret in `.env`.
+3. Open the endpoint on the [Webhooks](https://console.openmail.sh/webhooks) page and go to the **Testing** tab.
+4. Pick an event type under **Send event** and click **Send Example**. Your server should log the request.
+5. For a real event, send an email to one of your inbox addresses. The delivery shows up in the endpoint's **Message Attempts**, with its status and response code.
+
+<Note>
+  Example events use placeholder IDs such as `inbox_example`. They are sent once, are not retried, and don't appear in the delivery logs.
+</Note>
 
 ## Production deployment
 
 Deploy your webhook server to a hosting provider with a stable public HTTPS URL. Options include [Render](https://render.com/), [Railway](https://railway.app/), [Fly.io](https://fly.io/), [Vercel](https://vercel.com/) (serverless), or any cloud provider.
 
 - Set `OPENMAIL_WEBHOOK_SECRET` as an environment variable.
-- Update the webhook URL in the dashboard to your production URL.
+- Add an endpoint for your production URL, or edit your existing one. Each endpoint has its own secret.
 - Always verify signatures in production - never skip verification.
 
 ## Best practices
@@ -147,10 +164,11 @@ Deploy your webhook server to a hosting provider with a stable public HTTPS URL.
 
 | Issue | Solution |
 |-------|----------|
-| Signature verification fails | Use the raw request body, not parsed JSON. Ensure secret matches the dashboard. Check `X-Timestamp` is within 5 minutes. |
-| Webhook not receiving events | Verify ngrok is running and the forwarding URL matches the dashboard. Ensure your server is listening on the correct port. |
+| Signature verification fails | Use the raw request body, not parsed JSON. Check the secret matches the endpoint's. Check `X-Timestamp` is within 5 minutes. |
+| Webhook not receiving events | Check the endpoint is enabled, subscribes to the event, and its scope covers the inbox. Check ngrok is running and its URL matches the endpoint. |
+| Deliveries failing | Open the endpoint's **Message Attempts** to see the response code or error, then click **Replay** once it's fixed. |
 | Port already in use | Change the port in your server and ngrok: `ngrok http 4000` |
-| ngrok tunnel disconnects | Free accounts have 2-hour limits. Restart ngrok and update the webhook URL in the dashboard. |
+| ngrok URL changed | Restart ngrok and update the endpoint URL. |
 
 ## Related
 
@@ -162,6 +180,9 @@ Deploy your webhook server to a hosting provider with a stable public HTTPS URL.
     HMAC formula and verification steps.
   </Card>
   <Card title="Overview" icon="book" href="/concepts/webhooks">
-    Delivery semantics, retry policy.
+    Endpoints, delivery semantics, retry policy.
+  </Card>
+  <Card title="Connect a platform" icon="plug" href="/pages/webhooks/platforms">
+    Send events to Grok, Hermes Agent, or OpenClaw.
   </Card>
 </CardGroup>

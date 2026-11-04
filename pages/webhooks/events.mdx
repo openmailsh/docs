@@ -16,7 +16,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 | `pod.suspended` | A pod was suspended — every inbox in it is blocked from sending |
 | `pod.reactivated` | A previously suspended pod was reactivated |
 
-`inbox.*` and `pod.*` are **reputation lifecycle** events: they let you react when one of your end-users is cut off (for example, pause that agent) without your whole account being affected. We handle suspension automatically; these events tell you when it happens. They are delivered to your HTTP webhook only (not over [WebSockets](/concepts/websockets)).
+`inbox.*` and `pod.*` are **reputation lifecycle** events: they let you react when one of your end-users is cut off (for example, pause that agent) without your whole account being affected. We handle suspension automatically; these events tell you when it happens. They are delivered to your webhook endpoints only (not over [WebSockets](/concepts/websockets)). An endpoint receives them only if you select them in its **Events**.
 
 ## Use cases
 
@@ -29,10 +29,8 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 ```json
 {
   "event": "message.received",
-  "event_id": "evt_abc123",
+  "event_id": "3a1f9c2e-7b4d-4e8a-9c1f-2d5e6a7b8c9d",
   "occurred_at": "2024-03-21T10:05:00.000Z",
-  "delivered_at": "2024-03-21T10:05:01.000Z",
-  "attempt": 1,
   "inbox_id": "inb_92ma...",
   "thread_id": "thr_xyz...",
   "message": {
@@ -40,7 +38,10 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
     "rfc_message_id": "<original@message.id>",
     "from": "sender@example.com",
     "to": "inbox@omail.sh",
+    "header_to": "inbox@omail.sh",
+    "delivery_role": "to",
     "cc": [],
+    "address_names": { "sender@example.com": "Sam Sender" },
     "subject": "Email subject",
     "body_text": "Plain text body",
     "attachments": [
@@ -54,7 +55,11 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
       }
     ],
     "raw_url": "https://api.openmail.sh/v1/messages/msg_.../raw",
-    "received_at": "2024-03-21T10:05:00.000Z"
+    "received_at": "2024-03-21T10:05:00.000Z",
+    "category": "personal",
+    "auto_replyable": true,
+    "verdict": "clean",
+    "spam_score": 0.4
   }
 }
 ```
@@ -64,16 +69,21 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 | Field | Description |
 |-------|-------------|
 | `event` | Event type — e.g. `message.received` (see [Events](#events)) |
-| `event_id` | Unique ID for this delivery. Use for deduplication - we may retry. |
+| `event_id` | Unique ID for this event. Same across retries and endpoints. Use for deduplication. |
 | `occurred_at` | When the event happened. Use to sort if events arrive out of order. |
 | `inbox_id` | The inbox that received the message |
 | `thread_id` | Conversation thread. Use with the API to fetch or send messages. |
 | `message.id` | Unique message ID |
 | `message.from` | Sender email address |
+| `message.to` | Envelope recipient address |
+| `message.cc` | Cc addresses |
+| `message.address_names` | Display names from the From, To, and Cc headers, keyed by address. `null` when none. |
 | `message.subject` | Email subject line |
 | `message.body_text` | Plain-text body |
 | `message.attachments` | Array of attachments with `url`, `parsedText` (extracted content), and `extractionMethod`. See [Attachments](/concepts/attachments). |
 | `message.raw_url` | Link to the original message as `message/rfc822`. Fetch with your API key. `null` when not available. |
+| `message.category` | `personal`, `automated`, `marketing`, `bounce`, `spam`, or `malicious` |
+| `message.auto_replyable` | `false` for mail an agent should not auto-reply to (automated, bulk, bounces, spam) |
 
 ## Reputation lifecycle payload
 
@@ -82,7 +92,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 ```json
 {
   "event": "inbox.suspended",
-  "event_id": "evt_def456",
+  "event_id": "8c2d4f6a-1b3e-4c5d-8e7f-9a0b1c2d3e4f",
   "occurred_at": "2024-03-21T10:05:00.000Z",
   "inbox_id": "inb_92ma...",
   "inbox_address": "agent@yourdomain.com",
@@ -113,16 +123,23 @@ A suspended inbox or pod is blocked from sending until reactivated. The reputati
 
 ## Headers
 
-| Header | Description |
-|--------|-------------|
-| `Content-Type` | `application/json` |
-| `X-Timestamp` | Unix timestamp (seconds) used in signature |
-| `X-Signature` | HMAC-SHA256 signature |
-| `X-Event-Id` | Unique event ID for deduplication |
+Every request has `Content-Type: application/json`. The other headers depend on the endpoint's authentication scheme:
+
+| Scheme | Headers |
+|--------|---------|
+| OpenMail signature | `X-Timestamp`, `X-Signature`, `X-Event-Id` |
+| Standard Webhooks | `webhook-id`, `webhook-timestamp`, `webhook-signature` |
+| Bearer token | `Authorization`, `X-Event-Id` |
+
+See [Verification](/pages/webhooks/verification) for what each header means and how to check it.
+
+## Browse events in the console
+
+The **Event Catalog** tab on the [Webhooks](https://console.openmail.sh/webhooks) page lists every event type with its schema and an example payload.
 
 <CardGroup cols={2}>
   <Card title="Verification" icon="shield-check" href="/pages/webhooks/verification">
-    HMAC signature verification.
+    Verify each authentication scheme.
   </Card>
   <Card title="Setup" icon="wrench" href="/guides/webhooks">
     Full implementation guide.

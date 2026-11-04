@@ -82,7 +82,8 @@
               "concepts/webhooks",
               "pages/webhooks/events",
               "guides/webhooks",
-              "pages/webhooks/verification"
+              "pages/webhooks/verification",
+              "pages/webhooks/platforms"
             ]
           },
           {

@@ -35,7 +35,7 @@ Yes. One account, many inboxes. No separate tenant abstraction - create inboxes 
 
 ## How do webhooks work?
 
-Configure a webhook URL in the [Dashboard](https://console.openmail.sh/login). When inbound email arrives, we POST a `message.received` event. See [Overview](/concepts/webhooks) and [Setup](/guides/webhooks).
+Add one or more endpoints on the [Webhooks](https://console.openmail.sh/webhooks) page. When inbound email arrives, we POST a `message.received` event to each matching endpoint. See [Overview](/concepts/webhooks) and [Setup](/guides/webhooks).
 
 ## What's the Idempotency-Key for?
 

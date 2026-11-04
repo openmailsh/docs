@@ -57,13 +57,13 @@ The `?token=` query parameter is useful for browser clients and CLI tools that c
 
 ## Delivery semantics
 
-When a customer has both an active WebSocket connection and a webhook URL configured, OpenMail prefers the WebSocket. If the WebSocket is down, events fall back to the webhook with the same retry policy.
+WebSockets and webhooks are independent. A `message.received` event goes to every connected, subscribed WebSocket and to every matching [webhook endpoint](/concepts/webhooks#endpoints). If you use both, you receive each event twice; deduplicate with `event_id`.
 
 | Scenario | Delivery method |
 |----------|----------------|
 | WebSocket connected + subscribed | WebSocket (instant) |
-| WebSocket disconnected, webhook URL set | Webhook (with retries) |
-| Neither | Event stored, marked as failed |
+| Matching webhook endpoint | Webhook (with retries) |
+| Both | Both, with the same `event_id` |
 
 Events use the same [payload structure](/pages/webhooks/events) as webhooks. Emails that are blocked by [sender rules](/concepts/sender-rules) or filtered out by allowlist mode do not generate events.
 

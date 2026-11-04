@@ -1,0 +1,110 @@
+---
+title: "Connect a platform"
+description: "Send OpenMail webhook events straight to Grok automations, Hermes Agent, or OpenClaw, so inbound email starts an agent run without your own server."
+icon: plug
+---
+
+Some agent platforms accept webhooks directly. Point an OpenMail endpoint at one and inbound email starts an agent run, with no server of your own in between.
+
+Each section below follows the same steps:
+
+1. Get a webhook URL and a secret or token from the platform.
+2. On the [Webhooks](https://console.openmail.sh/webhooks) page, click **Add endpoint**.
+3. Paste the URL into **Endpoint URL** and the secret or token into **Auth header or secret**. OpenMail picks the [authentication scheme](/concepts/webhooks#authentication) from its shape.
+4. Under **Events**, pick `message.received` unless you also want the lifecycle events.
+5. On the endpoint's **Testing** tab, click **Send Example** to check the platform accepts it.
+
+<Note>
+  Hermes Agent and OpenClaw are self-hosted. OpenMail can only reach a public HTTPS URL, so expose your gateway through a reverse proxy or a tunnel such as [ngrok](https://ngrok.com/) or Tailscale Funnel. A `localhost` or private address won't work.
+</Note>
+
+## Grok automations
+
+[Grok automation webhook triggers](https://docs.x.ai/grok/automations/webhooks) verify Standard Webhooks signatures, which OpenMail sends when you paste a `whsec_` secret.
+
+1. In Grok, create or edit an automation and add a **Webhook** trigger.
+2. Save the automation, then copy the endpoint and signing secret shown under the trigger. Grok shows the secret only once.
+3. In OpenMail, add an endpoint with the Grok endpoint as the URL and the `whsec_` signing secret as the secret.
+
+The endpoint page shows **Standard Webhooks** under **Authentication**. If you rotate the secret in Grok, click **Replace** there and paste the new one.
+
+## Hermes Agent
+
+The [Hermes Agent webhook gateway](https://hermes-agent.nousresearch.com/docs/user-guide/messaging/webhooks) verifies Standard Webhooks signatures on any route.
+
+1. Generate a secret:
+
+   ```bash
+   echo "whsec_$(openssl rand -base64 32)"
+   ```
+
+2. Add a route to `~/.hermes/config.yaml` with that secret. The `prompt` template reads fields from the OpenMail payload:
+
+   ```yaml
+   platforms:
+     webhook:
+       enabled: true
+       extra:
+         port: 8644
+         routes:
+           openmail:
+             secret: "whsec_..."
+             prompt: |
+               New email to {message.to} from {message.from}
+               Subject: {message.subject}
+
+               {message.body_text}
+
+               Thread: {thread_id}
+   ```
+
+3. Restart the gateway. The route listens at `/webhooks/openmail`.
+4. In OpenMail, add an endpoint with the public URL of that route, for example `https://hermes.example.com/webhooks/openmail`, and the same `whsec_` secret.
+
+Leave the route's `events` list empty. Hermes reads the event type from fields OpenMail doesn't send, so a filter would drop every request. Choose events on the OpenMail endpoint instead.
+
+## OpenClaw
+
+[OpenClaw gateway hooks](https://docs.openclaw.ai/gateway/config-hooks) authenticate with a bearer token, which OpenMail sends when you paste anything that isn't a `whsec_` secret.
+
+OpenClaw's agent hook needs a `message` string, and the OpenMail payload doesn't have one. Add a mapping that builds the message from the payload:
+
+```json5
+{
+  hooks: {
+    enabled: true,
+    token: "<long-random-hook-token>",
+    mappings: [
+      {
+        id: "openmail",
+        match: { path: "openmail" },
+        action: "agent",
+        name: "OpenMail",
+        messageTemplate: "New email to {{message.to}} from {{message.from}}\nSubject: {{message.subject}}\n\n{{message.body_text}}\n\nThread: {{thread_id}}",
+      },
+    ],
+  },
+}
+```
+
+1. Add the config above, with your own long random value for `hooks.token`. Use a different value from your gateway auth token.
+2. Reload the gateway. The mapping listens at `/hooks/openmail`.
+3. In OpenMail, add an endpoint with the public URL of that path, for example `https://openclaw.example.com/hooks/openmail`, and paste the hook token as the secret.
+4. Under **Events**, pick only `message.received`. Lifecycle events have no `message`, so the template would render an almost empty prompt.
+
+The endpoint page shows **Auth header** under **Authentication**. OpenClaw limits hook bodies to 256 KiB, so very large emails may be rejected.
+
+<Tip>
+  To install OpenMail as an OpenClaw plugin instead, with replies sent from the agent's inbox, see [OpenClaw](/integrations/openclaw).
+</Tip>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="book" href="/concepts/webhooks">
+    Endpoints, scoping, and authentication.
+  </Card>
+  <Card title="Events" icon="bell" href="/pages/webhooks/events">
+    Payload fields you can use in templates.
+  </Card>
+</CardGroup>

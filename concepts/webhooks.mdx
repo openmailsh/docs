@@ -1,42 +1,66 @@
 ---
 title: "Overview"
-description: "OpenMail webhooks deliver inbound email events to your endpoint in real time. Learn about delivery semantics, headers, signature verification, and retries."
+description: "OpenMail webhooks deliver inbound email and reputation events to your endpoints in real time. Learn about endpoints, scoping, authentication, delivery logs, and retries."
 icon: eye
 ---
 
-When an email arrives at one of your inboxes — or when the reputation engine suspends or reactivates an inbox or pod — OpenMail delivers the event to your webhook URL as an HTTP POST request. See [Events](/pages/webhooks/events) for the full list.
+When an email arrives at one of your inboxes, or the reputation engine suspends or reactivates an inbox or pod, OpenMail sends the event to your endpoints as an HTTP `POST`. See [Events](/pages/webhooks/events) for the full list.
 
 ## Why use webhooks?
 
-Instead of constantly polling the API to check for new emails, you register a URL and OpenMail sends a `POST` request as soon as an event happens. This event-driven approach is more efficient and lets you build responsive agents that react instantly to incoming messages.
+Instead of constantly polling the API to check for new emails, register a URL and OpenMail sends a `POST` as soon as an event happens.
 
 - **Real-time** - Build agents that reply to emails in seconds.
 - **Efficient** - No polling; saves compute and simplifies your logic.
+
+## Endpoints
+
+You manage webhooks on the [Webhooks](https://console.openmail.sh/webhooks) page. You can add as many endpoints as you need. Each endpoint has its own:
+
+- **URL** - Where OpenMail sends the `POST`.
+- **Events** - The [event types](/pages/webhooks/events) it receives.
+- **Scope** - The whole organisation, or a set of pods and inboxes.
+- **Authentication** - How OpenMail proves the request is genuine. See [Authentication](#authentication).
+- **Status** - Enabled or disabled.
+
+An event goes to every enabled endpoint that subscribes to its type and matches its scope. Each endpoint gets its own delivery and its own retries.
+
+Only the organisation owner can add, edit, or delete endpoints, reveal or rotate secrets, send test events, or redeliver.
+
+### Scope
+
+Leave **Scope** empty and the endpoint receives events from every inbox and pod. Pick pods or inboxes to narrow it:
+
+- An inbox event matches when its inbox is listed, or the inbox's pod is listed.
+- A `pod.*` event matches when its pod is listed. An endpoint scoped only to inboxes does not receive `pod.*` events.
+
+Inbox webhooks set through the API (`webhookUrl` on an inbox) show up here as an endpoint scoped to that inbox. They fire in addition to your organisation-wide endpoints.
+
+### Disabling an endpoint
+
+Disable an endpoint from its page to pause it. OpenMail stops sending to it, and pending retries are marked as failed. Events that happen while it is disabled are not kept for later. Enable it again to resume.
+
+## Authentication
+
+Each endpoint has one optional **Auth header or secret** field. OpenMail picks the scheme from what you paste:
+
+| You paste | OpenMail sends |
+|-----------|----------------|
+| Nothing | An OpenMail signature (`X-Signature`) made with a secret OpenMail generates |
+| A `whsec_` secret | [Standard Webhooks](https://www.standardwebhooks.com/) headers (`webhook-signature`) signed with your secret |
+| Anything else | `Authorization: Bearer <token>`, unsigned |
+
+You can paste a whole `Authorization: Bearer …` header or just the token. See [Verification](/pages/webhooks/verification) for the headers and code for each scheme.
 
 ## Delivery semantics
 
 - **At-least-once delivery** - We may deliver the same event more than once. Use `event_id` to deduplicate.
 - **No ordering guarantee** - Events may arrive out of order. Use `occurred_at` to sort if needed.
-
-## Webhook headers
-
-Every POST includes:
-
-| Header | Description |
-|--------|-------------|
-| `X-Event-Id` | Stable UUID for this event. Same across retries. Use for deduplication. |
-| `X-Timestamp` | Unix timestamp of the delivery attempt |
-| `X-Signature` | HMAC-SHA256 signature for verification |
-
-## Signature verification
-
-The signature is computed as `HMAC-SHA256(webhook_secret, "{timestamp}.{raw_json_payload}")`. Verify before processing. Use constant-time comparison to prevent timing attacks.
-
-Also verify that `X-Timestamp` is within 5 minutes of current time to prevent replay attacks.
+- **Same ID on every endpoint** - When an event goes to several endpoints, each gets the same `event_id`.
 
 ## Retry policy
 
-If your endpoint doesn't return `2xx` within 15 seconds:
+A delivery fails when your endpoint doesn't return `2xx` within 15 seconds. OpenMail doesn't follow redirects, so a `3xx` also counts as a failure. Failed deliveries are retried:
 
 | Attempt | Delay |
 |---------|-------|
@@ -46,7 +70,19 @@ If your endpoint doesn't return `2xx` within 15 seconds:
 | 4 | 2 minutes |
 | 5 | 4 minutes |
 
-After 5 failed attempts, the event is marked as failed.
+After 5 failed attempts, the delivery is marked as failed. You can [redeliver](#delivery-logs) it from the console.
+
+## Delivery logs
+
+The **Logs** tab on the [Webhooks](https://console.openmail.sh/webhooks) page lists every delivery. Filter by status (delivered, failed, pending) or event type. Open a delivery to see:
+
+- The payload OpenMail sent.
+- The HTTP response code or error.
+- How many attempts it took.
+
+Click **Replay** to redeliver it. A redelivery sends the same payload with the same `event_id`, with a fresh set of retries.
+
+The **Endpoints** tab shows each endpoint's error rate over the last 24 hours. An endpoint's own page shows its delivered and failed counts for the same window, and its message attempts.
 
 ## Full payload and verification
 
@@ -55,9 +91,12 @@ After 5 failed attempts, the event is marked as failed.
     Payload structure and field descriptions.
   </Card>
   <Card title="Verification" icon="shield-check" href="/pages/webhooks/verification">
-    HMAC signature verification and code examples.
+    Verify each authentication scheme, with code.
   </Card>
   <Card title="Setup" icon="wrench" href="/guides/webhooks">
-    Configure your endpoint and implement the handler.
+    Add an endpoint and implement the handler.
+  </Card>
+  <Card title="Connect a platform" icon="plug" href="/pages/webhooks/platforms">
+    Send events to Grok, Hermes Agent, or OpenClaw.
   </Card>
 </CardGroup>
