@@ -41,7 +41,11 @@ The full token is returned once, at creation, and cannot be retrieved again — 
 - Keep your API key secret. Do not expose it in client-side code.
 - Prefer a scoped key when an integration only needs one pod's inboxes, or one inbox. Revoke either any time with `DELETE /v1/pods/{id}/api-keys/{keyId}` or `DELETE /v1/inboxes/{id}/api-keys/{keyId}` — revocation is immediate.
 - Deleting an inbox revokes its inbox-scoped keys along with it.
-- If you believe your account-wide key has been compromised, contact support immediately for rotation.
+- If your account-wide key leaks, rotate it on the [API keys](https://console.openmail.sh/api-keys) page: click **Rotate key**. Only an owner can rotate it. The old key returns `401` at once, so update your config right after.
+
+### What an account-wide key can do
+
+An account-wide key can do anything in your organisation. It can read and send from every inbox, create and delete inboxes, manage domains and sender rules, and mint or revoke pod and inbox keys. Rotating it does not revoke the scoped keys it minted, so revoke any of those you no longer trust.
 
 ### Scoping limits what a compromised agent can reach
 
