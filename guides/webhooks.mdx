@@ -157,7 +157,7 @@ Deploy your webhook server to a hosting provider with a stable public HTTPS URL.
 
 - **Respond quickly** - Return `200` within 15 seconds. Process asynchronously if needed.
 - **Idempotency** - Use `event_id` to deduplicate. We may retry; your handler should be idempotent.
-- **Attachment URLs** - Fetch promptly; signed URLs expire.
+- **Attachment URLs** - Fetch them with an API key that can read the message.
 - **Verify signatures** - Never process webhooks without verifying.
 
 ## Troubleshooting

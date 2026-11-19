@@ -123,6 +123,7 @@ Message object:
   "direction": "inbound",
   "attachments": [
     {
+      "id": "32dc7810-8e9a-4b24-b7cc-066956434994",
       "filename": "report.pdf",
       "url": "https://...",
       "sizeBytes": 12345
@@ -163,10 +164,10 @@ Inbox object:
 
 ```bash
 # Extract text (PDF, DOCX, XLSX, PPTX, images via OCR)
-openmail attachments text --message-id "msg_..." --filename "report.pdf"
+openmail attachments text --message-id "msg_..." --attachment-id "32dc7810-8e9a-4b24-b7cc-066956434994"
 
 # Download the raw file
-openmail attachments get --message-id "msg_..." --filename "report.pdf" --out ./report.pdf
+openmail attachments get --message-id "msg_..." --attachment-id "32dc7810-8e9a-4b24-b7cc-066956434994" --out ./report.pdf
 ```
 
 Inside OpenClaw, prefix every command with `openclaw openmail --` to run it with the channel's credentials.
@@ -254,9 +255,9 @@ Returns messages in a thread, sorted oldest-first.
 GET /v1/inboxes/{id}/messages?direction=inbound&limit=20&offset=0
 ```
 
-### GET /v1/attachments/{messageId}/{filename}
+### GET /v1/attachments/{messageId}/{attachmentId}
 
-Returns attachment data. Signed URL included in message payload — fetch promptly, URLs expire.
+Returns attachment data. Fetch the `url` in the message payload with your API key.
 
 ---
 
