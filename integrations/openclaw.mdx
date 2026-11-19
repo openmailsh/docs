@@ -109,13 +109,7 @@ Each sender gets a conversation per inbox; replies leave from the inbox that rec
 
 Text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) reaches the agent inline, up to 8k characters per file and 24k total. Files without text arrive as files, so a vision model sees the picture; `mediaMaxMb` caps the total per email (default 20).
 
-Version 0.1.9 of the OpenMail plugin shows each attachment's ID beside its filename. Copy the message ID and the selected attachment's ID from the notification, `threads get --json`, or `messages list --json`. Pass both IDs to the bundled CLI. Choose a different output path for each same-named file you save.
-
-```bash
-openclaw openmail -- threads get --thread-id "$thread_id" --json
-openclaw openmail -- attachments text --message-id "$message_id" --attachment-id "$attachment_id"
-openclaw openmail -- attachments get --message-id "$message_id" --attachment-id "$attachment_id" --out ./report-copy.pdf
-```
+In plugin 0.1.9 or later, pass `--message-id` and `--attachment-id` to `attachments get` or `attachments text`. Both IDs appear in the notification, `threads get --json`, and `messages list --json`.
 
 ## Configuration reference
 

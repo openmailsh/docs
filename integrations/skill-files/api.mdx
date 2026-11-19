@@ -125,7 +125,7 @@ Message object:
     {
       "id": "32dc7810-8e9a-4b24-b7cc-066956434994",
       "filename": "report.pdf",
-      "url": "https://api.openmail.sh/v1/attachments/msg_.../32dc7810-8e9a-4b24-b7cc-066956434994",
+      "url": "https://...",
       "sizeBytes": 12345
     }
   ],
@@ -164,13 +164,13 @@ Inbox object:
 
 ```bash
 # Extract text (PDF, DOCX, XLSX, PPTX, images via OCR)
-openmail attachments text --message-id "$message_id" --attachment-id "$attachment_id"
+openmail attachments text --message-id "msg_..." --attachment-id "32dc7810-8e9a-4b24-b7cc-066956434994"
 
 # Download the raw file
-openmail attachments get --message-id "$message_id" --attachment-id "$attachment_id" --out ./report-copy.pdf
+openmail attachments get --message-id "msg_..." --attachment-id "32dc7810-8e9a-4b24-b7cc-066956434994" --out ./report.pdf
 ```
 
-OpenMail CLI 0.9.2 and later accept `--attachment-id`. Read the message's `id` and the selected entry's `id` in `attachments` from `threads get --json` or `messages list --json`. Inside OpenClaw, prefix the command with `openclaw openmail --` to use the channel's credentials.
+Inside OpenClaw, prefix every command with `openclaw openmail --` to run it with the channel's credentials.
 
 ---
 
@@ -257,7 +257,7 @@ GET /v1/inboxes/{id}/messages?direction=inbound&limit=20&offset=0
 
 ### GET /v1/attachments/{messageId}/{attachmentId}
 
-Download the bytes from the attachment's `url` using a bearer key that can read the message. Append `/text` to extract text from the same file. A legacy filename in the route selects the first file with that name.
+Returns attachment data. Fetch the `url` in the message payload with your API key.
 
 ---
 

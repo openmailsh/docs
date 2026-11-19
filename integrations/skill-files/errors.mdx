@@ -77,7 +77,7 @@ To view or manage suppressions, go to **Settings > Suppressions** in the [dashbo
 
 ## Attachment URLs
 
-Use a bearer key with access to the message's inbox. If a download returns 404, check the message and attachment IDs against `threads get --json`.
+Attachment URLs in inbound messages have no fixed expiry. Fetch them with an API key that can read the message.
 
 ## Rate limits
 
