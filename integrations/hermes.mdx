@@ -78,7 +78,7 @@ Replies go to the sender OpenMail recorded, not one the message claims. The mode
 | `openmail_list_threads` | Threads, newest first |
 | `openmail_read_thread` | Every message in a thread |
 | `openmail_list_messages` | Messages, inbound or outbound |
-| `openmail_attachment_text` | Text from PDF, DOCX, XLSX, images |
+| `openmail_attachment_text` | Extract text using the message ID and attachment ID |
 | `openmail_list_inboxes` | Inboxes the key can see |
 | `openmail_create_inbox` | New inbox (pod or account key) |
 
@@ -114,6 +114,8 @@ Paste a pod or account key when asked. Setup stores a key that reaches only that
 ## Attachments
 
 Text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) reaches the agent inline, up to 8k characters per file and 24k total. Files without text arrive as files, so a vision model sees the picture. Outbound, the agent attaches files from `~/.hermes/media` or `~/.hermes/output`.
+
+Version 0.3.2 of the OpenMail plugin shows each attachment's ID beside its filename. If two attachments are called `report.pdf`, select one with `openmail_attachment_text`. Pass its `id` as `attachment_id` and the containing message's `id` as `message_id`. You can find both IDs in the notification or with `openmail_read_thread`.
 
 ## Scheduled jobs
 

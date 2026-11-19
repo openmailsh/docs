@@ -72,11 +72,11 @@ Run `threads list --is-read false`, handle what comes back, mark each thread rea
 ### Attachments
 
 ```bash
-openmail attachments text --message-id msg_xxx --filename report.pdf                     # extracted text
-openmail attachments get --message-id msg_xxx --filename report.pdf --out /tmp/report.pdf # raw file
+openmail attachments text --message-id "$message_id" --attachment-id "$attachment_id"
+openmail attachments get --message-id "$message_id" --attachment-id "$attachment_id" --out ./report-copy.pdf
 ```
 
-`text` returns extracted text for PDF, DOCX, XLSX, PPTX, and images (OCR), so the agent reads the document without parsing it. `get` downloads the raw file. Ids and filenames come from `threads get`.
+Use the message ID and the selected attachment's `id` from `threads get --json`. `text` extracts text and `get` saves the raw file. On CLI 0.9.1, pass the same ID with `--filename "$attachment_id"`. Use a separate output path for each same-named attachment you download.
 
 ### Inboxes
 

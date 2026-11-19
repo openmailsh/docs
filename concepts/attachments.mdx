@@ -60,10 +60,11 @@ Each attachment includes a `parsedText` field when extraction succeeds:
 
 ```json
 {
+  "id": "32dc7810-8e9a-4b24-b7cc-066956434994",
   "filename": "invoice.pdf",
   "contentType": "application/pdf",
   "sizeBytes": 45000,
-  "url": "https://api.openmail.sh/v1/attachments/msg_.../invoice.pdf",
+  "url": "https://api.openmail.sh/v1/attachments/msg_.../32dc7810-8e9a-4b24-b7cc-066956434994",
   "parsedText": "Invoice #2847\nDate: March 15, 2026\nAmount: $1,250.00\n...",
   "extractionMethod": "pdf"
 }
@@ -79,38 +80,37 @@ The `extractionMethod` field tells you how the text was extracted: `pdf`, `ocr`,
 
 ## Downloading attachments
 
-Each attachment includes a `url` field in the message response:
+Use the `url` on the attachment you want in the message response. OpenMail includes it when the file is stored. Each attachment has its own stable ID, even when several files have the same name or their order changes.
 
 ```
-https://api.openmail.sh/v1/attachments/{messageId}/{filename}
+https://api.openmail.sh/v1/attachments/{messageId}/{attachmentId}
 ```
 
-This endpoint returns the attachment bytes directly. Authenticate with the same `Authorization: Bearer <API_KEY>` header you use for the rest of the API — it is not a redirect, so no separate signed URL or expiry to worry about.
+Authenticate with a key that can read the message. The response contains the original filename in its `Content-Disposition` header. Choose separate local output paths when you save same-named files.
 
 ```bash
-curl https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf \
-  -H "Authorization: Bearer om_..." \
-  -o receipt.pdf
+curl "$attachment_url" -H "Authorization: Bearer $OPENMAIL_API_KEY" -o invoice.pdf
 ```
+
+Existing filename URLs return the first match. If one attachment overwrote another in storage before IDs were introduced, both IDs download the surviving file.
 
 ## On-demand text extraction
 
-For attachments that were stored before text extraction was available, or to re-extract text, use the `/text` endpoint:
+Append `/text` to the same attachment URL to read its extracted text.
 
 ```
-GET /v1/attachments/{messageId}/{filename}/text
+GET /v1/attachments/{messageId}/{attachmentId}/text
 ```
 
 ```bash
-curl https://api.openmail.sh/v1/attachments/msg_4c8d5e6f/receipt.pdf/text \
-  -H "Authorization: Bearer om_..."
+curl "$attachment_url/text" -H "Authorization: Bearer $OPENMAIL_API_KEY"
 ```
 
 Returns:
 
 ```json
 {
-  "filename": "receipt.pdf",
+  "filename": "invoice.pdf",
   "contentType": "application/pdf",
   "extractionMethod": "pdf",
   "text": "Invoice #2847\nDate: March 15, 2026\n..."
