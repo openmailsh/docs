@@ -115,7 +115,7 @@ Paste a pod or account key when asked. Setup stores a key that reaches only that
 
 Text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) reaches the agent inline, up to 8k characters per file and 24k total. Files without text arrive as files, so a vision model sees the picture. Outbound, the agent attaches files from `~/.hermes/media` or `~/.hermes/output`.
 
-Version 0.3.2 of the OpenMail plugin shows each attachment's ID beside its filename. If two attachments are called `report.pdf`, select one with `openmail_attachment_text`. Pass its `id` as `attachment_id` and the containing message's `id` as `message_id`. You can find both IDs in the notification or with `openmail_read_thread`.
+Version 0.3.2 of the OpenMail plugin shows each attachment's ID beside its filename. If two attachments are called `report.pdf`, select one with `openmail_attachment_text`. Pass its `id` as `attachment_id` and the containing message's `id` as `message_id`. The notification, `openmail_read_thread`, and `openmail_list_messages` all show both IDs.
 
 ## Scheduled jobs
 

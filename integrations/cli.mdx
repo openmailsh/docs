@@ -76,7 +76,7 @@ openmail attachments text --message-id "$message_id" --attachment-id "$attachmen
 openmail attachments get --message-id "$message_id" --attachment-id "$attachment_id" --out ./report-copy.pdf
 ```
 
-Use the message ID and the selected attachment's `id` from `threads get --json`. `text` extracts text and `get` saves the raw file. On CLI 0.9.1, pass the same ID with `--filename "$attachment_id"`. Use a separate output path for each same-named attachment you download.
+With CLI 0.9.2 or later, use the message's `id` and the selected attachment's `id` from `threads get --json` or `messages list --json`. `text` extracts text and `get` saves the raw file. Use a separate output path for each same-named attachment you download.
 
 ### Inboxes
 

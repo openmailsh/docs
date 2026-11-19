@@ -164,13 +164,13 @@ Inbox object:
 
 ```bash
 # Extract text (PDF, DOCX, XLSX, PPTX, images via OCR)
-openmail attachments text --message-id "$message_id" --filename "$attachment_id"
+openmail attachments text --message-id "$message_id" --attachment-id "$attachment_id"
 
 # Download the raw file
-openmail attachments get --message-id "$message_id" --filename "$attachment_id" --out ./report-copy.pdf
+openmail attachments get --message-id "$message_id" --attachment-id "$attachment_id" --out ./report-copy.pdf
 ```
 
-Read both IDs from `threads get --json`. OpenMail CLI 0.9.1 accepts the attachment ID through `--filename`. Use `--attachment-id` on CLI versions that expose that flag. Inside OpenClaw, prefix the command with `openclaw openmail --` to use the channel's credentials.
+OpenMail CLI 0.9.2 and later accept `--attachment-id`. Read the message's `id` and the selected entry's `id` in `attachments` from `threads get --json` or `messages list --json`. Inside OpenClaw, prefix the command with `openclaw openmail --` to use the channel's credentials.
 
 ---
 
