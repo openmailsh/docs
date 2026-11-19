@@ -160,7 +160,7 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 
 ## Tools
 
-<Note>19 tools. Your client reads the live list from the server; this table can lag a release.</Note>
+<Note>31 tools. Your client reads the live list from the server; this table can lag a release.</Note>
 
 | Tool | What it does |
 | --- | --- |
@@ -168,15 +168,22 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 | `auth_me` | Which organisation and inbox this credential can see. |
 | `setup_agent_email` | Plan, then create an inbox and mint a scoped key. |
 | `list_inboxes`, `get_inbox`, `create_inbox`, `mint_inbox_key` | Inbox management. |
+| `update_inbox` | Change an inbox's display name or auto-forwarding. |
 | `list_unread_threads` | Unread threads whose latest message is `autoReplyable`: sent by a person or another agent. Spam, marketing, bounces, and machine-generated mail (no-reply, OTPs, receipts) are filtered out. |
 | `read_thread` | Full thread as Markdown with timestamps, `autoReplyable` flags, and attachment message ids. Quoted reply history is stripped. |
 | `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. `send_email` names the inbox it used when you did not pass `inbox_id`. |
+| `forward_message` | Forward one message to another address, as a new thread from the same inbox. |
+| `search_mail` | Find messages by words in the subject, body, sender or recipient. |
 | `mark_thread_read` | Mark a thread handled. |
-| `get_attachment_text` | Extracted text from an attachment. Use the `message:` id shown in `read_thread`. |
+| `delete_thread`, `delete_message` | Move a thread to Trash (restorable for 30 days), or delete one message permanently. |
+| `create_draft`, `edit_draft` | Save an HTML draft in its sending inbox, or change it without sending. Replies and forwards stay linked to their source thread. |
+| `list_drafts`, `get_draft` | Find drafts across inboxes and review one before sending. |
+| `send_draft`, `delete_draft` | Send the reviewed version, or discard it. Both need the exact `updated_at` you reviewed, so newer edits are never sent or lost. |
+| `get_attachment`, `get_attachment_text` | The attachment file, or its extracted text. Use the `message:` id shown in `read_thread`. |
 | `list_domains`, `add_domain`, `get_domain`, `verify_domain` | Custom domains with pasteable DNS records. Pro plan. |
 | `send_mcp_feedback` | Report a confusing or broken tool to the OpenMail team. |
 
-Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools.
+Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools. A read-only connection can list and read drafts; creating, editing, sending and deleting them need **Send**.
 
 ## Narrow what the agent can do
 
