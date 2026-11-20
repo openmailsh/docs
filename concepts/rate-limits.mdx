@@ -15,9 +15,11 @@ Replies and follow-ups only meet the first. Cold outreach meets both.
 
 | Limit | Value | Scope |
 |-------|-------|-------|
-| Burst | 10/minute | Per inbox |
-| Daily | 200/day | Per inbox |
+| Burst | 10 to 30 sends/minute | Per inbox |
+| Daily | 200 to 2,000 recipients/day | Per inbox |
 | Inbox creation | 100/day | Per account |
+
+Burst counts sends. Daily counts recipients: every address in To, Cc and Bcc, on replies as well as new mail.
 
 Over one of these, the API returns `429` with a `Retry-After` header:
 
@@ -27,6 +29,23 @@ Over one of these, the API returns `429` with a `Retry-After` header:
   "message": "Max 10 sends per minute per inbox"
 }
 ```
+
+### How send limits grow
+
+Every inbox starts at 10 sends a minute and 200 recipients a day. On Pro and Enterprise both limits rise as the inbox ages and sends more. An inbox needs both the age and the volume for a step.
+
+| Inbox age | Recipients sent to so far | Sends/minute | Recipients/day |
+|-----------|---------------------------|--------------|----------------|
+| 0+ days | 0+ | 10 | 200 |
+| 7+ days | 500+ | 15 | 500 |
+| 14+ days | 1,500+ | 20 | 1,000 |
+| 28+ days | 3,000+ | 30 | 2,000 |
+
+A step you earn during the day applies from midnight UTC. A step is never lost to a quiet week. A `throttled` inbox drops to 10 sends a minute and keeps 25% of its daily limit until its [reputation](#reputation) recovers.
+
+Free inboxes stay at 10 a minute and 200 a day. On Enterprise, contact us to set a higher daily limit.
+
+These steps can change without notice. This page shows the current ones.
 
 ## Cold outreach cap
 
@@ -50,7 +69,7 @@ Coverage is re-checked. A sending domain that fails DNS, or a TXT record that di
 
     | Scope | Warm-up (first 7 days or 100 new recipients) | After |
     |-------|----------------------------------------------|-------|
-    | Inbox | 20/day | no cold cap (200/day send limit still applies) |
+    | Inbox | 20/day | no cold cap (the [daily limit](#how-send-limits-grow) still applies) |
     | Custom domain | tier schedule below | tier schedule below |
     | Account | 150/day | 2× your trailing 7-day average, 150 to 500 |
 
@@ -165,7 +184,7 @@ Every inbox has a reputation state: `good`, `watch`, `throttled` or `suspended`.
 | State | Effect | How it clears |
 |-------|--------|---------------|
 | `watch` | Caps stop growing; a custom domain drops one tier | On its own, as the rate falls |
-| `throttled` | Daily send limit cut to 25%; cold caps halved | On its own, as the rate falls |
+| `throttled` | Daily send limit cut to 25%; burst back to 10/minute; cold caps halved | On its own, as the rate falls |
 | `suspended` | Every send from the inbox refused | After review by OpenMail; the `inbox.reactivated` [webhook](/pages/webhooks/events) fires |
 
 ### If an inbox is suspended
