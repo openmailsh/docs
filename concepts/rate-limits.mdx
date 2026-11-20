@@ -15,9 +15,11 @@ Replies and follow-ups only meet the first. Cold outreach meets both.
 
 | Limit | Value | Scope |
 |-------|-------|-------|
-| Burst | 10/minute | Per inbox |
-| Daily | 200/day | Per inbox |
+| Burst | 10 sends/minute | Per inbox |
+| Daily | 200 to 2,000 recipients/day | Per inbox |
 | Inbox creation | 100/day | Per account |
+
+Burst counts sends. Daily counts recipients: every address in To, Cc and Bcc, on replies as well as new mail.
 
 Over one of these, the API returns `429` with a `Retry-After` header:
 
@@ -27,6 +29,21 @@ Over one of these, the API returns `429` with a `Retry-After` header:
   "message": "Max 10 sends per minute per inbox"
 }
 ```
+
+### Daily limit
+
+Every inbox starts at 200 recipients a day. On Pro and Enterprise the limit rises as the inbox ages and sends more. An inbox needs both the age and the volume for a step.
+
+| Inbox age | Recipients sent to so far | Recipients/day |
+|-----------|---------------------------|----------------|
+| 0+ days | 0+ | 200 |
+| 7+ days | 500+ | 500 |
+| 14+ days | 1,500+ | 1,000 |
+| 28+ days | 3,000+ | 2,000 |
+
+A step you earn during the day applies from midnight UTC. A step is never lost to a quiet week. A `throttled` inbox keeps 25% of its limit until its [reputation](#reputation) recovers.
+
+Free inboxes stay at 200. On Enterprise, contact us to set a higher limit.
 
 ## Cold outreach cap
 
@@ -50,7 +67,7 @@ Coverage is re-checked. A sending domain that fails DNS, or a TXT record that di
 
     | Scope | Warm-up (first 7 days or 100 new recipients) | After |
     |-------|----------------------------------------------|-------|
-    | Inbox | 20/day | no cold cap (200/day send limit still applies) |
+    | Inbox | 20/day | no cold cap (the [daily limit](#daily-limit) still applies) |
     | Custom domain | tier schedule below | tier schedule below |
     | Account | 150/day | 2× your trailing 7-day average, 150 to 500 |
 
