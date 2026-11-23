@@ -1,0 +1,55 @@
+---
+title: "Schedule a send"
+description: "Hold an email and send it later. The window is 30 seconds to 30 days."
+icon: clock
+---
+
+Pass `sendAt` when you [send an email](/api-reference/messages/send-email). The response is `202` with `status: scheduled`. Leave `sendAt` out to send immediately.
+
+Rate limits, recipient policy, and content checks run when the email goes out, not when you schedule it.
+
+## Schedule
+
+`sendAt` is an ISO-8601 time, at least 30 seconds ahead and within 30 days.
+
+```bash
+curl -s -X POST "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/send" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{
+    "to": "recipient@example.com",
+    "subject": "Thursday",
+    "body": "Thursday works.",
+    "sendAt": "2026-11-24T06:00:00.000Z"
+  }'
+```
+
+The same `Idempotency-Key` returns this scheduled email until it goes out, then the sent message. A repeat of a cancelled or failed send returns `scheduled_send_closed`. Use a new key to schedule it again.
+
+Sending a [draft](/api-reference/drafts/send-email-draft) takes the same field. The draft leaves Drafts and becomes a scheduled send.
+
+## Change or cancel
+
+List what is still waiting with `GET /v1/inboxes/{id}/scheduled-sends`. The default is `status=scheduled`, up to 50, soonest first. Pass a comma-separated `status` to include others.
+
+```bash
+curl -s "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/scheduled-sends" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```
+
+Move the time with `PATCH /v1/inboxes/{id}/scheduled-sends/{sendId}`. You can change `sendAt` only.
+
+```bash
+curl -s -X PATCH "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/scheduled-sends/SEND_ID" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "sendAt": "2026-11-25T06:00:00.000Z" }'
+```
+
+Cancel it with `DELETE /v1/inboxes/{id}/scheduled-sends/{sendId}`. A send that is already going out or has been sent cannot be cancelled.
+
+```bash
+curl -s -X DELETE "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/scheduled-sends/SEND_ID" \
+  -H "Authorization: Bearer $OPENMAIL_API_KEY"
+```

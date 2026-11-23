@@ -90,6 +90,7 @@
             "group": "Guides",
             "pages": [
               "guides/api-integration",
+              "guides/scheduled-send",
               "guides/multi-tenancy"
             ]
           },

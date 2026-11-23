@@ -54,9 +54,20 @@ openmail send --to marc@example.com --cc jonas@example.com --subject "Hi" --body
 openmail send --to marc@example.com --bcc crm@hubspot.example --subject "Hi" --body "Hi"       # bcc a CRM logging address
 openmail send --to marc@example.com --thread-id thr_xxx --body "Confirmed." --no-quote   # reply, no quoted history
 openmail send --to marc@example.com --subject "Report" --body "Attached." --attach report.pdf --attach data.csv
+openmail send --to marc@example.com --subject "Thursday" --body "Thursday works." --send-at 2026-11-24T06:00:00Z
 ```
 
-One `--to`, on purpose: the CLI refuses a second so an agent can't spray. Repeat `--cc` for the others, `--bcc` for anyone who should get a copy without appearing on it. HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe.
+One `--to`, on purpose: the CLI refuses a second so an agent can't spray. Repeat `--cc` for the others, `--bcc` for anyone who should get a copy without appearing on it. HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe. `--send-at` holds the email until that ISO-8601 time (30 seconds to 30 days ahead) and returns the scheduled send instead of a sent message.
+
+### Scheduled
+
+```bash
+openmail scheduled list
+openmail scheduled reschedule --send-id 9f3a1b2c-0000-4000-8000-000000000001 --send-at 2026-11-25T06:00:00Z
+openmail scheduled cancel --send-id 9f3a1b2c-0000-4000-8000-000000000001
+```
+
+`list` shows emails that have not gone out. `reschedule` changes the time only. `cancel` stops a send that has not gone out. See [Schedule a send](/guides/scheduled-send).
 
 ### Read
 
