@@ -35,6 +35,7 @@
   "redirects": [
     { "source": "/quickstart/cli", "destination": "/quickstart" },
     { "source": "/quickstart/api", "destination": "/guides/api-integration" },
+    { "source": "/guides/scheduled-send", "destination": "/concepts/scheduled-send" },
     { "source": "/guides/cli-quickstart", "destination": "/quickstart" },
     { "source": "/guides/skills/openmail", "destination": "/integrations/skill-files/openmail" },
     { "source": "/guides/skills/references/setup", "destination": "/integrations/skill-files/setup" },
@@ -62,6 +63,7 @@
               "concepts/pods",
               "concepts/custom-domains",
               "concepts/threading",
+              "concepts/scheduled-send",
               "concepts/attachments",
               "concepts/suppressions",
               "concepts/sender-rules",
@@ -90,7 +92,6 @@
             "group": "Guides",
             "pages": [
               "guides/api-integration",
-              "guides/scheduled-send",
               "guides/multi-tenancy"
             ]
           },

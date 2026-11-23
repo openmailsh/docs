@@ -217,7 +217,7 @@ Pass `sendAt` (ISO-8601, 30 seconds to 30 days ahead) to hold the email. The
 response is `202` with `status: scheduled`. Checks run when it sends. Change
 the time with `PATCH /v1/inboxes/{id}/scheduled-sends/{sendId}` (`sendAt` only)
 or cancel with `DELETE` on that path. List waiting emails with
-`GET /v1/inboxes/{id}/scheduled-sends`. See [Schedule a send](/guides/scheduled-send).
+`GET /v1/inboxes/{id}/scheduled-sends`. See [Schedule a send](/concepts/scheduled-send).
 
 `replyTo` is optional. When set, the email's `Reply-To` header is populated
 with that address so replies route there instead of to the sending inbox.
