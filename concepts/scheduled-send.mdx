@@ -1,0 +1,70 @@
+---
+title: "Schedule a send"
+description: "Hold an email in the console and send it later. The window is 30 seconds to 30 days."
+icon: clock
+---
+
+Open an inbox and click the arrow next to **Send**. Pick a time, then click **Schedule**. The email waits in **Scheduled** until then.
+
+The time has to be at least 30 seconds from now and within 30 days. Rate limits, recipient policy, and content checks run when it goes out, not when you schedule it.
+
+## Pick a time
+
+<Steps>
+  <Step title="Open the menu">
+    The arrow next to **Send** opens the menu. It lists the next morning, the next afternoon, and the next Monday morning. **Pick date & time** is for any other time.
+
+    <Frame>
+      <img className="block dark:hidden" src="/images/scheduled-send/menu.png" alt="Send button with the schedule menu open: Tomorrow morning, Tomorrow afternoon, Next Monday morning, and Pick date and time" />
+      <img className="hidden dark:block" src="/images/scheduled-send/menu-dark.png" alt="Send button with the schedule menu open: Tomorrow morning, Tomorrow afternoon, Next Monday morning, and Pick date and time" />
+    </Frame>
+  </Step>
+  <Step title="Schedule it">
+    After you pick a time, the button changes from **Send** to **Schedule**, and a line next to it shows when it will go. Click **Schedule**. **Send now** in the same menu clears the time.
+
+    <Frame>
+      <img className="block dark:hidden" src="/images/scheduled-send/chosen.png" alt="Compose footer showing Sends Tue, Nov 24, 8:00 AM, with the Schedule button highlighted" />
+      <img className="hidden dark:block" src="/images/scheduled-send/chosen-dark.png" alt="Compose footer showing Sends Tue, Nov 24, 8:00 AM, with the Schedule button highlighted" />
+    </Frame>
+
+    A toast confirms the time. **View** opens that email. **Undo** puts it back in **Drafts**.
+  </Step>
+</Steps>
+
+## Change it
+
+**Scheduled**, in the inbox sidebar, lists what is still waiting, soonest first.
+
+<Frame>
+  <img className="block dark:hidden" src="/images/scheduled-send/list.png" alt="Scheduled list with three waiting emails, soonest first" />
+  <img className="hidden dark:block" src="/images/scheduled-send/list-dark.png" alt="Scheduled list with three waiting emails, soonest first" />
+</Frame>
+
+Open a row to edit the message or pick a new time, then click **Save**. The line next to **Save** shows when it sends. **Send now** is in the arrow menu. Choose it, then click **Send now**.
+
+The trash icon is **Cancel send**. It stops the email and moves it back to **Drafts**. Closing the window leaves it scheduled.
+
+<Frame>
+  <img className="block dark:hidden" src="/images/scheduled-send/editor.png" alt="Scheduled email footer with Save, the send time, and the cancel icon highlighted" />
+  <img className="hidden dark:block" src="/images/scheduled-send/editor-dark.png" alt="Scheduled email footer with Save, the send time, and the cancel icon highlighted" />
+</Frame>
+
+A reply stays in its thread, marked **Scheduled**, and opens the same editor.
+
+## If it fails
+
+A send that cannot go out stays in **Scheduled**, marked **Failed**, with the reason next to the subject. It was never sent. **Dismiss** removes it from the list.
+
+## From the API or the CLI
+
+Pass `sendAt` when you [send an email](/api-reference/messages/send-email). The response is `202` with `status: scheduled`. [Sending a draft](/api-reference/drafts/send-email-draft) takes the same field, and the draft leaves Drafts.
+
+`GET /v1/inboxes/{id}/scheduled-sends` lists what is waiting. `PATCH` on a send changes `sendAt` only. `DELETE` cancels it and does not put the email back in Drafts.
+
+```bash
+openmail send --to recipient@example.com --subject "Thursday" \
+  --body "Thursday works." --send-at 2026-11-24T06:00:00Z
+openmail scheduled list
+```
+
+The other commands are on the [CLI](/integrations/cli#scheduled) page.
