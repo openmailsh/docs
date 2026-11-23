@@ -183,6 +183,9 @@
             "group": "Messages",
             "pages": [
               "POST /v1/inboxes/{id}/send",
+              "GET /v1/inboxes/{id}/scheduled-sends",
+              "PATCH /v1/inboxes/{id}/scheduled-sends/{sendId}",
+              "DELETE /v1/inboxes/{id}/scheduled-sends/{sendId}",
               "GET /v1/inboxes/{id}/messages",
               "GET /v1/inboxes/{id}/threads",
               "PATCH /v1/threads/{id}",

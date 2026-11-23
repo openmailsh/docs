@@ -10,19 +10,44 @@ The time has to be at least 30 seconds from now and within 30 days. Rate limits,
 
 ## Pick a time
 
-The menu lists **Tomorrow morning**, **Tomorrow afternoon**, and **Monday morning**. **Pick date & time** is for any other time.
+<Steps>
+  <Step title="Open the menu">
+    The arrow next to **Send** opens the menu. It lists the next morning, the next afternoon, and the next Monday morning. **Pick date & time** is for any other time.
 
-After you pick one, the button changes from **Send** to **Schedule**, and a line next to it shows when it will go. **Send now** in the same menu clears the time.
+    <Frame>
+      <img className="block dark:hidden" src="/images/scheduled-send/menu.png" alt="Send button with the schedule menu open: Tomorrow morning, Tomorrow afternoon, Next Monday morning, and Pick date and time" />
+      <img className="hidden dark:block" src="/images/scheduled-send/menu-dark.png" alt="Send button with the schedule menu open: Tomorrow morning, Tomorrow afternoon, Next Monday morning, and Pick date and time" />
+    </Frame>
+  </Step>
+  <Step title="Schedule it">
+    After you pick a time, the button changes from **Send** to **Schedule**, and a line next to it shows when it will go. Click **Schedule**. **Send now** in the same menu clears the time.
 
-A toast confirms the time. **View** opens that email. **Undo** puts it back in **Drafts**.
+    <Frame>
+      <img className="block dark:hidden" src="/images/scheduled-send/chosen.png" alt="Compose footer showing Sends Tue, Nov 24, 8:00 AM, with the Schedule button highlighted" />
+      <img className="hidden dark:block" src="/images/scheduled-send/chosen-dark.png" alt="Compose footer showing Sends Tue, Nov 24, 8:00 AM, with the Schedule button highlighted" />
+    </Frame>
+
+    A toast confirms the time. **View** opens that email. **Undo** puts it back in **Drafts**.
+  </Step>
+</Steps>
 
 ## Change it
 
-**Scheduled**, in the inbox sidebar, lists what is still waiting, soonest first. Open a row to edit the message or pick a new time, then click **Save**. The line next to **Save** shows when it sends.
+**Scheduled**, in the inbox sidebar, lists what is still waiting, soonest first.
 
-**Send now** is in the arrow menu. Choose it, then click **Send now**.
+<Frame>
+  <img className="block dark:hidden" src="/images/scheduled-send/list.png" alt="Scheduled list with three waiting emails, soonest first" />
+  <img className="hidden dark:block" src="/images/scheduled-send/list-dark.png" alt="Scheduled list with three waiting emails, soonest first" />
+</Frame>
 
-**Cancel send** stops it and moves the email back to **Drafts**. Closing the window leaves it scheduled.
+Open a row to edit the message or pick a new time, then click **Save**. The line next to **Save** shows when it sends. **Send now** is in the arrow menu. Choose it, then click **Send now**.
+
+The trash icon is **Cancel send**. It stops the email and moves it back to **Drafts**. Closing the window leaves it scheduled.
+
+<Frame>
+  <img className="block dark:hidden" src="/images/scheduled-send/editor.png" alt="Scheduled email footer with Save, the send time, and the cancel icon highlighted" />
+  <img className="hidden dark:block" src="/images/scheduled-send/editor-dark.png" alt="Scheduled email footer with Save, the send time, and the cancel icon highlighted" />
+</Frame>
 
 A reply stays in its thread, marked **Scheduled**, and opens the same editor.
 
