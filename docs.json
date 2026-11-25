@@ -196,6 +196,13 @@
             ]
           },
           {
+            "group": "Folders",
+            "pages": [
+              "GET /v1/inboxes/{id}/folders",
+              "GET /v1/inboxes/{id}/folders/{folderId}/messages"
+            ]
+          },
+          {
             "group": "Drafts",
             "pages": [
               "GET /v1/drafts",

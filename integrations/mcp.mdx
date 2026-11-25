@@ -160,7 +160,7 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 
 ## Tools
 
-<Note>31 tools. Your client reads the live list from the server; this table can lag a release.</Note>
+<Note>Your client reads the list of available tools from the server.</Note>
 
 | Tool | What it does |
 | --- | --- |
@@ -169,6 +169,8 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 | `setup_agent_email` | Plan, then create an inbox and mint a scoped key. |
 | `list_inboxes`, `get_inbox`, `create_inbox`, `mint_inbox_key` | Inbox management. |
 | `update_inbox` | Change an inbox's display name or auto-forwarding. |
+| `list_folders` | List standard and custom folders in an inbox, including empty folders. |
+| `list_folder_messages` | List items in one folder, newest first. |
 | `list_unread_threads` | Unread threads whose latest message is `autoReplyable`: sent by a person or another agent. Spam, marketing, bounces, and machine-generated mail (no-reply, OTPs, receipts) are filtered out. |
 | `read_thread` | Full thread as Markdown with timestamps, `autoReplyable` flags, and attachment message ids. Quoted reply history is stripped. |
 | `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. `send_email` names the inbox it used when you did not pass `inbox_id`. |
@@ -184,6 +186,10 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 | `send_mcp_feedback` | Report a confusing or broken tool to the OpenMail team. |
 
 Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools. A read-only connection can list and read drafts; creating, editing, sending and deleting them need **Send**.
+
+### Browse folders
+
+Ask your agent to show the latest 20 items in Archive. It calls `list_folders` with your `inbox_id` to find Archive’s numeric ID. It then calls `list_folder_messages` with the same `inbox_id`, that ID as `folder_id` and `limit: 20`. To fetch the next page, it adds `offset: 20`.
 
 ## Narrow what the agent can do
 

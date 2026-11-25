@@ -80,6 +80,17 @@ openmail messages list --direction inbound --limit 20 --json
 
 Run `threads list --is-read false`, handle what comes back, mark each thread read.
 
+### Browse folders
+
+List the folders in an inbox, including empty custom folders. Find the folder you want and use its numeric ID in the second command (shown here as `42`).
+
+```bash
+openmail folders list --inbox-id inb_xxx
+openmail folders messages --inbox-id inb_xxx --folder-id 42 --limit 20 --offset 0
+```
+
+Omit `--inbox-id` from both commands to use your default inbox. Items appear newest first. For the next 20 items, use `--offset 20`.
+
 ### Attachments
 
 ```bash
