@@ -160,7 +160,7 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 
 ## Tools
 
-<Note>31 tools. Your client reads the live list from the server; this table can lag a release.</Note>
+<Note>Your client reads the list of available tools from the server.</Note>
 
 | Tool | What it does |
 | --- | --- |
@@ -169,6 +169,8 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 | `setup_agent_email` | Plan, then create an inbox and mint a scoped key. |
 | `list_inboxes`, `get_inbox`, `create_inbox`, `mint_inbox_key` | Inbox management. |
 | `update_inbox` | Change an inbox's display name or auto-forwarding. |
+| `list_folders` | List standard and custom folders in an inbox, including empty folders. |
+| `list_folder_messages` | List items in one folder, newest first. |
 | `list_unread_threads` | Unread threads whose latest message is `autoReplyable`: sent by a person or another agent. Spam, marketing, bounces, and machine-generated mail (no-reply, OTPs, receipts) are filtered out. |
 | `read_thread` | Full thread as Markdown with timestamps, `autoReplyable` flags, and attachment message ids. Quoted reply history is stripped. |
 | `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. `send_email` names the inbox it used when you did not pass `inbox_id`. |
@@ -194,6 +196,10 @@ For a group message, pass an ordered array of addresses to `send_email`, for exa
 | Read only, no sending | `https://mcp.openmail.sh/mcp/readonly` or `?readonly=true` |
 | One inbox, no discovery | `https://mcp.openmail.sh/mcp/inbox/INBOX_ID` |
 | Fewer tools | `?toolsets=mailbox,docs` or the `X-MCP-Toolsets` header |
+
+## Browse folders
+
+Ask your agent to show the latest 20 items in Archive. It calls `list_folders` to find Archive’s numeric ID, then `list_folder_messages` with that `folder_id` and `limit: 20` in the same inbox. Both tools work on read-only connections. The result distinguishes messages from saved drafts and gives the next offset when more items are available.
 
 ## What the connected client can do
 

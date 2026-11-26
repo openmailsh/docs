@@ -78,6 +78,8 @@ Replies go to the sender OpenMail recorded, not one the message claims. The mode
 | `openmail_list_threads` | Threads, newest first |
 | `openmail_read_thread` | Every message in a thread |
 | `openmail_list_messages` | Messages, inbound or outbound |
+| `openmail_list_folders` | List the folders in an inbox, including empty custom folders. |
+| `openmail_list_folder_messages` | Browse one folder by numeric ID, newest first. Results identify messages and saved drafts. |
 | `openmail_attachment_text` | Text from PDF, DOCX, XLSX, images |
 | `openmail_list_inboxes` | Inboxes the key can see |
 | `openmail_create_inbox` | New inbox (pod or account key) |
@@ -85,6 +87,10 @@ Replies go to the sender OpenMail recorded, not one the message claims. The mode
 For a group message, pass the addresses in `to` as an array, such as `["alex@example.com", "sam@example.com"]`.
 
 Tools default to the agent's own inbox. The bundled [`openmail` skill](/integrations/skill-files/openmail) teaches it the [CLI](/integrations/cli) for administration: sender rules, pods, deleting inboxes. Install the CLI separately.
+
+### Browse folders
+
+With plugin 0.3.4 or later, ask Hermes to show a folder such as Archive or Finance/Receipts. It calls `openmail_list_folders` to look up the numeric ID, then passes it as `folder_id` to `openmail_list_folder_messages` in the same inbox. Use `limit` and `offset` for subsequent pages.
 
 ## Several inboxes
 
