@@ -74,7 +74,7 @@ To use your own unsubscribe system instead, set the headers yourself with `heade
 
 - Put `{{unsubscribe_url}}` in the body to show the unsubscribe link in the message.
 - A body with `{{unsubscribe_url}}` is rejected when the send carries no unsubscribe link, so the placeholder never reaches a recipient unfilled.
-- The link opts out the `to` address only, so you can't combine `"unsubscribe": true` with `cc` or `bcc`.
+- `"unsubscribe": true` requires exactly one recipient across To, Cc and Bcc. For individual opt-out links, send a separate message to each recipient.
 - An unsubscribed recipient stays blocked even if they later write to you, so your agent can't reply to them. If they ask to hear from you again, email support@openmail.sh to lift the suppression.
 
 Suppressions are one part of deliverability. For domain setup, warm-up and content, see [Email deliverability](/best-practices/email-deliverability).

@@ -40,7 +40,7 @@ openmail send \
 ```
 
 Flags:
-- `--to` (required) — recipient address
+- `--to` (required) — one address or a quoted comma-separated list, such as `--to 'alex@example.com,sam@example.com'`. All To recipients see the list.
 - `--subject` (required unless `--thread-id` is set) — email subject
 - `--body` (required) — plain text or HTML (HTML is auto-detected and rendered)
 - `--thread-id` — reply in an existing thread (quotes previous message by default)
@@ -117,6 +117,7 @@ Message object:
   "inboxId": "inb_...",
   "fromAddr": "Alice <alice@example.com>",
   "toAddr": "agent@omail.sh",
+  "toRecipients": ["agent@omail.sh", "sam@example.com"],
   "subject": "Hello",
   "bodyText": "Plain text content",
   "bodyHtml": "<p>HTML content</p>",
@@ -189,7 +190,7 @@ Content-Type: application/json
 Idempotency-Key: <uuid>
 
 {
-  "to": "recipient@example.com",
+  "to": ["alex@example.com", "sam@example.com"],
   "cc": ["colleague@example.com"],
   "bcc": ["crm@hubspot.example"],
   "subject": "Hello",
@@ -221,6 +222,11 @@ or cancel with `DELETE` on that path. List waiting emails with
 
 `replyTo` is optional. When set, the email's `Reply-To` header is populated
 with that address so replies route there instead of to the sending inbox.
+
+`to` accepts one address, a comma-separated list, or an ordered array. Drafts and
+scheduled sends preserve the To list. On message reads, `toRecipients` contains
+the visible To addresses in header order. It can be empty. On outbound messages,
+`toAddr` holds the first To recipient.
 
 `cc` and `bcc` are optional arrays. `bcc` addresses receive the message but are
 hidden from the To and Cc recipients — use it for CRM logging addresses. Every
