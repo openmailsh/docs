@@ -62,6 +62,8 @@ Repeat `--to` once per recipient to send one message with a visible To list. Rep
 
 HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe. `--send-at` holds the email until that ISO-8601 time (30 seconds to 30 days ahead) and returns the scheduled send instead of a sent message.
 
+With CLI 0.13.0, `openmail drafts send` also accepts `--send-at` alongside the reviewed draft ID and `--updated-at`. See [Schedule a send](/concepts/scheduled-send).
+
 ### Scheduled
 
 ```bash

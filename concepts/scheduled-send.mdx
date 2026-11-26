@@ -67,4 +67,12 @@ openmail send --to recipient@example.com --subject "Thursday" \
 openmail scheduled list
 ```
 
+To schedule a saved draft from CLI 0.13.0 or OpenClaw plugin 0.1.12, read the draft and use its exact `updatedAt`:
+
+```bash
+openmail drafts send --draft-id "<draft-id>" --updated-at "<reviewed updatedAt>" --send-at "<ISO-8601 time with timezone>" --json
+```
+
+In OpenClaw, prefix the command with `openclaw openmail --` in place of `openmail`. In hosted MCP, call `send_draft`. In Hermes 0.3.5, call `openmail_send_draft`. Both take `draft_id`, the reviewed `updated_at`, and the requested time in `send_at`. When the draft is accepted, it leaves Drafts. Keep the scheduled-send ID to change the time or cancel it.
+
 The other commands are on the [CLI](/integrations/cli#scheduled) page.

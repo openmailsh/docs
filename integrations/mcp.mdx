@@ -180,7 +180,7 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 | `delete_thread`, `delete_message` | Move a thread to Trash (restorable for 30 days), or delete one message permanently. |
 | `create_draft`, `edit_draft` | Save an HTML draft in its sending inbox, or change it without sending. Replies and forwards stay linked to their source thread. |
 | `list_drafts`, `get_draft` | Find drafts across inboxes and review one before sending. |
-| `send_draft`, `delete_draft` | Send the reviewed version, or discard it. Both need the exact `updated_at` you reviewed, so newer edits are never sent or lost. |
+| `send_draft`, `delete_draft` | Send the reviewed version now or at a specified `send_at`, or discard it with `delete_draft`. Both need the exact `updated_at` you reviewed, so newer edits are never sent or lost. |
 | `get_attachment`, `get_attachment_text` | The attachment file, or its extracted text. Use the `message:` id shown in `read_thread`. |
 | `list_domains`, `add_domain`, `get_domain`, `verify_domain` | Custom domains with pasteable DNS records. Pro plan. |
 | `send_mcp_feedback` | Report a confusing or broken tool to the OpenMail team. |
