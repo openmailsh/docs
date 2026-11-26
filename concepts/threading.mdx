@@ -21,6 +21,8 @@ When you send with a `threadId`, we automatically set:
 
 This ensures your reply threads correctly in the recipient's email client (Gmail, Outlook, etc.).
 
+Set `to` to the people you want to reply to. The API automatically copies senders who visibly Cc'd your inbox on the thread. If the latest inbound message reached your inbox by blind copy, the reply goes only to the recipients you specify.
+
 We also append a quoted copy of the previous message to the body by default (the familiar `On … wrote:` block with `>`-prefixed lines). Pass `includeQuote: false` to send only your reply text.
 
 ## Thread context

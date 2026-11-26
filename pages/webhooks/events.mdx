@@ -38,7 +38,8 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
     "rfc_message_id": "<original@message.id>",
     "from": "sender@example.com",
     "to": "inbox@omail.sh",
-    "header_to": "inbox@omail.sh",
+    "header_to": "inbox@omail.sh, sam@example.com",
+    "to_recipients": ["inbox@omail.sh", "sam@example.com"],
     "delivery_role": "to",
     "cc": [],
     "address_names": { "sender@example.com": "Sam Sender" },
@@ -77,6 +78,7 @@ OpenMail sends webhooks when inbound email is received, and when the reputation 
 | `message.id` | Unique message ID |
 | `message.from` | Sender email address |
 | `message.to` | Envelope recipient address |
+| `message.to_recipients` | Visible To addresses in header order. An empty array means the message has no visible To address. Use this field when displaying or forwarding the original recipients. |
 | `message.cc` | Cc addresses |
 | `message.address_names` | Display names from the From, To, and Cc headers, keyed by address. `null` when none. |
 | `message.subject` | Email subject line |

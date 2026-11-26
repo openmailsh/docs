@@ -76,7 +76,7 @@ The plugin bundles the [CLI](/integrations/cli) and a skill that teaches the age
 
 ```bash
 openclaw openmail -- threads get --thread-id <id> --json
-openclaw openmail --account sales -- send --to a@b.com --body "..."
+openclaw openmail --account sales -- send --to alex@example.com --to sam@example.com --subject "Review" --body "Can you both review the proposal?"
 ```
 
 New threads also work through `openclaw message send --channel openmail --to a@b.com "…"`; the first line becomes the subject.

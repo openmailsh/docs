@@ -185,6 +185,8 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 
 Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools. A read-only connection can list and read drafts; creating, editing, sending and deleting them need **Send**.
 
+For a group message, pass an ordered array of addresses to `send_email`, for example `"to": ["alex@example.com", "sam@example.com"]`. Both recipients see the full To list.
+
 ## Narrow what the agent can do
 
 | Goal | URL |

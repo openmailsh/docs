@@ -155,6 +155,10 @@ curl -s -X POST "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/send" \
 
 Save the `threadId` from the response to reply in the same thread later.
 
+To send one message to several people, pass an ordered array such as
+`"to": ["alex@example.com", "sam@example.com"]`. Each recipient sees the
+full To list.
+
 ## Reply in a thread
 
 ```bash
@@ -200,6 +204,7 @@ curl -s -X POST "https://api.openmail.sh/v1/inboxes/$OPENMAIL_INBOX_ID/send" \
   -H "Authorization: Bearer $OPENMAIL_API_KEY" \
   -H "Idempotency-Key: $(uuidgen)" \
   -F "to=recipient@example.com" \
+  -F "to=colleague@example.com" \
   -F "subject=Report attached" \
   -F "body=See the attached file." \
   -F "attachments=@/path/to/report.pdf"
@@ -235,6 +240,7 @@ The event payload is identical for both methods:
     "id": "msg_4c8d5e6f",
     "from": "customer@example.com",
     "to": "jane@omail.sh",
+    "to_recipients": ["jane@omail.sh", "sam@example.com"],
     "subject": "Re: Your order",
     "body_text": "Thanks for following up...",
     "attachments": [
