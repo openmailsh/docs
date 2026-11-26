@@ -187,10 +187,6 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 
 Tools follow the credential. An inbox-scoped key hides `list_inboxes`, `setup_agent_email`, and the domain tools. A read-only connection can list and read drafts; creating, editing, sending and deleting them need **Send**.
 
-### Browse folders
-
-Ask your agent to show the latest 20 items in Archive. It calls `list_folders` with your `inbox_id` to find Archive’s numeric ID. It then calls `list_folder_messages` with the same `inbox_id`, that ID as `folder_id` and `limit: 20`. To fetch the next page, it adds `offset: 20`.
-
 ## Narrow what the agent can do
 
 | Goal | URL |
@@ -198,6 +194,10 @@ Ask your agent to show the latest 20 items in Archive. It calls `list_folders` w
 | Read only, no sending | `https://mcp.openmail.sh/mcp/readonly` or `?readonly=true` |
 | One inbox, no discovery | `https://mcp.openmail.sh/mcp/inbox/INBOX_ID` |
 | Fewer tools | `?toolsets=mailbox,docs` or the `X-MCP-Toolsets` header |
+
+## Browse folders
+
+Ask your agent to show the latest 20 items in Archive. It calls `list_folders` to find Archive’s numeric ID, then `list_folder_messages` with that `folder_id` and `limit: 20` in the same inbox. Both tools work on read-only connections. The result distinguishes messages from saved drafts and gives the next offset when more items are available.
 
 ## What the connected client can do
 

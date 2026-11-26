@@ -81,6 +81,15 @@ openclaw openmail --account sales -- send --to a@b.com --body "..."
 
 New threads also work through `openclaw message send --channel openmail --to a@b.com "…"`; the first line becomes the subject.
 
+### Browse folders
+
+With plugin 0.1.10 or later, find a folder in the selected inbox and use its numeric ID to read its contents. The example uses folder ID `42` and returns the newest 20 items.
+
+```bash
+openclaw openmail -- folders list --inbox-id inb_xxx --json
+openclaw openmail -- folders messages --inbox-id inb_xxx --folder-id 42 --limit 20 --offset 0 --json
+```
+
 ## Several inboxes
 
 **One account per inbox.** Each has its own key and can be bound to a different agent.
