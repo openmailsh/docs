@@ -4,7 +4,7 @@ description: "Give your OpenClaw agent an email address."
 icon: shrimp
 ---
 
-Install [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) and mail to the agent's address wakes it. Replies go out in the same thread.
+Install [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) to give your agent an inbox. Choose automatic replies, new-mail alerts, or checking mail when you ask.
 
 ## Before you start
 
@@ -35,7 +35,7 @@ Install [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) an
   </Step>
 </Steps>
 
-Email the agent and it answers in the thread. Or ask it on your usual chat:
+You can also manage mail from your usual chat:
 
 - "What's in the inbox since this morning?"
 - "Reply to Marc that Thursday works, and cc Jonas."
@@ -47,7 +47,7 @@ Something off? `openclaw logs | grep openmail`.
 
 | Mode | When mail arrives | Good for |
 | --- | --- | --- |
-| `channel` | The agent replies to people in the thread. Automated mail triggers a new-mail alert. | An inbox that *is* the agent: `support@` |
+| `channel` | Personal mail can receive an automatic reply. Mail that needs your attention triggers an alert. | An inbox that *is* the agent: `support@` |
 | `notify` | You get a new-mail alert on your usual chat. | Your own inbox |
 | `tool` | Nothing. The agent reads the inbox when you ask. | "Sign up for X and tell me the code" |
 
@@ -68,7 +68,9 @@ Blocked mail is dropped on the server; the agent never sees it.
 
 ### Prompt injection
 
-Replies go to the sender OpenMail recorded, not one the message claims. The bundled CLI takes credentials from the channel config and rejects `--api-key` and `--base-url`, so a forged mail can't point the agent at another account. The agent can still start new threads; to stop that, make the inbox's outbound policy an allowlist.
+From plugin 0.1.13, automatic replies use only the current email and text extracted from its attachments. They go to the sender in the same thread. Other participants receive no copy. Your chat history, other mail, files and tools are unavailable to the automatic responder.
+
+If the responder needs more information, needs you to take action, or cannot run in isolation, you get a new-mail alert. Ask your agent to open the thread when you want to follow up.
 
 ## What the agent can do
 
@@ -105,7 +107,7 @@ openclaw channels add --channel openmail --account sales   --api-key <key> --mai
 openclaw channels add --channel openmail --account outreach --api-key <key> --pod outreach
 ```
 
-Each sender gets a conversation per inbox; replies leave from the inbox that received the mail. Set modes per inbox under `channels.openmail.inboxes` in `openclaw.json`:
+Replies leave from the inbox that received the mail. Set modes per inbox under `channels.openmail.inboxes` in `openclaw.json`:
 
 ```json
 "inboxes": {
@@ -116,7 +118,7 @@ Each sender gets a conversation per inbox; replies leave from the inbox that rec
 
 ## Attachments
 
-When the agent replies in `channel` mode, it receives extracted text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR), up to 8k characters per file and 24k total. Attachments without extracted text arrive as files. `mediaMaxMb` caps their total size per email (default 20).
+From plugin 0.1.13, automatic replies can use up to 8,000 characters of extracted text per attachment and 24,000 in total. If an attachment has no extracted text or exceeds either limit, you get a new-mail alert.
 
 To read an attachment after an alert, ask the agent to open it. In plugin 0.1.9 or later, you can also find the message and attachment IDs with `threads get --json` or `messages list --json`. Pass them as `--message-id` and `--attachment-id` to `attachments get` or `attachments text`.
 
@@ -145,7 +147,6 @@ To read an attachment after an alert, ask the agent to open it. In plugin 0.1.9 
 | `inboxId` | Inbox this account serves |
 | `podId` | Pod this account serves. Replaces `inboxId` |
 | `mode` | `channel` (default), `notify`, or `tool` |
-| `mediaMaxMb` | Staged attachment cap per email. Default `20`; `0` disables |
 | `inboxes` | Per-inbox `mode` overrides, pod accounts only |
 | `accounts` | Named accounts with the fields above. Select with `--account` |
 
