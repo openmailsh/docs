@@ -58,7 +58,7 @@ openmail send --to marc@example.com --subject "Report" --body "Attached." --atta
 openmail send --to marc@example.com --subject "Thursday" --body "Thursday works." --send-at 2026-11-24T06:00:00Z
 ```
 
-Repeat `--to` once per recipient to send one message with a visible To list. Use the same flags for replies, draft creation and editing, scheduled sends, and sends with attachments. Repeat `--cc` for visible copies or `--bcc` for blind copies.
+Repeat `--to` once per recipient to send one message with a visible To list. Repeat `--cc` for visible copies or `--bcc` for blind copies.
 
 HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe. `--send-at` holds the email until that ISO-8601 time (30 seconds to 30 days ahead) and returns the scheduled send instead of a sent message.
 
