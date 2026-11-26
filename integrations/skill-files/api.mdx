@@ -40,7 +40,7 @@ openmail send \
 ```
 
 Flags:
-- `--to` (required) — one address or a quoted comma-separated list, such as `--to 'alex@example.com,sam@example.com'`. All To recipients see the list.
+- `--to` (required) — when `openmail help send` says “repeat the flag”, use `--to alex@example.com --to sam@example.com`. On CLI 0.10.0, use `--to 'alex@example.com,sam@example.com'`. All To recipients see the list.
 - `--subject` (required unless `--thread-id` is set) — email subject
 - `--body` (required) — plain text or HTML (HTML is auto-detected and rendered)
 - `--thread-id` — reply in an existing thread (quotes previous message by default)

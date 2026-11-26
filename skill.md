@@ -27,7 +27,7 @@ openmail send \
   --body "Plain text body."
 ```
 
-For one message to several visible recipients, use a quoted list such as `--to 'alex@example.com,sam@example.com'`. Each recipient sees both addresses.
+For several visible To recipients, use `--to alex@example.com --to sam@example.com` when `openmail help send` says “repeat the flag”. On CLI 0.10.0, pass one quoted list, such as `--to 'alex@example.com,sam@example.com'`. Each recipient sees both addresses.
 
 Reply in a thread with `--thread-id thr_...`. Put HTML directly in `--body` — it is detected and rendered automatically. Attach files with `--attach <path>` (repeatable). The response includes `messageId` and `threadId` — store `threadId` to continue the conversation later.
 
