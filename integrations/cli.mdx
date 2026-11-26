@@ -50,6 +50,7 @@ Key scope decides what works:
 
 ```bash
 openmail send --to marc@example.com --subject "Thursday" --body "Thursday works."     # new thread
+openmail send --to marc@example.com --to jonas@example.com --subject "Review" --body "Please review the proposal."
 openmail send --to marc@example.com --cc jonas@example.com --subject "Hi" --body "<p>Hi</p>"  # cc, HTML body
 openmail send --to marc@example.com --bcc crm@hubspot.example --subject "Hi" --body "Hi"       # bcc a CRM logging address
 openmail send --to marc@example.com --thread-id thr_xxx --body "Confirmed." --no-quote   # reply, no quoted history
@@ -57,21 +58,7 @@ openmail send --to marc@example.com --subject "Report" --body "Attached." --atta
 openmail send --to marc@example.com --subject "Thursday" --body "Thursday works." --send-at 2026-11-24T06:00:00Z
 ```
 
-For several To recipients, give each address its own `--to` when `openmail help send` says “repeat the flag”. CLI 0.10.0 accepts one `--to` with a quoted, comma-separated list.
-
-<CodeGroup>
-
-```bash Repeatable --to
-openmail send --to marc@example.com --to jonas@example.com --subject "Review" --body "Please review the proposal."
-```
-
-```bash CLI 0.10.0
-openmail send --to 'marc@example.com,jonas@example.com' --subject "Review" --body "Please review the proposal."
-```
-
-</CodeGroup>
-
-Both forms send one message and show everyone the same To list. Use the same recipient syntax when replying, creating or editing a draft, scheduling a send, or attaching a file. Repeat `--cc` for visible copies or `--bcc` for blind copies.
+Repeat `--to` once per recipient to send one message with a visible To list. Use the same flags for replies, draft creation and editing, scheduled sends, and sends with attachments. Repeat `--cc` for visible copies or `--bcc` for blind copies.
 
 HTML in `--body` is detected. With `--thread-id` the subject is optional and the API quotes the previous message under your text the way a mail client does; `--no-quote` sends your text alone, handy when the chain is long. `--reply-to` on the free plan has to be an inbox you own; `--idempotency-key` makes retries safe. `--send-at` holds the email until that ISO-8601 time (30 seconds to 30 days ahead) and returns the scheduled send instead of a sent message.
 

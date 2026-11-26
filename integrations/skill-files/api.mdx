@@ -40,7 +40,7 @@ openmail send \
 ```
 
 Flags:
-- `--to` (required) — when `openmail help send` says “repeat the flag”, use `--to alex@example.com --to sam@example.com`. On CLI 0.10.0, use `--to 'alex@example.com,sam@example.com'`. All To recipients see the list.
+- `--to` (required) — repeat once per recipient, for example `--to alex@example.com --to sam@example.com`. All To recipients see the list.
 - `--subject` (required unless `--thread-id` is set) — email subject
 - `--body` (required) — plain text or HTML (HTML is auto-detected and rendered)
 - `--thread-id` — reply in an existing thread (quotes previous message by default)
@@ -223,7 +223,7 @@ or cancel with `DELETE` on that path. List waiting emails with
 `replyTo` is optional. When set, the email's `Reply-To` header is populated
 with that address so replies route there instead of to the sending inbox.
 
-`to` accepts one address, a comma-separated list, or an ordered array. Drafts and
+For JSON requests, pass one address or an ordered array in `to`. Drafts and
 scheduled sends preserve the To list. On message reads, `toRecipients` contains
 the visible To addresses in header order. It can be empty. On outbound messages,
 `toAddr` holds the first To recipient.
