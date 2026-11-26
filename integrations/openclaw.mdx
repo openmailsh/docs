@@ -47,13 +47,13 @@ Something off? `openclaw logs | grep openmail`.
 
 | Mode | When mail arrives | Good for |
 | --- | --- | --- |
-| `channel` | The agent replies in the thread. | An inbox that *is* the agent: `support@` |
-| `notify` | The agent tells you on your usual chat and does nothing else. | Your own inbox |
+| `channel` | The agent replies to people in the thread. Automated mail triggers a new-mail alert. | An inbox that *is* the agent: `support@` |
+| `notify` | You get a new-mail alert on your usual chat. | Your own inbox |
 | `tool` | Nothing. The agent reads the inbox when you ask. | "Sign up for X and tell me the code" |
 
 Default is `channel`. Change it with `--mode notify` on `channels add`, or [per inbox](#several-inboxes).
 
-Only mail from a person gets a reply. Notifications and verification codes reach the agent as information, so it never answers `noreply@`. Spam never reaches it.
+From plugin 0.1.11, an alert tells you only that email arrived. Ask “What does it say?” to have the agent open the thread. Spam never reaches the agent.
 
 ## Who can email the agent
 
@@ -107,9 +107,9 @@ Each sender gets a conversation per inbox; replies leave from the inbox that rec
 
 ## Attachments
 
-Text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR) reaches the agent inline, up to 8k characters per file and 24k total. Files without text arrive as files, so a vision model sees the picture; `mediaMaxMb` caps the total per email (default 20).
+When the agent replies in `channel` mode, it receives extracted text from PDF, DOCX, XLSX, PPTX, CSV, and images (OCR), up to 8k characters per file and 24k total. Attachments without extracted text arrive as files. `mediaMaxMb` caps their total size per email (default 20).
 
-In plugin 0.1.9 or later, pass `--message-id` and `--attachment-id` to `attachments get` or `attachments text`. Both IDs appear in the notification, `threads get --json`, and `messages list --json`.
+To read an attachment after an alert, ask the agent to open it. In plugin 0.1.9 or later, you can also find the message and attachment IDs with `threads get --json` or `messages list --json`. Pass them as `--message-id` and `--attachment-id` to `attachments get` or `attachments text`.
 
 ## Configuration reference
 
