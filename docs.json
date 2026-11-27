@@ -183,7 +183,6 @@
             "group": "Messages",
             "pages": [
               "POST /v1/inboxes/{id}/send",
-              "POST /v1/inboxes/{id}/messages/{messageId}/reply",
               "GET /v1/inboxes/{id}/scheduled-sends",
               "PATCH /v1/inboxes/{id}/scheduled-sends/{sendId}",
               "DELETE /v1/inboxes/{id}/scheduled-sends/{sendId}",
