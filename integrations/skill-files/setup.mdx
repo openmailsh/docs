@@ -22,11 +22,11 @@ The plugin bundles the CLI and the skill. See [OpenClaw](/integrations/openclaw)
 
 ```bash
 hermes plugins install openmailsh/hermes-plugin --enable
-hermes openmail setup
+hermes openmail setup --mode alert
 hermes gateway run
 ```
 
-The plugin bundles the skill. `hermes openmail setup` asks for an API key (any scope), picks or creates the inbox and writes `~/.hermes/.env`. See [Hermes](/integrations/hermes).
+The plugin bundles the skill. For an existing profile, omit `--mode alert` to keep its mode. Setup asks for an API key (any scope), picks or creates the inbox and writes `~/.hermes/.env`. See [Hermes](/integrations/hermes).
 
 ## Claude Code, Cursor, Codex
 
