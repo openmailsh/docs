@@ -55,6 +55,8 @@ Default is `channel`. Change it with `--mode notify` on `channels add`, or [per 
 
 From plugin 0.1.11, an alert tells you only that email arrived. Ask “What does it say?” to have the agent open the thread. Spam never reaches the agent.
 
+Automatic replies go only to the sender of the incoming message. They stay in the thread and omit quoted history.
+
 ## Who can email the agent
 
 Anyone, by default. Restrict it under **Allow/Block List** in the [console](https://console.openmail.sh/sender-rules) or with the CLI:
