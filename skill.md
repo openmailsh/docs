@@ -33,6 +33,28 @@ Reply in a thread with `--thread-id thr_...`. Put HTML directly in `--body` — 
 
 **Always reply in the existing thread.** When the user asks you to reply to an email, look up the thread with `openmail threads list` first, then use `--thread-id`. Never create a new thread unless the user explicitly asks for one.
 
+## Scheduling delivery
+
+Choose a time 30 seconds to 30 days ahead. Use an ISO 8601 timestamp with a timezone for `SEND_AT`. To schedule a new message, add `--send-at` to the send command. For a reply, include its existing `--thread-id`.
+
+```bash
+openmail send --to recipient@example.com --subject "Follow-up" --body "Here are the notes." --send-at "$SEND_AT" --json
+```
+
+To schedule a draft the user has approved, pass its ID and the exact version they reviewed.
+
+```bash
+openmail drafts send --draft-id "$DRAFT_ID" --updated-at "$REVIEWED_UPDATED_AT" --send-at "$SEND_AT" --json
+```
+
+The response contains the scheduled send ID. Use it in the same inbox to change the delivery time or cancel delivery at the user's request.
+
+```bash
+openmail scheduled list --inbox-id "$INBOX_ID" --json
+openmail scheduled reschedule --inbox-id "$INBOX_ID" --send-id "$SEND_ID" --send-at "$NEW_SEND_AT"
+openmail scheduled cancel --inbox-id "$INBOX_ID" --send-id "$SEND_ID"
+```
+
 ## Checking for new mail
 
 **Always use `threads list --is-read false` to check for new mail.** This returns only unread threads — emails you haven't processed yet.
@@ -83,6 +105,24 @@ Each message has:
 | `bodyText` | Plain text body (use this) |
 | `attachments` | Array with `filename`, `url`, `sizeBytes` |
 | `createdAt` | ISO 8601 timestamp |
+
+## Browsing and managing folders
+
+List folders to find the numeric ID for a name such as Archive, then use that ID in the same inbox.
+
+```bash
+openmail folders list --inbox-id "$INBOX_ID" --json
+openmail folders messages --inbox-id "$INBOX_ID" --folder-id "$FOLDER_ID" --limit 20 --offset 0 --json
+```
+
+To file a message in a new custom folder, create the folder and use its numeric ID as the destination.
+
+```bash
+openmail folders create --inbox-id "$INBOX_ID" --name Finance/Receipts --json
+openmail folders move --inbox-id "$INBOX_ID" --message-id "$MESSAGE_ID" --folder-id "$FOLDER_ID"
+```
+
+Use `folders rename` or `folders delete` with the folder ID to change a custom folder and its descendants. Use `folders restore --message-id "$MESSAGE_ID"` to return a trashed message to its previous folder. Moving mail into or out of Trash requires a pod or account key.
 
 ## Provisioning an additional inbox
 
