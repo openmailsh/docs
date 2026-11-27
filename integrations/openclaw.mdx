@@ -4,7 +4,7 @@ description: "Give your OpenClaw agent an email address."
 icon: shrimp
 ---
 
-Install [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) and mail to the agent's address wakes it. Replies go out in the same thread.
+Install [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) to give your agent an inbox. New accounts alert you when mail arrives. Choose `channel` mode for automatic in-thread replies.
 
 ## Before you start
 
@@ -35,7 +35,7 @@ Install [`@openmail/openclaw`](https://github.com/openmailsh/openclaw-plugin) an
   </Step>
 </Steps>
 
-Email the agent and it answers in the thread. Or ask it on your usual chat:
+Email the new account. An alert appears in your main chat, where you can ask the agent to read the thread. You can also ask:
 
 - "What's in the inbox since this morning?"
 - "Reply to Marc that Thursday works, and cc Jonas."
@@ -51,7 +51,7 @@ Something off? `openclaw logs | grep openmail`.
 | `notify` | You get a new-mail alert on your usual chat. | Your own inbox |
 | `tool` | Nothing. The agent reads the inbox when you ask. | "Sign up for X and tell me the code" |
 
-Default is `channel`. Change it with `--mode notify` on `channels add`, or [per inbox](#several-inboxes).
+From plugin 0.1.16, `channels add` saves `notify` for a new account. Existing accounts keep their mode when you upgrade or reconnect. In hand-written configuration, an omitted mode inherits the channel setting and falls back to `channel`. To enable automatic replies, pass `--mode channel` on `channels add`, or set the mode [per inbox](#several-inboxes).
 
 From plugin 0.1.11, an alert tells you only that email arrived. Ask “What does it say?” to have the agent open the thread. Spam never reaches the agent.
 
@@ -80,6 +80,8 @@ openclaw openmail --account sales -- send --to alex@example.com --to sam@example
 ```
 
 New threads also work through `openclaw message send --channel openmail --to a@b.com "…"`; the first line becomes the subject.
+
+With plugin 0.1.17 or later, search the selected inbox with `openclaw openmail -- messages search --query "invoice acme" --json`. Every word must match.
 
 ### Browse folders
 
@@ -130,7 +132,7 @@ To read an attachment after an alert, ask the agent to open it. In plugin 0.1.9 
     "openmail": {
       "apiKey": "om_…",
       "inboxId": "…",
-      "mode": "channel",
+      "mode": "notify",
       "accounts": {
         "sales": { "apiKey": { "source": "env", "id": "OPENMAIL_SALES_KEY" }, "inboxId": "…" }
       }
@@ -144,7 +146,7 @@ To read an attachment after an alert, ask the agent to open it. In plugin 0.1.9 
 | `apiKey` | Inbox key, or pod key for a pod account. Accepts an OpenClaw SecretRef |
 | `inboxId` | Inbox this account serves |
 | `podId` | Pod this account serves. Replaces `inboxId` |
-| `mode` | `channel` (default), `notify`, or `tool` |
+| `mode` | `notify` (new accounts), `channel`, or `tool` |
 | `mediaMaxMb` | Staged attachment cap per email. Default `20`; `0` disables |
 | `inboxes` | Per-inbox `mode` overrides, pod accounts only |
 | `accounts` | Named accounts with the fields above. Select with `--account` |

@@ -67,9 +67,10 @@ Each thread has an `isRead` flag. New inbound threads start as unread. Sending a
 ```bash
 openmail messages list --direction inbound --limit 20
 openmail messages list --direction outbound
+openmail messages search --query "invoice acme" --json
 ```
 
-Use `messages list` when you need to search across all messages (e.g. by direction). For checking new mail, use `threads list --is-read false` instead.
+With CLI 0.15.0 or later, `messages search` finds messages where every query word appears in the subject, body, sender or To address. Use `threads list --is-read false` to check for unread mail.
 
 Each message has:
 
