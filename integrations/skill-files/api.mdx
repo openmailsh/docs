@@ -273,13 +273,20 @@ Returns attachment data. Fetch the `url` in the message payload with your API ke
 
 ---
 
+For folder writes, use `POST /v1/inboxes/{id}/folders` with `name`, or `PATCH` or `DELETE /v1/inboxes/{id}/folders/{folderId}` to rename or delete the custom folder and its descendants. Move one message with `PUT /v1/inboxes/{id}/messages/{messageId}/folder` and a numeric `folderId`. Restore it from Trash with `POST /v1/inboxes/{id}/messages/{messageId}/restore` using a pod or account key.
+
+Pass `sendAt` when sending a message or reply to schedule delivery. Use `GET /v1/inboxes/{id}/scheduled-sends` to list queued sends. The optional `status` filter accepts comma-separated values. Use the scheduled-send ID with `PATCH /v1/inboxes/{id}/scheduled-sends/{sendId}` and a new `sendAt`, or `DELETE` on that path to cancel.
+
 ## Rate limits
 
 | Resource | Limit |
 |---|---|
 | Inbox creation | 100 per day |
-| Send per inbox | 10 per minute, 200 per day |
+| Sends per inbox per minute | Starts at 10. Pro and Enterprise inboxes can reach 30 as age and sending volume increase. |
+| Recipients per inbox per day | Starts at 200. Pro and Enterprise inboxes can reach 2,000. Each To, Cc and Bcc recipient counts, including on replies. |
 | API requests | 1,000 per minute |
+
+Enterprise overrides and sender reputation can change these limits. See [rate limits](https://docs.openmail.sh/concepts/rate-limits).
 
 ---
 
