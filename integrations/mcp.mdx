@@ -175,7 +175,7 @@ It calls `setup_agent_email`, which shows a plan first. Confirm, and it creates 
 | `read_thread` | Full thread as Markdown with timestamps, `autoReplyable` flags, and attachment message ids. Quoted reply history is stripped. |
 | `reply_to_thread`, `send_email` | Reply in-thread, or start a new one. `send_email` names the inbox it used when you did not pass `inbox_id`. |
 | `forward_message` | Forward one message to another address, as a new thread from the same inbox. |
-| `search_mail` | Find messages by words in the subject, body, sender or recipient. |
+| `search_mail` | Find messages anywhere in an inbox that contain every word you give, in the subject, body, sender or To address. Pages with `offset`. |
 | `mark_thread_read` | Mark a thread handled. |
 | `delete_thread`, `delete_message` | Move a thread to Trash (restorable for 30 days), or delete one message permanently. |
 | `create_draft`, `edit_draft` | Save an HTML draft in its sending inbox, or change it without sending. Replies and forwards stay linked to their source thread. |

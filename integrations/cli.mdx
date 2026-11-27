@@ -81,9 +81,12 @@ openmail threads list --is-read false --json          # unread threads: the poll
 openmail threads get --thread-id thr_xxx --json      # full thread with message ids and attachments
 openmail threads read --thread-id thr_xxx            # mark read (unread puts it back)
 openmail messages list --direction inbound --limit 20 --json
+openmail messages search --query "invoice acme" --json   # every word must match
 ```
 
 Run `threads list --is-read false`, handle what comes back, mark each thread read.
+
+`messages search` returns messages that contain every word in the subject, body, sender or To address, newest first (CLI 0.14.0 or later).
 
 ### Browse folders
 
@@ -174,7 +177,7 @@ Who may email an inbox (inbound) and who it may email (outbound, checked on To, 
 
 ```bash
 openmail feedback --type bug --message "send returned 500 for plain text" --endpoint /v1/inboxes/{id}/send --error-code internal_error
-openmail feedback --type feature_request --message "search messages by subject"
+openmail feedback --type feature_request --message "filter threads by label"
 ```
 
 Goes to the OpenMail team. Types: `bug`, `friction`, `feature_request`.
