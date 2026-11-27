@@ -165,7 +165,9 @@
               "DELETE /v1/inboxes/{id}",
               "POST /v1/inboxes/{id}/api-keys",
               "GET /v1/inboxes/{id}/api-keys",
-              "DELETE /v1/inboxes/{id}/api-keys/{keyId}"
+              "DELETE /v1/inboxes/{id}/api-keys/{keyId}",
+              "POST /v1/inboxes/{id}/webhook/rotate-secret",
+              "POST /v1/inboxes/{id}/webhook/test"
             ]
           },
           {
