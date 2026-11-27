@@ -75,4 +75,6 @@ openmail drafts send --draft-id "<draft-id>" --updated-at "<reviewed updatedAt>"
 
 In OpenClaw, prefix the command with `openclaw openmail --` in place of `openmail`. In hosted MCP, call `send_draft`. In Hermes 0.3.5, call `openmail_send_draft`. Both take `draft_id`, the reviewed `updated_at`, and the requested time in `send_at`. When the draft is accepted, it leaves Drafts. Keep the scheduled-send ID to change the time or cancel it.
 
+To schedule a new message or a reply, pass `send_at` to hosted MCP’s `send_email` or `reply_to_thread`, or to Hermes 0.4.0’s `openmail_send` or `openmail_reply`. In MCP, use `list_scheduled_sends` to find a send, then pass its `send_id` to `reschedule_scheduled_send` with a new `send_at`, or to `cancel_scheduled_send`. The equivalent Hermes tools use the `openmail_` prefix.
+
 The other commands are on the [CLI](/integrations/cli#scheduled) page.

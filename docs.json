@@ -199,6 +199,11 @@
             "group": "Folders",
             "pages": [
               "GET /v1/inboxes/{id}/folders",
+              "POST /v1/inboxes/{id}/folders",
+              "PATCH /v1/inboxes/{id}/folders/{folderId}",
+              "DELETE /v1/inboxes/{id}/folders/{folderId}",
+              "PUT /v1/inboxes/{id}/messages/{messageId}/folder",
+              "POST /v1/inboxes/{id}/messages/{messageId}/restore",
               "GET /v1/inboxes/{id}/folders/{folderId}/messages"
             ]
           },

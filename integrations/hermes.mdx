@@ -18,6 +18,12 @@ Install [`openmailsh/hermes-plugin`](https://github.com/openmailsh/hermes-plugin
     ```bash
     hermes plugins install openmail --enable
     ```
+
+    If your catalog still lists an earlier version, install the [0.4.0 release](https://github.com/openmailsh/hermes-plugin/releases/tag/v0.4.0) directly for folder management and scheduled sends:
+
+    ```bash
+    hermes plugins install openmailsh/hermes-plugin --ref 82a7188bed96a679e6540c962585875c9b1360f5 --enable
+    ```
   </Step>
   <Step title="Run setup">
     ```bash
@@ -91,6 +97,12 @@ Tools default to the agent's own inbox. The bundled [`openmail` skill](/integrat
 ### Browse folders
 
 With plugin 0.3.4 or later, ask Hermes to show a folder such as Archive or Finance/Receipts. It calls `openmail_list_folders` to look up the numeric ID, then passes it as `folder_id` to `openmail_list_folder_messages` in the same inbox. Use `limit` and `offset` for subsequent pages.
+
+With plugin 0.4.0 or later, you can also manage folders and queued sends.
+
+Use `openmail_create_folder`, `openmail_rename_folder` and `openmail_delete_folder` for custom folders. Renaming or deleting a folder includes its descendants. Use `openmail_move_message` with a message ID and numeric destination folder ID in the same inbox. `openmail_restore_message` returns a trashed message to its previous folder or its default folder if the original was deleted. Moving into or out of Trash requires a pod or account key.
+
+To schedule a new message or reply, pass `send_at` to `openmail_send` or `openmail_reply`. Supply a timestamp with a timezone, 30 seconds to 30 days ahead. Keep the returned scheduled-send ID. Use `openmail_list_scheduled_sends` to find queued mail, `openmail_reschedule_scheduled_send` to change its delivery time, or `openmail_cancel_scheduled_send` to stop it. Pass `statuses` as a list to include sent, sending, cancelled or failed sends.
 
 ## Several inboxes
 

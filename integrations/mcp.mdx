@@ -197,6 +197,10 @@ For a group message, pass an ordered array of addresses to `send_email`, for exa
 | One inbox, no discovery | `https://mcp.openmail.sh/mcp/inbox/INBOX_ID` |
 | Fewer tools | `?toolsets=mailbox,docs` or the `X-MCP-Toolsets` header |
 
+Use `create_folder`, `rename_folder` and `delete_folder` for custom folders. Renaming or deleting a folder includes its descendants. Use `move_message` with a message ID and numeric destination folder ID in the same inbox. `restore_message` returns a trashed message to its previous folder or its default folder if the original was deleted. On OAuth connections, enable **Manage folders** to use these tools.
+
+To schedule a new message or reply, pass `send_at` to `send_email` or `reply_to_thread`. Supply a timestamp with a timezone, 30 seconds to 30 days ahead. Keep the returned scheduled-send ID. Use `list_scheduled_sends` to find queued mail, `reschedule_scheduled_send` to change its delivery time, or `cancel_scheduled_send` to stop it. Pass `statuses` as a list to include sent, sending, cancelled or failed sends.
+
 ## Browse folders
 
 Ask your agent to show the latest 20 items in Archive. It calls `list_folders` to find Archive’s numeric ID, then `list_folder_messages` with that `folder_id` and `limit: 20` in the same inbox. Both tools work on read-only connections. The result distinguishes messages from saved drafts and gives the next offset when more items are available.
